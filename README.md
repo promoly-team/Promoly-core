@@ -64,3 +64,99 @@ git rebase dev
 # se houver conflitos
 git add <arquivos>
 git rebase --continue
+
+
+---
+
+## ✅ Boas práticas de desenvolvimento
+
+Para manter o projeto organizado, escalável e fácil de colaborar, seguimos os padrões abaixo.
+
+---
+
+### 🌿 Padronização de branches
+
+Utilizamos branches curtas, objetivas e orientadas a propósito.
+
+Formato:
+tipo/descricao-curta
+
+Tipos permitidos:
+feat/        → nova funcionalidade
+fix/         → correção de bug
+refactor/    → refatoração sem mudança de comportamento
+chore/       → tarefas técnicas (configs, deps, ajustes internos)
+docs/        → documentação
+
+Exemplos:
+feat/agent-scheduler
+fix/whatsapp-rate-limit
+refactor/engine-core
+docs/update-readme
+
+---
+
+### 📝 Padronização de commits
+
+Adotamos um padrão inspirado no Conventional Commits, com mensagens claras e rastreáveis.
+
+Formato:
+tipo: descrição objetiva no imperativo
+
+Tipos:
+feat:       nova funcionalidade
+fix:        correção de bug
+refactor:   melhoria estrutural
+docs:       documentação
+test:       testes
+chore:      tarefas técnicas
+
+Exemplos:
+feat: adiciona agente de envio por categoria
+fix: corrige controle de frequência por grupo
+refactor: reorganiza engine de agendamento
+docs: documenta fluxo de agentes
+
+Evite commits genéricos como:
+update
+ajustes
+corrigindo coisas
+
+---
+
+### 🔀 Pull Requests (PRs)
+
+- PRs devem ser pequenos e focados
+- Um PR deve resolver um problema ou funcionalidade
+- Descreva claramente o que foi feito e por quê
+- Relacione o PR com a issue ou contexto quando possível
+
+---
+
+### 🔐 Configurações sensíveis
+
+- Nunca versionar arquivos reais de configuração
+- Não versionar:
+  .env
+  agent_config.json
+- Utilize sempre arquivos *_example como base
+- Dados sensíveis devem ser definidos via variáveis de ambiente
+
+---
+
+### 🧪 Qualidade e manutenção
+
+- Priorize código legível e previsível
+- Evite lógica mágica sem documentação
+- Prefira composições simples e reutilizáveis
+- Refatorações são bem-vindas quando melhoram clareza ou extensibilidade
+
+---
+
+### 🧠 Filosofia do projeto
+
+O Promoly é pensado para:
+- Crescer sem reescrita
+- Permitir novos agentes sem impacto no núcleo
+- Manter automação controlada, não caótica
+- Priorizar decisões claras e arquitetura evolutiva
