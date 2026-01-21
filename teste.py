@@ -7,7 +7,7 @@ headers = {
     "X-Api-Key": ""
 }
 data = {
-    "chatId": "5527996956042@c.us",
+    "chatId": "update@c.us",
     "text": "Hi there!",
     "session": "default"
 }
