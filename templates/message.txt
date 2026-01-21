@@ -1,0 +1,11 @@
+Pedidos publicados nas últimas 5 horas:
+
+{% for p in pedidos %}
+➤ *{{p.titulo}}*  
+Valor: {{p.faixa_valor}}  
+Prazo: {{p.prazo_entrega}}  
+Link: {{p.link}}
+
+{% endfor %}
+
+Total: {{pedidos|length}}
