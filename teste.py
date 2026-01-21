@@ -4,7 +4,7 @@ url = "http://localhost:3000/api/sendText"
 headers = {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "X-Api-Key": "f9bfac29c0654fb0b3f0d412c736607c"
+    "X-Api-Key": ""
 }
 data = {
     "chatId": "5527996956042@c.us",
