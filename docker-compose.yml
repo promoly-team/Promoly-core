@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: promoly-core
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      - waha
+    command: python app.py
+
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha
+    ports:
+      - "3000:3000"
