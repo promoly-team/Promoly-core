@@ -2,6 +2,14 @@ FROM python:3.12.3-slim
 
 WORKDIR /app
 
+# Dependências de sistema necessárias para lxml
+RUN apt-get update && apt-get install -y \
+    libxml2-dev \
+    libxslt1-dev \
+    gcc \
+    python3-dev \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

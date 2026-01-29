@@ -1,3 +1,4 @@
+# Scraping
 beautifulsoup4>=4.12.3
 requests>=2.31.0
 lxml>=5.1.0
@@ -10,3 +11,8 @@ google-auth-oauthlib>=1.2.0
 
 # Testes
 pytest>=8.0.0
+pytest-cov>=4.1.0
+
+# Compatibilidade typing (recomendado)
+typing-extensions>=4.9.0
+
