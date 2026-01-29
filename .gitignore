@@ -1,3 +1,7 @@
+#cred google sheets
+creds.json
+
+
 # Environment variables
 .env
 .env.*
