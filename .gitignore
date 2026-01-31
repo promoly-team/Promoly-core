@@ -1,6 +1,8 @@
 #cred google sheets
 creds.json
-
+cookies.json
+chrome-profile
+debug.html
 
 # Environment variables
 .env

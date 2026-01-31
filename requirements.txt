@@ -2,7 +2,11 @@
 beautifulsoup4>=4.12.3
 requests>=2.31.0
 lxml>=5.1.0
+selenium==4.17.2
+webdriver-manager==4.0.1
+
 python-dotenv>=1.0.1
+
 
 # Google Sheets / Google API
 gspread>=6.0.0
@@ -15,4 +19,5 @@ pytest-cov>=4.1.0
 
 # Compatibilidade typing (recomendado)
 typing-extensions>=4.9.0
+
 
