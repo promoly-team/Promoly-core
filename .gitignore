@@ -1,6 +1,10 @@
-#cred google sheets
+# dados
 creds.json
-
+cookies.json
+chrome-profile
+debug.html
+database/*.db
+database/*.sqlite
 
 # Environment variables
 .env
