@@ -9,6 +9,8 @@ from scrapper_mlb.services.extractors.rating import extract_rating
 from scrapper_mlb.services.normalizers.buyers import normalize_buyers
 from scrapper_mlb.services.normalizers.price import normalize_price
 from scrapper_mlb.services.normalizers.rating import normalize_rating
+from scrapper_mlb.services.extractors.discount import extract_discount
+from scrapper_mlb.services.normalizers.discount import normalize_discount
 
 
 def build_product(item):
@@ -31,7 +33,9 @@ def build_product(item):
         avaliacao=normalize_rating(
             extract_rating(item)
         ),                                         # Decimal | None
-        desconto=None,
+        desconto=normalize_discount(
+        extract_discount(item)
+        ),
         link=link,
         imagem_url=extract_image(item),
         buyers=normalize_buyers(
