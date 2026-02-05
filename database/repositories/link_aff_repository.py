@@ -6,19 +6,15 @@ class LinkAfiliadoRepository:
     def __init__(self):
         self.conn = get_connection()
 
-    # -------------------------
-    # CREATE / UPSERT
-    # -------------------------
+    # =========================
+    # CREATE
+    # =========================
     def create_or_get(
         self,
         produto_id: int,
         plataforma_id: int,
         url_original: str,
     ) -> int:
-        """
-        Cria um registro pendente se não existir.
-        Retorna o ID do link_afiliado.
-        """
         cursor = self.conn.cursor()
 
         cursor.execute(
@@ -27,9 +23,10 @@ class LinkAfiliadoRepository:
                 produto_id,
                 plataforma_id,
                 url_original,
-                status
+                status,
+                tentativas
             )
-            VALUES (?, ?, ?, 'pendente')
+            VALUES (?, ?, ?, 'pendente', 0)
             """,
             (produto_id, plataforma_id, url_original),
         )
@@ -38,9 +35,9 @@ class LinkAfiliadoRepository:
 
         return self.get_id(produto_id, plataforma_id)
 
-    # -------------------------
-    # READ
-    # -------------------------
+    # =========================
+    # READ (FILA)
+    # =========================
     def get_id(self, produto_id: int, plataforma_id: int) -> Optional[int]:
         cursor = self.conn.cursor()
         cursor.execute(
@@ -54,37 +51,47 @@ class LinkAfiliadoRepository:
         row = cursor.fetchone()
         return row["id"] if row else None
 
-    def get(self, link_id: int) -> Optional[dict]:
+    def fetch_for_processing(self, limite: int = 5) -> List[dict]:
         cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT *
-            FROM links_afiliados
-            WHERE id = ?
-            """,
-            (link_id,),
-        )
-        row = cursor.fetchone()
-        return dict(row) if row else None
 
-    def list_pendentes(self, limite: int = 10) -> List[dict]:
-        cursor = self.conn.cursor()
+        # marca como processando e captura os ids escolhidos
+        cursor.execute(
+            """
+            UPDATE links_afiliados
+            SET status = 'processando'
+            WHERE id IN (
+                SELECT id
+                FROM links_afiliados
+                WHERE status = 'pendente'
+                AND tentativas < 3
+                ORDER BY created_at ASC
+                LIMIT ?
+            )
+            """,
+            (limite,),
+        )
+
+        self.conn.commit()
+
+        # agora busca os que foram marcados
         cursor.execute(
             """
             SELECT *
             FROM links_afiliados
-            WHERE status = 'pendente'
-              AND tentativas < 5
-            ORDER BY created_at ASC
+            WHERE status = 'processando'
+            ORDER BY updated_at ASC
             LIMIT ?
             """,
             (limite,),
         )
+
         return [dict(row) for row in cursor.fetchall()]
 
-    # -------------------------
+
+
+    # =========================
     # UPDATE
-    # -------------------------
+    # =========================
     def marcar_sucesso(self, link_id: int, url_afiliada: str):
         self.conn.execute(
             """
@@ -99,24 +106,23 @@ class LinkAfiliadoRepository:
         )
         self.conn.commit()
 
+
     def marcar_falha(self, link_id: int, erro: Optional[str] = None):
         self.conn.execute(
             """
             UPDATE links_afiliados
             SET
-                status = 'erro',
+                status = 'pendente',
                 tentativas = tentativas + 1,
+                last_error = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
             """,
-            (link_id,),
+            (erro, link_id),
         )
         self.conn.commit()
 
     def invalidar(self, link_id: int):
-        """
-        Marca definitivamente como inválido (não tentar mais)
-        """
         self.conn.execute(
             """
             UPDATE links_afiliados
@@ -126,15 +132,6 @@ class LinkAfiliadoRepository:
             WHERE id = ?
             """,
             (link_id,),
-        )
-        self.conn.commit()
-
-    # -------------------------
-    # DELETE (opcional)
-    # -------------------------
-    def delete(self, link_id: int):
-        self.conn.execute(
-            "DELETE FROM links_afiliados WHERE id = ?", (link_id,)
         )
         self.conn.commit()
 

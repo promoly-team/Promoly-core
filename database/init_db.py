@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "promoly.db"
+DB_PATH = "/app/data/promoly.db"
 SCHEMA_PATH = BASE_DIR / "schema.sql"
 
 def init_db():

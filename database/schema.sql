@@ -1,4 +1,4 @@
-CREATE TABLE plataformas (
+CREATE TABLE IF NOT EXISTS plataformas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     nome TEXT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE plataformas (
 
 
 
-CREATE TABLE categorias (
+CREATE TABLE IF NOT EXISTS categorias (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     nome TEXT NOT NULL,
@@ -28,14 +28,11 @@ CREATE TABLE categorias (
 );
 
 
-
-
-CREATE TABLE produtos (
+CREATE TABLE IF NOT EXISTS produtos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     external_id TEXT NOT NULL,
     plataforma_id INTEGER NOT NULL,
-    categoria_id INTEGER NOT NULL,
 
     titulo TEXT NOT NULL,
     descricao TEXT,
@@ -47,19 +44,43 @@ CREATE TABLE produtos (
     link_original TEXT NOT NULL,
 
     status TEXT NOT NULL DEFAULT 'novo',
+    card_hash TEXT,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
 
     UNIQUE (external_id, plataforma_id),
 
-    FOREIGN KEY (plataforma_id) REFERENCES plataformas(id),
-    FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+    FOREIGN KEY (plataforma_id) REFERENCES plataformas(id)
 );
 
 
+CREATE TABLE IF NOT EXISTS produto_categoria (
+    produto_id INTEGER NOT NULL,
+    categoria_id INTEGER NOT NULL,
 
-CREATE TABLE links_afiliados (
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (produto_id, categoria_id),
+
+    FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE,
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS produto_preco_historico (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    produto_id INTEGER NOT NULL,
+    preco REAL NOT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS links_afiliados (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     produto_id INTEGER NOT NULL,
@@ -82,7 +103,7 @@ CREATE TABLE links_afiliados (
 
 
 
-CREATE TABLE grupos_whatsapp (
+CREATE TABLE IF NOT EXISTS grupos_whatsapp (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     nome TEXT NOT NULL,
@@ -105,7 +126,7 @@ CREATE TABLE grupos_whatsapp (
 
 
 
-CREATE TABLE envios (
+CREATE TABLE IF NOT EXISTS envios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     produto_id INTEGER NOT NULL,
@@ -129,6 +150,35 @@ CREATE TABLE envios (
     FOREIGN KEY (link_afiliado_id) REFERENCES links_afiliados(id)
 );
 
+CREATE TABLE IF NOT EXISTS pipeline_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pipeline TEXT NOT NULL,
+    status TEXT NOT NULL,
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    finished_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS clicks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    produto_id INTEGER NOT NULL,
+    plataforma_id INTEGER NOT NULL,
+
+    ip TEXT,
+    user_agent TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (produto_id) REFERENCES produtos(id),
+    FOREIGN KEY (plataforma_id) REFERENCES plataformas(id)
+);
+
+CREATE INDEX idx_clicks_produto
+ON clicks(produto_id);
+
+CREATE INDEX idx_clicks_created
+ON clicks(created_at);
+
 
 
 CREATE INDEX idx_produtos_status ON produtos(status);
@@ -136,4 +186,4 @@ CREATE INDEX idx_links_status ON links_afiliados(status);
 CREATE INDEX idx_envios_grupo ON envios(grupo_id);
 CREATE INDEX idx_envios_produto ON envios(produto_id);
 CREATE INDEX idx_envios_enviado_em ON envios(enviado_em);
-
+CREATE INDEX idx_preco_historico_produto ON produto_preco_historico(produto_id);

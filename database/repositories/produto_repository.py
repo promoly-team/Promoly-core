@@ -8,27 +8,36 @@ def _normalize(value):
         return float(value)
     return value
 
+import sqlite3
+
 
 class ProdutoRepository:
     def __init__(self):
-        self.conn = get_connection()
+        self.conn = sqlite3.connect("/app/data/promoly.db")
+        self.conn.row_factory = sqlite3.Row
+        self.conn.execute("PRAGMA foreign_keys = ON")
 
-    # -------------------------
-    # CREATE / UPSERT
-    # -------------------------
+    # 🔎 retorna Row (id, card_hash, status)
+    def get_by_external_id(self, external_id: str, plataforma_id: int):
+        cursor = self.conn.execute(
+            """
+            SELECT id, card_hash, status
+            FROM produtos
+            WHERE external_id = ? AND plataforma_id = ?
+            """,
+            (external_id, plataforma_id),
+        )
+        return cursor.fetchone()
+
+    # 🆕 cria ou atualiza produto
     def upsert(self, produto: dict) -> int:
-        """
-        Insere ou atualiza um produto.
-        Retorna o ID interno do produto.
-        """
-
         cursor = self.conn.cursor()
+
         cursor.execute(
             """
             INSERT INTO produtos (
                 external_id,
                 plataforma_id,
-                categoria_id,
                 titulo,
                 descricao,
                 preco,
@@ -36,7 +45,8 @@ class ProdutoRepository:
                 vendas,
                 imagem_url,
                 link_original,
-                status
+                status,
+                card_hash
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(external_id, plataforma_id)
@@ -48,67 +58,53 @@ class ProdutoRepository:
                 vendas = excluded.vendas,
                 imagem_url = excluded.imagem_url,
                 link_original = excluded.link_original,
+                status = excluded.status,
+                card_hash = excluded.card_hash,
                 updated_at = CURRENT_TIMESTAMP
             """,
             (
                 produto["external_id"],
                 produto["plataforma_id"],
-                produto["categoria_id"],
                 produto["titulo"],
                 produto.get("descricao"),
-                _normalize(produto.get("preco")),
-                _normalize(produto.get("avaliacao")),
+                float(produto["preco"]) if produto.get("preco") is not None else None,
+                float(produto["avaliacao"]) if produto.get("avaliacao") is not None else None,
                 produto.get("vendas"),
                 produto.get("imagem_url"),
                 produto["link_original"],
                 produto.get("status", "novo"),
+                produto["card_hash"],
             ),
         )
 
         self.conn.commit()
 
-        return cursor.lastrowid or self.get_id_by_external(
-            produto["external_id"], produto["plataforma_id"]
-        )
-
-    def bulk_upsert(self, produtos: Iterable[dict]):
-        for p in produtos:
-            self.upsert(p)
-
-    # -------------------------
-    # READ
-    # -------------------------
-    def get_id_by_external(
-        self, external_id: str, plataforma_id: int
-    ) -> Optional[int]:
-        cursor = self.conn.cursor()
-        cursor.execute(
+        # 🔒 SEMPRE buscar o ID real (evita FK intermitente)
+        cursor = self.conn.execute(
             """
             SELECT id
             FROM produtos
             WHERE external_id = ? AND plataforma_id = ?
             """,
-            (external_id, plataforma_id),
+            (produto["external_id"], produto["plataforma_id"]),
         )
         row = cursor.fetchone()
-        return row["id"] if row else None
+        assert row is not None, "Produto não encontrado após upsert"
 
-    def get_by_status(self, status: str):
-        cursor = self.conn.cursor()
-        cursor.execute(
+        return row["id"]
+
+    # 🔗 vínculo N:N produto ↔ categoria
+    def link_categoria(self, produto_id: int, categoria_id: int):
+        self.conn.execute(
             """
-            SELECT *
-            FROM produtos
-            WHERE status = ?
-            ORDER BY created_at ASC
+            INSERT OR IGNORE INTO produto_categoria (produto_id, categoria_id)
+            VALUES (?, ?)
             """,
-            (status,),
+            (produto_id, categoria_id),
         )
-        return cursor.fetchall()
+        self.conn.commit()
 
-    # -------------------------
-    # UPDATE
-    # -------------------------
+    # 🔄 atualiza status quando produto aparece
     def update_status(self, produto_id: int, status: str):
         self.conn.execute(
             """
@@ -120,12 +116,20 @@ class ProdutoRepository:
         )
         self.conn.commit()
 
-    # -------------------------
-    # DELETE
-    # -------------------------
-    def delete(self, produto_id: int):
+    # 🧹 MARCAR PRODUTOS REMOVIDOS (🔥 AQUI ESTÁ O QUE VOCÊ PEDIU 🔥)
+    def mark_removed(self, days: int = 7):
+        """
+        Marca como 'removido' produtos que não aparecem há X dias.
+        """
         self.conn.execute(
-            "DELETE FROM produtos WHERE id = ?", (produto_id,)
+            """
+            UPDATE produtos
+            SET status = 'removido'
+            WHERE
+                status != 'removido'
+                AND updated_at < DATETIME('now', ?)
+            """,
+            (f"-{days} days",),
         )
         self.conn.commit()
 
