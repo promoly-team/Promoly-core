@@ -1,14 +1,26 @@
 services:
-  app:
-    build: .
-    container_name: promoly-core
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: promoly-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
     env_file:
       - .env
+    restart: unless-stopped
+
+  scrapper:
+    build:
+      context: .
+      dockerfile: Dockerfile.scrapper
+    container_name: promoly-scrapper
     volumes:
-      - .:/app
-    depends_on:
-      - waha
-    command: python app.py
+      - ./data:/app/data
+    env_file:
+      - .env
 
   waha:
     image: devlikeapro/waha:latest
