@@ -1,23 +1,29 @@
+# =========================
 # Scraping
+# =========================
 beautifulsoup4>=4.12.3
 requests>=2.31.0
 lxml>=5.1.0
 selenium==4.17.2
 webdriver-manager==4.0.1
-
 python-dotenv>=1.0.1
 
+# =========================
+# API (FastAPI)
+# =========================
+fastapi>=0.110.0
+uvicorn>=0.27.0
+pydantic>=2.6.0
+python-dateutil>=2.9.0
 
-# Google Sheets / Google API
-gspread>=6.0.0
-google-auth>=2.27.0
-google-auth-oauthlib>=1.2.0
 
+# =========================
 # Testes
+# =========================
 pytest>=8.0.0
 pytest-cov>=4.1.0
 
-# Compatibilidade typing (recomendado)
+# =========================
+# Typing / compat
+# =========================
 typing-extensions>=4.9.0
-
-
