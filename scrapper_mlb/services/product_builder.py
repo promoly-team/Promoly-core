@@ -53,7 +53,9 @@ def build_product(item):
         avaliacao=normalize_rating(
             extract_rating(item)
         ),                                         # Decimal | None
-        desconto=None,
+        desconto=normalize_discount(
+        extract_discount(item)
+        ),
         link=link,
         imagem_url=extract_image(item),
         buyers=normalize_buyers(

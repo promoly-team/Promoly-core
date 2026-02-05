@@ -50,23 +50,6 @@ Exemplos:
 
 ---
 
-## 🔁 Padrão de rotina de desenvolvimento
-
-Antes de iniciar qualquer tarefa, **sempre atualize sua branch local** com a branch base (`dev` ou `main`).
-
-```bash
-git fetch origin
-git checkout dev
-git pull origin dev
-git checkout feature/sua-branch
-git rebase dev
-
-# se houver conflitos
-git add <arquivos>
-git rebase --continue
-
-
----
 
 ## ✅ Boas práticas de desenvolvimento
 
@@ -160,3 +143,20 @@ O Promoly é pensado para:
 - Permitir novos agentes sem impacto no núcleo
 - Manter automação controlada, não caótica
 - Priorizar decisões claras e arquitetura evolutiva
+
+---
+
+## 🔁 Padrão de rotina de desenvolvimento
+
+Antes de iniciar qualquer tarefa, **sempre atualize sua branch local** com a branch base (`dev` ou `main`).
+
+```bash
+git fetch origin
+git checkout dev
+git pull origin dev
+git checkout feature/sua-branch
+git rebase dev
+
+# se houver conflitos
+git add <arquivos>
+git rebase --continue```
