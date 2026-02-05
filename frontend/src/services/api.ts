@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000";
+const API_URL = "http://localhost:8080";
 
 export async function fetchDeals() {
   const res = await fetch(`${API_URL}/deals?limit=20`);
@@ -11,7 +11,7 @@ export async function fetchDeals() {
 
 export async function fetchOffers(limit = 20, offset = 0) {
   const res = await fetch(
-    `http://localhost:8000/offers?limit=${limit}&offset=${offset}`
+    `${API_URL}/offers?limit=${limit}&offset=${offset}`
   );
   return res.json();
 }

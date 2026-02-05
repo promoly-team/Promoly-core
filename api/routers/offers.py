@@ -1,9 +1,11 @@
+from fastapi import APIRouter, Depends
+from api.deps import get_db
+
+router = APIRouter(prefix="/offers", tags=["offers"])
+
+
 @router.get("/")
-def get_offers(
-    limit: int = 20,
-    offset: int = 0,
-    db=Depends(get_db),
-):
+def get_offers(limit: int = 20, db=Depends(get_db)):
     cursor = db.execute(
         """
         SELECT
@@ -19,9 +21,9 @@ def get_offers(
             AND la.url_afiliada != ''
             AND la.status = 'ok'
         ORDER BY p.created_at DESC
-        LIMIT ? OFFSET ?;
+        LIMIT ?;
         """,
-        (limit, offset),
+        (limit,),
     )
 
     rows = cursor.fetchall()
@@ -31,7 +33,7 @@ def get_offers(
             "produto_id": row["produto_id"],
             "titulo": row["titulo"],
             "imagem_url": row["imagem_url"],
-            "preco": float(row["preco"]) if row["preco"] else None,
+            "preco": float(row["preco"]) if row["preco"] is not None else None,
             "url_afiliada": row["url_afiliada"],
         }
         for row in rows
