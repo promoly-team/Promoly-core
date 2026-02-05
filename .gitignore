@@ -5,6 +5,7 @@ chrome-profile
 debug.html
 database/*.db
 database/*.sqlite
+data/*.promoly
 
 # Environment variables
 .env
