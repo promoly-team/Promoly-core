@@ -4,10 +4,6 @@ def parse_html(html: str) -> BeautifulSoup:
     return BeautifulSoup(html, "html.parser")
 
 def find_product_nodes(soup: BeautifulSoup):
-<<<<<<< Updated upstream
-    container = soup.find("div", class_="aff-social-lists__container")
-    return container.find_all("div", recursive=False) if container else []
-=======
     """
     Retorna os nós de produto da página de listagem do Mercado Livre.
     """
@@ -16,4 +12,3 @@ def find_product_nodes(soup: BeautifulSoup):
         raise ValueError("Nenhum card encontrado")
     
     return nodes
->>>>>>> Stashed changes
