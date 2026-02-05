@@ -12,4 +12,5 @@ class Product:
     desconto: Optional[str]
     link: Optional[str]
     imagem_url: Optional[str]
-    buyers: Optional[int] 
+    buyers: Optional[int]
+    card_hash: str

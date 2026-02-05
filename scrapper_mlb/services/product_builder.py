@@ -9,7 +9,23 @@ from scrapper_mlb.services.extractors.rating import extract_rating
 from scrapper_mlb.services.normalizers.buyers import normalize_buyers
 from scrapper_mlb.services.normalizers.price import normalize_price
 from scrapper_mlb.services.normalizers.rating import normalize_rating
+<<<<<<< Updated upstream
+=======
+from scrapper_mlb.services.extractors.discount import extract_discount
+from scrapper_mlb.services.normalizers.discount import normalize_discount
+import hashlib
+>>>>>>> Stashed changes
 
+def build_card_hash(
+    *,
+    product_id: str,
+    preco,
+    desconto,
+    avaliacao,
+    buyers,
+) -> str:
+    raw = f"{product_id}|{preco}|{desconto}|{avaliacao}|{buyers}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 def build_product(item):
     link = extract_link(item)
@@ -24,6 +40,15 @@ def build_product(item):
     if price is None:
         raise ValueError("Preço inválido")
 
+
+    card_hash = build_card_hash(
+        product_id=product_id,
+        preco=price,
+        desconto=normalize_discount(extract_discount(item)),
+        avaliacao=normalize_rating(extract_rating(item)),
+        buyers=normalize_buyers(extract_buyers(item)),
+    )    
+
     return Product(
         id_produto=product_id,
         descricao=extract_description(item),
@@ -36,5 +61,6 @@ def build_product(item):
         imagem_url=extract_image(item),
         buyers=normalize_buyers(
             extract_buyers(item)
-        ),                                         # int | None
+        ),  # int | None
+            card_hash=card_hash,                                       
     )
