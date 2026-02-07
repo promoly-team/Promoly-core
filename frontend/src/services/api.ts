@@ -14,4 +14,4 @@ export async function fetchOffers(limit = 20, offset = 0) {
     `${API_URL}/offers?limit=${limit}&offset=${offset}`
   );
   return res.json();
-}
+} 
