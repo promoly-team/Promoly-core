@@ -1,4 +1,5 @@
 from typing import Optional, List
+from sqlalchemy import text
 from database.db import get_connection
 
 
@@ -17,108 +18,106 @@ class PlataformaRepository:
         suporta_afiliado: bool = True,
         tipo_afiliado: Optional[str] = None,
     ) -> int:
-        cursor = self.conn.cursor()
-
-        cursor.execute(
-            """
-            INSERT OR IGNORE INTO plataformas (
-                nome,
-                slug,
-                dominio_principal,
-                suporta_afiliado,
-                tipo_afiliado
-            )
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                nome,
-                slug,
-                dominio_principal,
-                int(suporta_afiliado),
-                tipo_afiliado,
-            ),
+        self.conn.execute(
+            text("""
+                INSERT INTO plataformas (
+                    nome,
+                    slug,
+                    dominio_principal,
+                    suporta_afiliado,
+                    tipo_afiliado
+                )
+                VALUES (
+                    :nome,
+                    :slug,
+                    :dominio_principal,
+                    :suporta_afiliado,
+                    :tipo_afiliado
+                )
+                ON CONFLICT (slug) DO NOTHING
+            """),
+            {
+                "nome": nome,
+                "slug": slug,
+                "dominio_principal": dominio_principal,
+                "suporta_afiliado": suporta_afiliado,
+                "tipo_afiliado": tipo_afiliado,
+            },
         )
 
-        self.conn.commit()
+        plataforma = self.get_by_slug(slug)
+        assert plataforma is not None, "Falha ao criar ou buscar plataforma"
 
-        return self.get_by_slug(slug)["id"]
+        return plataforma["id"]
 
     # -------------------------
     # READ
     # -------------------------
     def get_by_slug(self, slug: str) -> Optional[dict]:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT *
-            FROM plataformas
-            WHERE slug = ?
-            """,
-            (slug,),
+        result = self.conn.execute(
+            text("""
+                SELECT *
+                FROM plataformas
+                WHERE slug = :slug
+            """),
+            {"slug": slug},
         )
-        row = cursor.fetchone()
-        return dict(row) if row else None
+        return result.mappings().first()
 
     def get_by_id(self, plataforma_id: int) -> Optional[dict]:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT *
-            FROM plataformas
-            WHERE id = ?
-            """,
-            (plataforma_id,),
+        result = self.conn.execute(
+            text("""
+                SELECT *
+                FROM plataformas
+                WHERE id = :id
+            """),
+            {"id": plataforma_id},
         )
-        row = cursor.fetchone()
-        return dict(row) if row else None
+        return result.mappings().first()
 
     def list_all(self, somente_ativas: bool = True) -> List[dict]:
-        cursor = self.conn.cursor()
-
         if somente_ativas:
-            cursor.execute(
-                """
-                SELECT *
-                FROM plataformas
-                WHERE ativa = 1
-                ORDER BY nome
-                """
+            result = self.conn.execute(
+                text("""
+                    SELECT *
+                    FROM plataformas
+                    WHERE ativa = true
+                    ORDER BY nome
+                """)
             )
         else:
-            cursor.execute(
-                """
-                SELECT *
-                FROM plataformas
-                ORDER BY nome
-                """
+            result = self.conn.execute(
+                text("""
+                    SELECT *
+                    FROM plataformas
+                    ORDER BY nome
+                """)
             )
 
-        return [dict(row) for row in cursor.fetchall()]
+        return result.mappings().all()
 
     # -------------------------
     # UPDATE
     # -------------------------
     def desativar(self, plataforma_id: int):
         self.conn.execute(
-            """
-            UPDATE plataformas
-            SET ativa = 0
-            WHERE id = ?
-            """,
-            (plataforma_id,),
+            text("""
+                UPDATE plataformas
+                SET ativa = false
+                WHERE id = :id
+            """),
+            {"id": plataforma_id},
         )
-        self.conn.commit()
 
     def ativar(self, plataforma_id: int):
         self.conn.execute(
-            """
-            UPDATE plataformas
-            SET ativa = 1
-            WHERE id = ?
-            """,
-            (plataforma_id,),
+            text("""
+                UPDATE plataformas
+                SET ativa = true
+                WHERE id = :id
+            """),
+            {"id": plataforma_id},
         )
-        self.conn.commit()
 
     def close(self):
         self.conn.close()
