@@ -1,103 +1,75 @@
-from typing import Optional, List
+from sqlalchemy import text
 from database.db import get_connection
+from typing import Optional, List
 
 
 class CategoriaRepository:
     def __init__(self):
         self.conn = get_connection()
 
-    # -------------------------
-    # CREATE
-    # -------------------------
     def create(self, nome: str, slug: str) -> int:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            INSERT OR IGNORE INTO categorias (nome, slug)
-            VALUES (?, ?)
-            """,
-            (nome, slug),
+        self.conn.execute(
+            text("""
+                INSERT INTO categorias (nome, slug)
+                VALUES (:nome, :slug)
+                ON CONFLICT (slug) DO NOTHING
+            """),
+            {"nome": nome, "slug": slug}
         )
-        self.conn.commit()
 
-        return self.get_by_slug(slug)["id"]
+        row = self.conn.execute(
+            text("""
+                SELECT id FROM categorias WHERE slug = :slug
+            """),
+            {"slug": slug}
+        ).fetchone()
 
-    # -------------------------
-    # READ
-    # -------------------------
+        return row.id
+
     def get_by_slug(self, slug: str) -> Optional[dict]:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT *
-            FROM categorias
-            WHERE slug = ?
-            """,
-            (slug,),
-        )
-        row = cursor.fetchone()
-        return dict(row) if row else None
+        row = self.conn.execute(
+            text("""
+                SELECT * FROM categorias WHERE slug = :slug
+            """),
+            {"slug": slug}
+        ).mappings().first()
 
-    def get_by_id(self, categoria_id: int) -> Optional[dict]:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT *
-            FROM categorias
-            WHERE id = ?
-            """,
-            (categoria_id,),
-        )
-        row = cursor.fetchone()
-        return dict(row) if row else None
+        return row
 
     def list_all(self, somente_ativas: bool = True) -> List[dict]:
-        cursor = self.conn.cursor()
-
         if somente_ativas:
-            cursor.execute(
-                """
-                SELECT *
-                FROM categorias
-                WHERE ativa = 1
-                ORDER BY nome
-                """
+            result = self.conn.execute(
+                text("""
+                    SELECT * FROM categorias
+                    WHERE ativa = true
+                    ORDER BY nome
+                """)
             )
         else:
-            cursor.execute(
-                """
-                SELECT *
-                FROM categorias
-                ORDER BY nome
-                """
+            result = self.conn.execute(
+                text("""
+                    SELECT * FROM categorias
+                    ORDER BY nome
+                """)
             )
 
-        return [dict(row) for row in cursor.fetchall()]
+        return result.mappings().all()
 
-    # -------------------------
-    # UPDATE
-    # -------------------------
     def desativar(self, categoria_id: int):
         self.conn.execute(
-            """
-            UPDATE categorias
-            SET ativa = 0
-            WHERE id = ?
-            """,
-            (categoria_id,),
+            text("""
+                UPDATE categorias SET ativa = false WHERE id = :id
+            """),
+            {"id": categoria_id}
         )
-        self.conn.commit()
 
     def ativar(self, categoria_id: int):
         self.conn.execute(
-            """
-            UPDATE categorias
-            SET ativa = 1
-            WHERE id = ?
-            """,
-            (categoria_id,),
+            text("""
+                UPDATE categorias SET ativa = true WHERE id = :id
+            """),
+            {"id": categoria_id}
         )
-        self.conn.commit()
 
     def close(self):
         self.conn.close()

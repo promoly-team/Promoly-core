@@ -1,17 +1,17 @@
-from pathlib import Path
 import os
-import sqlite3
-from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.engine import Connection
 
-load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/promoly.db")
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+_engine = None
 
-def get_connection():
-    conn = sqlite3.connect(DATABASE_URL, timeout=30)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA synchronous=NORMAL")
-
-    return conn
+def get_connection() -> Connection:
+    global _engine
+    if _engine is None:
+        _engine = create_engine(
+            DATABASE_URL,
+            pool_pre_ping=True,
+            future=True,
+        )
+    return _engine.connect()
