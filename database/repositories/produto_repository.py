@@ -13,10 +13,9 @@ import sqlite3
 
 class ProdutoRepository:
     def __init__(self):
-        self.conn = sqlite3.connect("/app/data/promoly.db")
-        self.conn.row_factory = sqlite3.Row
-        self.conn.execute("PRAGMA foreign_keys = ON")
+        self.conn = get_connection()
 
+        
     # 🔎 retorna Row (id, card_hash, status)
     def get_by_external_id(self, external_id: str, plataforma_id: int):
         cursor = self.conn.execute(
