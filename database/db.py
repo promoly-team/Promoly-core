@@ -1,12 +1,17 @@
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.engine import Connection
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/promoly.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL não definido. "
+        "Este projeto requer PostgreSQL."
+    )
 
 _engine = None
 
-def get_connection() -> Connection:
+def get_connection():
     global _engine
     if _engine is None:
         _engine = create_engine(
