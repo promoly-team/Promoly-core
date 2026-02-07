@@ -8,7 +8,11 @@ RUN apt-get update && apt-get install -y gcc \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# copia só o necessário
+COPY api ./api
+COPY database ./database
+
+ENV PYTHONPATH=/app
 
 EXPOSE 8080
 
