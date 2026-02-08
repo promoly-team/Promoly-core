@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from sqlalchemy import text
 
 from api.deps import get_db
 from database.repositories.click_repository import ClickRepository
@@ -13,18 +14,20 @@ def go_to_affiliate(
     request: Request,
     db=Depends(get_db),
 ):
-    row = db.execute(
-        """
-        SELECT
-            la.url_afiliado,
-            la.plataforma_id
-        FROM links_afiliados la
-        WHERE la.produto_id = ?
-          AND la.status = 'ok'
-        LIMIT 1
-        """,
-        (produto_id,),
-    ).fetchone()
+    result = db.execute(
+        text("""
+            SELECT
+                la.url_afiliado,
+                la.plataforma_id
+            FROM links_afiliados la
+            WHERE la.produto_id = :produto_id
+              AND la.status = 'ok'
+            LIMIT 1
+        """),
+        {"produto_id": produto_id},
+    )
+
+    row = result.mappings().first()
 
     if not row:
         raise HTTPException(
@@ -32,7 +35,7 @@ def go_to_affiliate(
             detail="Link afiliado não encontrado",
         )
 
-    # registra clique
+    # 🔗 registra clique
     click_repo = ClickRepository()
     click_repo.register(
         produto_id=produto_id,

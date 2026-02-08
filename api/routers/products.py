@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
 from api.deps import get_db
 
 router = APIRouter(prefix="/products", tags=["products"])
@@ -9,38 +10,27 @@ router = APIRouter(prefix="/products", tags=["products"])
 # =========================
 @router.get("/")
 def list_products(limit: int = 20, db=Depends(get_db)):
-    cursor = db.execute(
-        """
-        SELECT
-            id,
-            titulo,
-            preco,
-            avaliacao,
-            vendas,
-            imagem_url,
-            status
-        FROM produtos
-        WHERE status IN ('ativo', 'novo')
-        ORDER BY updated_at DESC
-        LIMIT ?
-        """,
-        (limit,),
+    result = db.execute(
+        text("""
+            SELECT
+                id,
+                titulo,
+                preco,
+                avaliacao,
+                vendas,
+                imagem_url,
+                status
+            FROM produtos
+            WHERE status IN ('ativo', 'novo')
+            ORDER BY updated_at DESC
+            LIMIT :limit
+        """),
+        {"limit": limit},
     )
 
-    rows = cursor.fetchall()
+    rows = result.mappings().all()
 
-    return [
-        {
-            "id": row["id"],
-            "titulo": row["titulo"],
-            "preco": row["preco"],
-            "avaliacao": row["avaliacao"],
-            "vendas": row["vendas"],
-            "imagem_url": row["imagem_url"],
-            "status": row["status"],
-        }
-        for row in rows
-    ]
+    return rows
 
 
 # =========================
@@ -49,50 +39,51 @@ def list_products(limit: int = 20, db=Depends(get_db)):
 @router.get("/{produto_id}")
 def get_product(produto_id: int, db=Depends(get_db)):
     # ---------- produto ----------
-    cursor = db.execute(
-        """
-        SELECT
-            id,
-            titulo,
-            descricao,
-            preco,
-            avaliacao,
-            vendas,
-            imagem_url,
-            status
-        FROM produtos
-        WHERE id = ?
-        """,
-        (produto_id,),
+    result = db.execute(
+        text("""
+            SELECT
+                id,
+                titulo,
+                descricao,
+                preco,
+                avaliacao,
+                vendas,
+                imagem_url,
+                status
+            FROM produtos
+            WHERE id = :produto_id
+        """),
+        {"produto_id": produto_id},
     )
-    produto = cursor.fetchone()
+    produto = result.mappings().first()
 
     if produto is None:
         raise HTTPException(status_code=404, detail="Product not found")
 
     # ---------- afiliado ----------
-    cursor = db.execute(
-        """
-        SELECT url_afiliado
-        FROM links_afiliados
-        WHERE produto_id = ?
-          AND status = 'ok'
-        """,
-        (produto_id,),
+    result = db.execute(
+        text("""
+            SELECT url_afiliada
+            FROM links_afiliados
+            WHERE produto_id = :produto_id
+              AND status = 'ok'
+            LIMIT 1
+        """),
+        {"produto_id": produto_id},
     )
-    affiliate = cursor.fetchone()
+    affiliate = result.mappings().first()
 
     # ---------- histórico de preços ----------
-    cursor = db.execute(
-        """
-        SELECT preco, created_at
-        FROM produto_preco_historico
-        WHERE produto_id = ?
-        ORDER BY created_at ASC
-        """,
-        (produto_id,),
+    result = db.execute(
+        text("""
+            SELECT preco, created_at
+            FROM produto_preco_historico
+            WHERE produto_id = :produto_id
+            ORDER BY created_at ASC
+        """),
+        {"produto_id": produto_id},
     )
-    prices = cursor.fetchall()
+    prices = result.mappings().all()
 
     return {
         "id": produto["id"],
@@ -105,7 +96,7 @@ def get_product(produto_id: int, db=Depends(get_db)):
         "status": produto["status"],
 
         "affiliate": {
-            "url": affiliate["url_afiliado"] if affiliate else None
+            "url": affiliate["url_afiliada"] if affiliate else None
         },
 
         "prices": [
