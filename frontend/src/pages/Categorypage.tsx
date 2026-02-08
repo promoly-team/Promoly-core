@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
+import { apiGet } from "../services/api";
 
 const LIMIT = 12;
+
+type Product = {
+  produto_id: number;
+  titulo: string;
+  imagem_url: string;
+  preco_atual: number;
+  preco_anterior?: number | null;
+  desconto_pct?: number | null;
+};
 
 export default function CategoryPage() {
   const { slug } = useParams();
@@ -12,27 +22,33 @@ export default function CategoryPage() {
   const search = searchParams.get("search") || "";
   const order = searchParams.get("order") || "desconto";
 
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!slug) return;
+
     setLoading(true);
 
     const offset = (page - 1) * LIMIT;
 
     Promise.all([
-      fetch(
+      apiGet<Product[]>(
         `/products?category=${slug}&search=${search}&order=${order}&limit=${LIMIT}&offset=${offset}`
-      ).then(r => r.json()),
-
-      fetch(
+      ),
+      apiGet<{ total: number }>(
         `/products/total?category=${slug}&search=${search}`
-      ).then(r => r.json())
+      ),
     ])
       .then(([list, totalRes]) => {
         setProducts(list);
         setTotal(totalRes.total);
+      })
+      .catch(err => {
+        console.error("Erro ao carregar produtos:", err);
+        setProducts([]);
+        setTotal(0);
       })
       .finally(() => setLoading(false));
   }, [slug, page, search, order]);
