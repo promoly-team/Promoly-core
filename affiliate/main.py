@@ -17,7 +17,7 @@ SLEEP_SEM_TRABALHO = 30
 SLEEP_ENTRE_LINKS = 3
 WAIT_TIMEOUT = 40
 
-conn = get_connection()
+
 
 # =========================
 # Controle de shutdown
@@ -44,6 +44,8 @@ signal.signal(signal.SIGTERM, handle_shutdown)
 
 def main():
     print("🚀 Iniciando Selenium Worker")
+    
+    conn = get_connection()
 
     link_repo = LinkAfiliadoRepository(conn=conn)
     pipeline_repo = PipelineRepository(conn=conn)

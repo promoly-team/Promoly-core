@@ -2,10 +2,10 @@ from typing import Optional, List
 from sqlalchemy import text
 
 
-
 class LinkAfiliadoRepository:
-    def __init__(self, conn=None):
+    def __init__(self, conn):
         self.conn = conn
+
     # =========================
     # CREATE
     # =========================
@@ -40,6 +40,9 @@ class LinkAfiliadoRepository:
                 "url_original": url_original,
             },
         )
+
+        # 🔒 garante que o link existe fora da transação
+        self.conn.commit()
 
         link_id = self.get_id(produto_id, plataforma_id)
         assert link_id is not None, "Falha ao criar ou localizar link_afiliado"
@@ -98,7 +101,12 @@ class LinkAfiliadoRepository:
             },
         )
 
-        return [dict(row._mapping) for row in result.fetchall()]
+        rows = [dict(row._mapping) for row in result.fetchall()]
+
+        # 🔒 libera locks e confirma transação
+        self.conn.commit()
+
+        return rows
 
     # =========================
     # UPDATE
@@ -119,6 +127,8 @@ class LinkAfiliadoRepository:
             },
         )
 
+        self.conn.commit()  # ✅ CRÍTICO
+
     def marcar_falha(self, link_id: int, erro: Optional[str] = None):
         self.conn.execute(
             text("""
@@ -136,6 +146,8 @@ class LinkAfiliadoRepository:
             },
         )
 
+        self.conn.commit()  # ✅ CRÍTICO
+
     def invalidar(self, link_id: int):
         self.conn.execute(
             text("""
@@ -149,6 +161,8 @@ class LinkAfiliadoRepository:
                 "id": link_id,
             },
         )
+
+        self.conn.commit()  # ✅ CRÍTICO
 
     def close(self):
         self.conn.close()
