@@ -6,7 +6,7 @@ const LIMIT = 12;
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CategoryPage() {
-  const { nome } = useParams();
+  const { slug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Number(searchParams.get("page") || 1);
@@ -18,21 +18,21 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!nome) return;
+    if (!slug) return;
 
     setLoading(true);
     const offset = (page - 1) * LIMIT;
 
     Promise.all([
       fetch(
-        `${API_URL}/products?category=${nome}&search=${search}&order=${order}&limit=${LIMIT}&offset=${offset}`
+        `${API_URL}/products?category=${slug}&search=${search}&order=${order}&limit=${LIMIT}&offset=${offset}`
       ).then(r => {
         if (!r.ok) throw new Error("Erro ao buscar produtos");
         return r.json();
       }),
 
       fetch(
-        `${API_URL}/products/total?category=${nome}&search=${search}`
+        `${API_URL}/products/total?category=${slug}&search=${search}`
       ).then(r => {
         if (!r.ok) throw new Error("Erro ao buscar total");
         return r.json();
@@ -48,13 +48,13 @@ export default function CategoryPage() {
         setTotal(0);
       })
       .finally(() => setLoading(false));
-  }, [nome, page, search, order]);
+  }, [slug, page, search, order]);
 
   const totalPages = Math.ceil(total / LIMIT);
 
   return (
     <div className="container">
-      <h1>{nome}</h1>
+      <h1>{slug}</h1>
 
       <input
         placeholder="Buscar produto..."
