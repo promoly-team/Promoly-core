@@ -1,14 +1,23 @@
-import type { ProductCardData } from "../types";
+import type { Offer } from "../types";
 
 /**
  * URL base da API
+ * Definida no Vercel e no .env local
+ *
+ * VITE_API_URL=https://promoly-core-production.up.railway.app
  */
 const API_URL = "https://promoly-core-production.up.railway.app";
+
+if (!API_URL) {
+  throw new Error("VITE_API_URL não definida");
+}
 
 type ApiError = {
   status: number;
   message: string;
 };
+
+
 
 export async function apiGet<T>(
   path: string,
@@ -26,29 +35,53 @@ export async function apiGet<T>(
 
     if (!res.ok) {
       let message = "Erro inesperado";
+
       try {
         const data = await res.json();
         message = data?.detail || data?.message || message;
       } catch {}
 
-      throw { status: res.status, message } as ApiError;
+      throw {
+        status: res.status,
+        message,
+      } as ApiError;
     }
 
-    return res.json() as Promise<T>;
+    return res.json();
+  } catch (err) {
+    if ((err as any).name === "AbortError") {
+      throw {
+        status: 408,
+        message: "Timeout ao conectar com o servidor",
+      } as ApiError;
+    }
+
+    throw err;
   } finally {
     clearTimeout(timeout);
   }
 }
 
 /* =========================
-   ENDPOINTS TIPADOS
+   ENDPOINTS (COM SLASH FINAL)
 ========================= */
 
-export function fetchProductsByCategory(
-  categoryId: number,
-  limit = 20
-): Promise<ProductCardData[]> {
-  return apiGet<ProductCardData[]>(
-    `/categories/${categoryId}/products/?limit=${limit}`
-  );
+export function fetchProducts(limit = 20) {
+  return apiGet(`/products/?limit=${limit}`);
+}
+
+export function fetchOffers(limit = 20): Promise<Offer[]> {
+  return apiGet(`/offers/?limit=${limit}`);
+}
+
+export function fetchDeals(limit = 20) {
+  return apiGet(`/deals/?limit=${limit}`);
+}
+
+export function fetchProduct(productId: number) {
+  return apiGet(`/products/${productId}`);
+}
+
+export function fetchPrices(productId: number) {
+  return apiGet(`/prices/${productId}`);
 }
