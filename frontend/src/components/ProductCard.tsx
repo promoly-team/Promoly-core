@@ -1,4 +1,6 @@
 import "./ProductCard.css";
+import { goToProduct } from "../services/api";
+
 
 type Product = {
   produto_id: number;
@@ -60,14 +62,13 @@ export default function ProductCard({ product }: Props) {
             </span>
           </div>
 
-          <a
-            href={`/go/${product.produto_id}`}
-            className="buy-btn"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Comprar
-          </a>
+        <button
+          className="buy-btn"
+          onClick={() => goToProduct(product.produto_id)}
+        >
+          Comprar
+        </button>
+                        
         </div>
       </div>
     </div>
