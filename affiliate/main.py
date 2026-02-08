@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from database.repositories.link_aff_repository import LinkAfiliadoRepository
 from database.repositories.pipeline_repository import PipelineRepository
 from affiliate.mlb_affiliate import create_driver, gerar_link_afiliado
-
+from database.db import get_connection
 
 # =========================
 # Configurações
@@ -17,6 +17,7 @@ SLEEP_SEM_TRABALHO = 30
 SLEEP_ENTRE_LINKS = 3
 WAIT_TIMEOUT = 40
 
+conn = get_connection()
 
 # =========================
 # Controle de shutdown
@@ -39,11 +40,13 @@ signal.signal(signal.SIGTERM, handle_shutdown)
 # Worker principal
 # =========================
 
+
+
 def main():
     print("🚀 Iniciando Selenium Worker")
 
-    link_repo = LinkAfiliadoRepository()
-    pipeline_repo = PipelineRepository()
+    link_repo = LinkAfiliadoRepository(conn=conn)
+    pipeline_repo = PipelineRepository(conn=conn)
 
     run_id = pipeline_repo.start("selenium")
 

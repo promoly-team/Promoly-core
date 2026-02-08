@@ -1,11 +1,10 @@
 from typing import Optional, List
 from sqlalchemy import text
-from database.db import get_connection
 
 
 class PlataformaRepository:
-    def __init__(self):
-        self.conn = get_connection()
+    def __init__(self, conn=None):
+        self.conn = conn
 
     # -------------------------
     # CREATE

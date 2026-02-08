@@ -1,11 +1,10 @@
 from sqlalchemy import text
-from database.db import get_connection
 from typing import Optional, List
 
 
 class CategoriaRepository:
-    def __init__(self):
-        self.conn = get_connection()
+    def __init__(self, conn=None):
+        self.conn = conn
 
     def create(self, nome: str, slug: str) -> int:
         self.conn.execute(

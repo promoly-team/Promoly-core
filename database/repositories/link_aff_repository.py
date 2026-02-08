@@ -1,12 +1,11 @@
 from typing import Optional, List
 from sqlalchemy import text
-from database.db import get_connection
+
 
 
 class LinkAfiliadoRepository:
     def __init__(self, conn=None):
-        self.conn = conn or get_connection()
-
+        self.conn = conn
     # =========================
     # CREATE
     # =========================

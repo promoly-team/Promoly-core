@@ -2,7 +2,6 @@ from typing import Optional
 from decimal import Decimal
 from sqlalchemy import text
 
-from database.db import get_connection
 
 
 def _normalize(value):
@@ -12,8 +11,8 @@ def _normalize(value):
 
 
 class ProdutoRepository:
-    def __init__(self):
-        self.conn = get_connection()
+    def __init__(self, conn=None):
+        self.conn = conn
 
     # 🔎 retorna {id, card_hash, status}
     def get_by_external_id(self, external_id: str, plataforma_id: int) -> Optional[dict]:

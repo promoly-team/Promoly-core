@@ -2,13 +2,11 @@ from typing import Optional, List
 from datetime import datetime, time
 
 from sqlalchemy import text
-from database.db import get_connection
 
 
 class GrupoWhatsappRepository:
     def __init__(self, conn=None):
-        self.conn = conn or get_connection()
-
+        self.conn = conn
     # -------------------------
     # CREATE
     # -------------------------

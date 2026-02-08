@@ -1,16 +1,17 @@
 from typing import Optional, List
 from datetime import datetime, timedelta
 
-from database.db import get_connection
+from sqlalchemy import text
+
 
 
 class EnvioRepository:
-    def __init__(self):
-        self.conn = get_connection()
+    def __init__(self, conn=None):
+        self.conn = conn
 
-    # -------------------------
+    # =========================
     # CREATE
-    # -------------------------
+    # =========================
     def criar_envio(
         self,
         produto_id: int,
@@ -19,144 +20,157 @@ class EnvioRepository:
         link_afiliado_id: Optional[int] = None,
         agendado_para: Optional[datetime] = None,
     ) -> int:
-        cursor = self.conn.cursor()
-
-        cursor.execute(
-            """
-            INSERT INTO envios (
-                produto_id,
-                grupo_id,
-                plataforma_id,
-                link_afiliado_id,
-                status,
-                agendado_para
-            )
-            VALUES (?, ?, ?, ?, 'pendente', ?)
-            """,
-            (
-                produto_id,
-                grupo_id,
-                plataforma_id,
-                link_afiliado_id,
-                agendado_para,
-            ),
+        result = self.conn.execute(
+            text("""
+                INSERT INTO envios (
+                    produto_id,
+                    grupo_id,
+                    plataforma_id,
+                    link_afiliado_id,
+                    status,
+                    agendado_para
+                )
+                VALUES (
+                    :produto_id,
+                    :grupo_id,
+                    :plataforma_id,
+                    :link_afiliado_id,
+                    'pendente',
+                    :agendado_para
+                )
+                RETURNING id
+            """),
+            {
+                "produto_id": produto_id,
+                "grupo_id": grupo_id,
+                "plataforma_id": plataforma_id,
+                "link_afiliado_id": link_afiliado_id,
+                "agendado_para": agendado_para,
+            },
         )
 
-        self.conn.commit()
-        return cursor.lastrowid
+        return result.scalar_one()
 
-    # -------------------------
-    # READ (FILA)
-    # -------------------------
+    # =========================
+    # READ (FILA SEGURA)
+    # =========================
     def listar_envios_pendentes(self, limite: int = 10) -> List[dict]:
         """
         Retorna envios prontos para envio agora
+        (lock-safe para múltiplos workers)
         """
-        cursor = self.conn.cursor()
 
-        cursor.execute(
-            """
-            SELECT e.*
-            FROM envios e
-            JOIN grupos_whatsapp g ON g.id = e.grupo_id
-            WHERE e.status = 'pendente'
-              AND g.ativo = 1
-              AND (
-                  e.agendado_para IS NULL
-                  OR e.agendado_para <= CURRENT_TIMESTAMP
-              )
-            ORDER BY e.created_at ASC
-            LIMIT ?
-            """,
-            (limite,),
+        result = self.conn.execute(
+            text("""
+                WITH selecionados AS (
+                    SELECT e.id
+                    FROM envios e
+                    JOIN grupos_whatsapp g ON g.id = e.grupo_id
+                    WHERE e.status = 'pendente'
+                      AND g.ativo = true
+                      AND (
+                          e.agendado_para IS NULL
+                          OR e.agendado_para <= CURRENT_TIMESTAMP
+                      )
+                    ORDER BY e.created_at ASC
+                    LIMIT :limite
+                    FOR UPDATE SKIP LOCKED
+                )
+                UPDATE envios
+                SET status = 'processando'
+                WHERE id IN (SELECT id FROM selecionados)
+                RETURNING *
+            """),
+            {"limite": limite},
         )
 
-        return [dict(row) for row in cursor.fetchall()]
+        return [dict(row._mapping) for row in result.fetchall()]
 
     def ja_enviado_hoje(self, produto_id: int, grupo_id: int) -> bool:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT 1
-            FROM envios
-            WHERE produto_id = ?
-              AND grupo_id = ?
-              AND status = 'enviado'
-              AND date(enviado_em) = date('now')
-            LIMIT 1
-            """,
-            (produto_id, grupo_id),
+        result = self.conn.execute(
+            text("""
+                SELECT 1
+                FROM envios
+                WHERE produto_id = :produto_id
+                  AND grupo_id = :grupo_id
+                  AND status = 'enviado'
+                  AND enviado_em::date = CURRENT_DATE
+                LIMIT 1
+            """),
+            {
+                "produto_id": produto_id,
+                "grupo_id": grupo_id,
+            },
         )
-        return cursor.fetchone() is not None
 
-    # -------------------------
+        return result.first() is not None
+
+    # =========================
     # UPDATE
-    # -------------------------
+    # =========================
     def marcar_enviado(self, envio_id: int):
         self.conn.execute(
-            """
-            UPDATE envios
-            SET
-                status = 'enviado',
-                enviado_em = CURRENT_TIMESTAMP
-            WHERE id = ?
-            """,
-            (envio_id,),
+            text("""
+                UPDATE envios
+                SET
+                    status = 'enviado',
+                    enviado_em = CURRENT_TIMESTAMP
+                WHERE id = :id
+            """),
+            {"id": envio_id},
         )
-        self.conn.commit()
 
     def marcar_falha(self, envio_id: int, erro: Optional[str] = None):
         self.conn.execute(
-            """
-            UPDATE envios
-            SET
-                status = 'erro',
-                tentativas = tentativas + 1,
-                erro_mensagem = ?
-            WHERE id = ?
-            """,
-            (erro, envio_id),
+            text("""
+                UPDATE envios
+                SET
+                    status = 'erro',
+                    tentativas = tentativas + 1,
+                    erro_mensagem = :erro
+                WHERE id = :id
+            """),
+            {
+                "id": envio_id,
+                "erro": erro,
+            },
         )
-        self.conn.commit()
 
-    def reagendar(
-        self,
-        envio_id: int,
-        minutos: int,
-    ):
+    def reagendar(self, envio_id: int, minutos: int):
         nova_data = datetime.utcnow() + timedelta(minutes=minutos)
 
         self.conn.execute(
-            """
-            UPDATE envios
-            SET
-                agendado_para = ?,
-                status = 'pendente'
-            WHERE id = ?
-            """,
-            (nova_data, envio_id),
+            text("""
+                UPDATE envios
+                SET
+                    agendado_para = :agendado_para,
+                    status = 'pendente'
+                WHERE id = :id
+            """),
+            {
+                "id": envio_id,
+                "agendado_para": nova_data,
+            },
         )
-        self.conn.commit()
 
     def invalidar(self, envio_id: int):
         self.conn.execute(
-            """
-            UPDATE envios
-            SET status = 'cancelado'
-            WHERE id = ?
-            """,
-            (envio_id,),
+            text("""
+                UPDATE envios
+                SET status = 'cancelado'
+                WHERE id = :id
+            """),
+            {"id": envio_id},
         )
-        self.conn.commit()
 
-    # -------------------------
+    # =========================
     # DELETE (opcional)
-    # -------------------------
+    # =========================
     def delete(self, envio_id: int):
         self.conn.execute(
-            "DELETE FROM envios WHERE id = ?", (envio_id,)
+            text("DELETE FROM envios WHERE id = :id"),
+            {"id": envio_id},
         )
-        self.conn.commit()
 
     def close(self):
         self.conn.close()

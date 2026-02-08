@@ -1,10 +1,9 @@
 from sqlalchemy import text
-from database.db import get_connection
 
 
 class ClickRepository:
     def __init__(self, conn=None):
-        self.conn = conn or get_connection()
+        self.conn = conn
 
     def register(
         self,
