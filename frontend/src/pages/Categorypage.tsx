@@ -5,6 +5,11 @@ import ProductCard from "../components/ProductCard";
 const LIMIT = 12;
 const API_URL = import.meta.env.VITE_API_URL;
 
+function humanizeSlug(slug: string) {
+  return slug.charAt(0).toUpperCase() + slug.slice(1);
+}
+
+
 export default function CategoryPage() {
   const { slug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -54,7 +59,8 @@ export default function CategoryPage() {
 
   return (
     <div className="container">
-      <h1>{slug}</h1>
+    <h1>{slug ? humanizeSlug(slug) : ""}</h1>
+
 
       <input
         placeholder="Buscar produto..."
