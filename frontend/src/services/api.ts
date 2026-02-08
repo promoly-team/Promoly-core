@@ -85,3 +85,8 @@ export function fetchProduct(productId: number) {
 export function fetchPrices(productId: number) {
   return apiGet(`/prices/${productId}`);
 }
+
+
+export function goToProduct(produto_id: number) {
+  window.open(`${API_URL}/go/${produto_id}`, "_blank");
+}
