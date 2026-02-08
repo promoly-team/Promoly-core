@@ -18,12 +18,13 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://promoly-core-npees8ubc-leandro-baldans-projects.vercel.app/",
+        "https://promoly-core.vercel.app",
     ],
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 app.include_router(offers_router.router)
 app.include_router(products.router)
