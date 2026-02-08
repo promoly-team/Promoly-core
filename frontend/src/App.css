@@ -1,19 +1,11 @@
 body {
   margin: 0;
-  background: #d3b7ab;
+  background: #f9fafb;
   font-family: system-ui, -apple-system, BlinkMacSystemFont;
 }
 
-.header {
-  text-align: center;
-  padding: 32px 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: rgb(69, 69, 66);
-}
-
 .container {
-  max-width: 1800px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
 }
@@ -21,10 +13,11 @@ body {
 /* GRID REAL */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
-  justify-items: center;
+  align-items: stretch;
 }
+
 
 /* RESPONSIVO */
 @media (max-width: 1600px) {
