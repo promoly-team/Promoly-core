@@ -79,9 +79,9 @@ export function fetchDeals(limit = 20) {
 }
 
 export function fetchProduct(productId: number) {
-  return apiGet(`/products/${productId}`);
+  return apiGet(`/products${productId}`);
 }
 
 export function fetchPrices(productId: number) {
-  return apiGet(`/prices/${productId}`);
+  return apiGet(`/prices${productId}`);
 }
