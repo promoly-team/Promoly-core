@@ -5,8 +5,7 @@ from api.deps import get_db
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
-
-@router.get("/{categoria_id}/products")
+@router.get("/{categoria_id}/products/")
 def get_products_by_category(
     categoria_id: int,
     limit: int = 20,
@@ -35,7 +34,7 @@ def get_products_by_category(
                 CASE
                     WHEN a.preco IS NOT NULL AND a.preco > u.preco
                     THEN ROUND(
-                        (a.preco - u.preco) * 100.0 / a.preco,
+                        ((a.preco - u.preco) * 100.0 / a.preco)::numeric,
                         2
                     )
                     ELSE NULL
@@ -43,7 +42,6 @@ def get_products_by_category(
 
                 la.url_afiliada
             FROM produtos p
-
             JOIN produto_categoria pc
                 ON pc.produto_id = p.id
                 AND pc.categoria_id = :categoria_id
@@ -56,7 +54,6 @@ def get_products_by_category(
 
             JOIN precos u
                 ON u.produto_id = p.id AND u.rn = 1
-
             LEFT JOIN precos a
                 ON a.produto_id = p.id AND a.rn = 2
 
@@ -77,12 +74,11 @@ def get_products_by_category(
             "produto_id": r["produto_id"],
             "titulo": r["titulo"],
             "imagem_url": r["imagem_url"],
-            "preco": float(r["preco_atual"]),
-            "desconto_pct": (
-                float(r["desconto_pct"])
-                if r["desconto_pct"] is not None
-                else None
-            ),
+            "preco_atual": float(r["preco_atual"]),
+            "preco_anterior": float(r["preco_anterior"])
+                if r["preco_anterior"] is not None else None,
+            "desconto_pct": float(r["desconto_pct"])
+                if r["desconto_pct"] is not None else None,
             "url_afiliada": r["url_afiliada"],
         }
         for r in rows
