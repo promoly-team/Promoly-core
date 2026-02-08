@@ -1,3 +1,7 @@
+import "./ProductCard.css";
+
+
+
 type Product = {
   produto_id: number;
   titulo: string;
