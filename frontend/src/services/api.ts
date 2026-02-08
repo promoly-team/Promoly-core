@@ -2,11 +2,11 @@ import type { Offer } from "../types";
 
 /**
  * URL base da API
- * Deve ser definida no Vercel e no .env local
+ * Definida no Vercel e no .env local
  *
  * VITE_API_URL=https://promoly-core-production.up.railway.app
  */
-const API_URL = "https://promoly-core-production.up.railway.app"
+const API_URL = "https://promoly-core-production.up.railway.app";
 
 if (!API_URL) {
   throw new Error("VITE_API_URL não definida");
@@ -37,9 +37,7 @@ export async function apiGet<T>(
       try {
         const data = await res.json();
         message = data?.detail || data?.message || message;
-      } catch {
-        // resposta não é JSON
-      }
+      } catch {}
 
       throw {
         status: res.status,
@@ -63,25 +61,25 @@ export async function apiGet<T>(
 }
 
 /* =========================
-   ENDPOINTS
+   ENDPOINTS (COM SLASH FINAL)
 ========================= */
 
 export function fetchProducts(limit = 20) {
-  return apiGet(`/products?limit=${limit}`);
+  return apiGet(`/products/?limit=${limit}`);
 }
 
 export function fetchOffers(limit = 20): Promise<Offer[]> {
-  return apiGet(`/offers?limit=${limit}`);
+  return apiGet(`/offers/?limit=${limit}`);
 }
 
 export function fetchDeals(limit = 20) {
-  return apiGet(`/deals?limit=${limit}`);
+  return apiGet(`/deals/?limit=${limit}`);
 }
 
 export function fetchProduct(productId: number) {
-  return apiGet(`/products${productId}`);
+  return apiGet(`/products/${productId}`);
 }
 
 export function fetchPrices(productId: number) {
-  return apiGet(`/prices${productId}`);
+  return apiGet(`/prices/${productId}`);
 }
