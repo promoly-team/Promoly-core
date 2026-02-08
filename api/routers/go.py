@@ -17,7 +17,7 @@ def go_to_affiliate(
     result = db.execute(
         text("""
             SELECT
-                la.url_afiliado,
+                la.url_afiliada,
                 la.plataforma_id
             FROM links_afiliados la
             WHERE la.produto_id = :produto_id
@@ -46,6 +46,6 @@ def go_to_affiliate(
     click_repo.close()
 
     return RedirectResponse(
-        url=row["url_afiliado"],
+        url=row["url_afiliada"],
         status_code=302,
     )

@@ -13,7 +13,7 @@ def get_affiliate(produto_id: int, db=Depends(get_db)):
         text("""
             SELECT
                 produto_id,
-                url_afiliado,
+                url_afiliada,
                 status
             FROM links_afiliados
             WHERE produto_id = :produto_id
@@ -32,6 +32,6 @@ def get_affiliate(produto_id: int, db=Depends(get_db)):
 
     return {
         "produto_id": int(row["produto_id"]),
-        "url_afiliado": row["url_afiliado"],
+        "url_afiliada": row["url_afiliada"],
         "status": row["status"],
     }
