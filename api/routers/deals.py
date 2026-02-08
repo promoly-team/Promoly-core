@@ -29,7 +29,9 @@ def get_deals(limit: int = 20, db=Depends(get_db)):
                 a.preco AS preco_anterior,
 
                 ROUND(
-                    (a.preco - u.preco) * 100.0 / NULLIF(a.preco, 0),
+                    (
+                        (a.preco - u.preco) * 100.0 / NULLIF(a.preco, 0)
+                    )::numeric,
                     2
                 ) AS desconto_pct,
 
