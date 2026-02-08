@@ -9,6 +9,7 @@ from api.routers import (
     products,
     go,
     offers as offers_router,
+    categories,
 )
 
 app = FastAPI(title="Promoly API")
@@ -31,6 +32,7 @@ app.add_middleware(
 
 app.include_router(offers_router.router)
 app.include_router(products.router)
+app.include_router(categories.router)
 app.include_router(prices.router)
 app.include_router(affiliates.router)
 app.include_router(deals.router)
