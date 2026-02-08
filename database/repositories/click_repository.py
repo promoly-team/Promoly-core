@@ -1,8 +1,7 @@
 from sqlalchemy import text
 
-
 class ClickRepository:
-    def __init__(self, conn=None):
+    def __init__(self, conn):
         self.conn = conn
 
     def register(
@@ -34,6 +33,4 @@ class ClickRepository:
                 "user_agent": user_agent,
             },
         )
-
-    def close(self):
-        self.conn.close()
+        self.conn.commit()

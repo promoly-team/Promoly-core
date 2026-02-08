@@ -36,7 +36,7 @@ def go_to_affiliate(
         )
 
     # 🔗 registra clique
-    click_repo = ClickRepository()
+    click_repo = ClickRepository(db)
     click_repo.register(
         produto_id=produto_id,
         plataforma_id=row["plataforma_id"],
