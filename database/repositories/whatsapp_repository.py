@@ -1,12 +1,13 @@
 from typing import Optional, List
 from datetime import datetime, time
 
+from sqlalchemy import text
 from database.db import get_connection
 
 
 class GrupoWhatsappRepository:
-    def __init__(self):
-        self.conn = get_connection()
+    def __init__(self, conn=None):
+        self.conn = conn or get_connection()
 
     # -------------------------
     # CREATE
@@ -21,90 +22,96 @@ class GrupoWhatsappRepository:
         horario_inicio: Optional[str] = None,
         horario_fim: Optional[str] = None,
     ) -> int:
-        cursor = self.conn.cursor()
-
-        cursor.execute(
-            """
-            INSERT OR IGNORE INTO grupos_whatsapp (
-                nome,
-                identificador_externo,
-                categoria_id,
-                cooldown_minutos,
-                max_envios_dia,
-                horario_inicio,
-                horario_fim,
-                ativo
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-            """,
-            (
-                nome,
-                identificador_externo,
-                categoria_id,
-                cooldown_minutos,
-                max_envios_dia,
-                horario_inicio,
-                horario_fim,
-            ),
+        self.conn.execute(
+            text("""
+                INSERT INTO grupos_whatsapp (
+                    nome,
+                    identificador_externo,
+                    categoria_id,
+                    cooldown_minutos,
+                    max_envios_dia,
+                    horario_inicio,
+                    horario_fim,
+                    ativo
+                )
+                VALUES (
+                    :nome,
+                    :identificador_externo,
+                    :categoria_id,
+                    :cooldown_minutos,
+                    :max_envios_dia,
+                    :horario_inicio,
+                    :horario_fim,
+                    TRUE
+                )
+                ON CONFLICT (identificador_externo) DO NOTHING
+            """),
+            {
+                "nome": nome,
+                "identificador_externo": identificador_externo,
+                "categoria_id": categoria_id,
+                "cooldown_minutos": cooldown_minutos,
+                "max_envios_dia": max_envios_dia,
+                "horario_inicio": horario_inicio,
+                "horario_fim": horario_fim,
+            },
         )
 
-        self.conn.commit()
-
-        return self.get_by_identificador(identificador_externo)["id"]
+        row = self.get_by_identificador(identificador_externo)
+        assert row is not None, "Grupo não encontrado após create"
+        return row["id"]
 
     # -------------------------
     # READ
     # -------------------------
     def get_by_identificador(self, identificador_externo: str) -> Optional[dict]:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT *
-            FROM grupos_whatsapp
-            WHERE identificador_externo = ?
-            """,
-            (identificador_externo,),
-        )
-        row = cursor.fetchone()
+        row = self.conn.execute(
+            text("""
+                SELECT *
+                FROM grupos_whatsapp
+                WHERE identificador_externo = :identificador
+            """),
+            {"identificador": identificador_externo},
+        ).fetchone()
+
         return dict(row) if row else None
 
     def get_by_id(self, grupo_id: int) -> Optional[dict]:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT *
-            FROM grupos_whatsapp
-            WHERE id = ?
-            """,
-            (grupo_id,),
-        )
-        row = cursor.fetchone()
+        row = self.conn.execute(
+            text("""
+                SELECT *
+                FROM grupos_whatsapp
+                WHERE id = :id
+            """),
+            {"id": grupo_id},
+        ).fetchone()
+
         return dict(row) if row else None
 
     def listar_ativos(self) -> List[dict]:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT *
-            FROM grupos_whatsapp
-            WHERE ativo = 1
-            ORDER BY nome
-            """
-        )
-        return [dict(row) for row in cursor.fetchall()]
+        rows = self.conn.execute(
+            text("""
+                SELECT *
+                FROM grupos_whatsapp
+                WHERE ativo = TRUE
+                ORDER BY nome
+            """)
+        ).fetchall()
+
+        return [dict(row) for row in rows]
 
     def listar_por_categoria(self, categoria_id: int) -> List[dict]:
-        cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            SELECT *
-            FROM grupos_whatsapp
-            WHERE ativo = 1
-              AND categoria_id = ?
-            """,
-            (categoria_id,),
-        )
-        return [dict(row) for row in cursor.fetchall()]
+        rows = self.conn.execute(
+            text("""
+                SELECT *
+                FROM grupos_whatsapp
+                WHERE ativo = TRUE
+                  AND categoria_id = :categoria_id
+            """),
+            {"categoria_id": categoria_id},
+        ).fetchall()
+
+        return [dict(row) for row in rows]
 
     # -------------------------
     # REGRAS
@@ -113,7 +120,7 @@ class GrupoWhatsappRepository:
         """
         Verifica se agora está dentro da janela permitida do grupo
         """
-        if not grupo["horario_inicio"] or not grupo["horario_fim"]:
+        if not grupo.get("horario_inicio") or not grupo.get("horario_fim"):
             return True
 
         agora = datetime.now().time()
@@ -127,25 +134,23 @@ class GrupoWhatsappRepository:
     # -------------------------
     def desativar(self, grupo_id: int):
         self.conn.execute(
-            """
-            UPDATE grupos_whatsapp
-            SET ativo = 0
-            WHERE id = ?
-            """,
-            (grupo_id,),
+            text("""
+                UPDATE grupos_whatsapp
+                SET ativo = FALSE
+                WHERE id = :id
+            """),
+            {"id": grupo_id},
         )
-        self.conn.commit()
 
     def ativar(self, grupo_id: int):
         self.conn.execute(
-            """
-            UPDATE grupos_whatsapp
-            SET ativo = 1
-            WHERE id = ?
-            """,
-            (grupo_id,),
+            text("""
+                UPDATE grupos_whatsapp
+                SET ativo = TRUE
+                WHERE id = :id
+            """),
+            {"id": grupo_id},
         )
-        self.conn.commit()
 
     def close(self):
         self.conn.close()

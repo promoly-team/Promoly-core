@@ -1,9 +1,10 @@
+from sqlalchemy import text
 from database.db import get_connection
 
 
 class ClickRepository:
-    def __init__(self):
-        self.conn = get_connection()
+    def __init__(self, conn=None):
+        self.conn = conn or get_connection()
 
     def register(
         self,
@@ -13,18 +14,27 @@ class ClickRepository:
         user_agent: str | None,
     ):
         self.conn.execute(
-            """
-            INSERT INTO clicks (
-                produto_id,
-                plataforma_id,
-                ip,
-                user_agent
-            )
-            VALUES (?, ?, ?, ?)
-            """,
-            (produto_id, plataforma_id, ip, user_agent),
+            text("""
+                INSERT INTO clicks (
+                    produto_id,
+                    plataforma_id,
+                    ip,
+                    user_agent
+                )
+                VALUES (
+                    :produto_id,
+                    :plataforma_id,
+                    :ip,
+                    :user_agent
+                )
+            """),
+            {
+                "produto_id": produto_id,
+                "plataforma_id": plataforma_id,
+                "ip": ip,
+                "user_agent": user_agent,
+            },
         )
-        self.conn.commit()
 
     def close(self):
         self.conn.close()
