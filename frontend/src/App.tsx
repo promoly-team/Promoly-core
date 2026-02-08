@@ -1,20 +1,28 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
-import ProductCard from "./components/ProductCard.tsx";
+import ProductCard from "./components/ProductCard";
 import CategoryPage from "./pages/Categorypage";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // HOME = últimos produtos
   useEffect(() => {
     setLoading(true);
 
-    fetch("/products?limit=20")
-      .then(r => r.json())
+    fetch(`${API_URL}/products?limit=20`)
+      .then(r => {
+        if (!r.ok) throw new Error("Erro ao buscar produtos");
+        return r.json();
+      })
       .then(setProducts)
+      .catch(err => {
+        console.error(err);
+        setProducts([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 

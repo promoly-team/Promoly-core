@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 
 const LIMIT = 12;
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CategoryPage() {
   const { slug } = useParams();
@@ -17,22 +18,34 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    if (!slug) return;
 
+    setLoading(true);
     const offset = (page - 1) * LIMIT;
 
     Promise.all([
       fetch(
-        `/products?category=${slug}&search=${search}&order=${order}&limit=${LIMIT}&offset=${offset}`
-      ).then(r => r.json()),
+        `${API_URL}/products?category=${slug}&search=${search}&order=${order}&limit=${LIMIT}&offset=${offset}`
+      ).then(r => {
+        if (!r.ok) throw new Error("Erro ao buscar produtos");
+        return r.json();
+      }),
 
       fetch(
-        `/products/total?category=${slug}&search=${search}`
-      ).then(r => r.json())
+        `${API_URL}/products/total?category=${slug}&search=${search}`
+      ).then(r => {
+        if (!r.ok) throw new Error("Erro ao buscar total");
+        return r.json();
+      })
     ])
       .then(([list, totalRes]) => {
         setProducts(list);
         setTotal(totalRes.total);
+      })
+      .catch(err => {
+        console.error(err);
+        setProducts([]);
+        setTotal(0);
       })
       .finally(() => setLoading(false));
   }, [slug, page, search, order]);
@@ -43,28 +56,18 @@ export default function CategoryPage() {
     <div className="container">
       <h1>{slug}</h1>
 
-      {/* 🔍 Search */}
       <input
         placeholder="Buscar produto..."
         value={search}
         onChange={e =>
-          setSearchParams({
-            page: "1",
-            search: e.target.value,
-            order,
-          })
+          setSearchParams({ page: "1", search: e.target.value, order })
         }
       />
 
-      {/* 🔽 Ordenação */}
       <select
         value={order}
         onChange={e =>
-          setSearchParams({
-            page: "1",
-            search,
-            order: e.target.value,
-          })
+          setSearchParams({ page: "1", search, order: e.target.value })
         }
       >
         <option value="desconto">Maior desconto</option>
@@ -84,18 +87,13 @@ export default function CategoryPage() {
         </div>
       )}
 
-      {/* 📄 Paginação */}
       <div className="pagination">
         {Array.from({ length: totalPages }).map((_, i) => (
           <button
             key={i}
             disabled={page === i + 1}
             onClick={() =>
-              setSearchParams({
-                page: String(i + 1),
-                search,
-                order,
-              })
+              setSearchParams({ page: String(i + 1), search, order })
             }
           >
             {i + 1}
