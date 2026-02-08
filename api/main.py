@@ -19,6 +19,8 @@ app.add_middleware(
     allow_origins=[
         "https://promoly-core.vercel.app",
         "http://localhost:5173",
+        "http://localhost:8080",
+        "https://promoly-core-production.up.railway.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
