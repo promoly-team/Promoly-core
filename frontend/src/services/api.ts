@@ -1,6 +1,6 @@
 import type { Offer } from "../types";
 
-const API_URL = 'promoly-core-production.up.railway.app'
+const API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
   throw new Error("VITE_API_URL não definida");
@@ -44,7 +44,6 @@ export async function apiGet<T>(
   }
 }
 
-/* 👉 ESTA FUNÇÃO FALTAVA */
 export async function fetchOffers(limit = 20): Promise<Offer[]> {
   return apiGet<Offer[]>(`/products?limit=${limit}`);
 }
