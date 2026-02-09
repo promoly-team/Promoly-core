@@ -66,7 +66,7 @@ export default function ProductCard({ product }: Props) {
           className="buy-btn"
           onClick={() => goToProduct(product.produto_id)}
         >
-          Comprar
+          Ver Oferta
         </button>
                         
         </div>
