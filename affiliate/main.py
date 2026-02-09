@@ -41,84 +41,97 @@ signal.signal(signal.SIGTERM, handle_shutdown)
 # =========================
 
 
-
 def main():
     print("🚀 Iniciando Selenium Worker")
-    
-    conn = get_connection()
-
-    link_repo = LinkAfiliadoRepository(conn=conn)
-    pipeline_repo = PipelineRepository(conn=conn)
-
-    run_id = pipeline_repo.start("selenium")
 
     driver = None
     wait = None
     erro_critico = False
+
+    # conexão SÓ para pipeline
+    pipeline_conn = get_connection()
+    pipeline_repo = PipelineRepository(conn=pipeline_conn)
+    run_id = pipeline_repo.start("selenium")
 
     try:
         driver = create_driver()
         wait = WebDriverWait(driver, WAIT_TIMEOUT)
 
         while not shutdown_requested:
-            links = link_repo.fetch_for_processing(
-                limite=LIMITE_POR_EXECUCAO
-            )
+            # 🔁 conexão NOVA para cada batch
+            conn = get_connection()
+            link_repo = LinkAfiliadoRepository(conn=conn)
 
-            print(f"[DEBUG] links retornados: {len(links)}")
+            try:
+                links = link_repo.fetch_for_processing(
+                    limite=LIMITE_POR_EXECUCAO
+                )
 
-            if not links:
-                time.sleep(SLEEP_SEM_TRABALHO)
-                continue
+                print(f"[DEBUG] links retornados: {len(links)}")
 
-            for link in links:
-                if shutdown_requested:
-                    break
+                if not links:
+                    conn.close()
+                    time.sleep(SLEEP_SEM_TRABALHO)
+                    continue
 
-                link_id = link["id"]
-                url_original = link["url_original"]
+                for link in links:
+                    if shutdown_requested:
+                        break
 
-                print(f"🔗 Processando link_id={link_id}")
-                print(f"🌐 URL: {url_original}")
+                    link_id = link["id"]
+                    url_original = link["url_original"]
 
-                try:
-                    afiliado = gerar_link_afiliado(
-                        driver,
-                        wait,
-                        url_original,
-                    )
+                    print(f"🔗 Processando link_id={link_id}")
+                    print(f"🌐 URL: {url_original}")
 
-                    if not afiliado:
-                        raise RuntimeError("Link afiliado não gerado")
+                    try:
+                        afiliado = gerar_link_afiliado(
+                            driver,
+                            wait,
+                            url_original,
+                        )
 
-                    link_repo.marcar_sucesso(
-                        link_id,
-                        url_afiliada=afiliado,
-                    )
+                        if not afiliado:
+                            raise RuntimeError("Link afiliado não gerado")
 
-                    print("✅ Link afiliado gerado com sucesso")
+                        link_repo.marcar_sucesso(
+                            link_id,
+                            url_afiliada=afiliado,
+                        )
+                        conn.commit()
 
-                except Exception as e:
-                    print("⚠️ Erro ao gerar link afiliado")
-                    print(e)
+                        print("✅ Link afiliado gerado com sucesso")
 
-                    link_repo.marcar_falha(
-                        link_id,
-                        str(e),
-                    )
+                    except Exception as e:
+                        print("⚠️ Erro ao gerar link afiliado")
+                        print(e)
 
-                time.sleep(SLEEP_ENTRE_LINKS)
+                        conn.rollback()  # 🔑 ESSENCIAL
+                        link_repo.marcar_falha(
+                            link_id,
+                            str(e)[:500],  # evita erro gigante
+                        )
+                        conn.commit()
+
+                    time.sleep(SLEEP_ENTRE_LINKS)
+
+            finally:
+                conn.close()
 
     except Exception:
         erro_critico = True
+        pipeline_conn.rollback()
         pipeline_repo.finish(run_id, "erro")
+        pipeline_conn.commit()
         raise
 
     finally:
         if not erro_critico:
+            pipeline_conn.rollback()
             pipeline_repo.finish(run_id, "ok")
+            pipeline_conn.commit()
 
-        print("🧹 Encerrando driver e conexão com banco")
+        print("🧹 Encerrando driver e conexões")
 
         try:
             if driver:
@@ -127,11 +140,9 @@ def main():
             pass
 
         try:
-            link_repo.close()
-            pipeline_repo.close()
+            pipeline_conn.close()
         except Exception:
             pass
-
 
 # =========================
 # Entry point

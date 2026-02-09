@@ -85,6 +85,7 @@ class LinkAfiliadoRepository:
                     FROM links_afiliados
                     WHERE status = 'pendente'
                       AND tentativas < 3
+                      AND created_at > NOW() - INTERVAL '7 days'
                     ORDER BY created_at ASC
                     LIMIT :limite
                     FOR UPDATE SKIP LOCKED
