@@ -1,9 +1,24 @@
 .product-page {
   display: grid;
-  grid-template-columns: 3fr 1.2fr;
-  gap: 24px;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 24px;
 }
+
+/* =====================
+   MOBILE
+===================== */
+
+@media (max-width: 768px) {
+  .product-page {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 16px;
+  }
+}
+
 
 .product-main {
   background: #fff;
