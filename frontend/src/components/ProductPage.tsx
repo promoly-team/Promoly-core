@@ -8,7 +8,7 @@ export default function ProductPage() {
   const { slug } = useParams(); 
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [similares, setSimilares] = useState<Product[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +20,6 @@ export default function ProductPage() {
     fetchProduct(slug)
       .then(data => {
         setProduct(data.produto);
-        setSimilares(data.similares);
       })
       .catch(err => {
         console.error(err);

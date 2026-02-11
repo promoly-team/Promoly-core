@@ -1,38 +1,28 @@
 import "./ProductCard.css";
 import { goToProduct } from "../services/api";
 import { useNavigate } from "react-router-dom";
-
-type Product = {
-  produto_id: number;
-  titulo: string;
-  imagem_url: string;
-  preco_atual: number;
-  preco_anterior?: number | null;
-  desconto_pct?: number | null;
-};
+import type { ProductCardData } from "../types";
 
 type Props = {
-  product: Product;
+  product: ProductCardData;
 };
 
 export default function ProductCard({ product }: Props) {
   const navigate = useNavigate();
 
   const hasDiscount =
-    product.preco_anterior &&
+    "preco_anterior" in product &&
     product.preco_anterior > product.preco_atual;
 
   return (
-    <div className="product-card" style={{ position: "relative" }}>
-      {/* Badge de desconto */}
-      {product.desconto_pct && (
+    <div className="product-card">
+      {"desconto_pct" in product && product.desconto_pct && (
         <span className="badge">-{product.desconto_pct}%</span>
       )}
 
-      {/* Imagem (clicável → detalhes) */}
       <div
         className="product-img clickable"
-        onClick={() => navigate(`/produto/${product.produto_id}`)}
+        onClick={() => navigate(`/produto/${product.slug}`)}
       >
         <img
           src={product.imagem_url}
@@ -41,44 +31,21 @@ export default function ProductCard({ product }: Props) {
         />
       </div>
 
-      {/* Conteúdo */}
       <div className="product-content">
         <div
           className="product-title clickable"
-          onClick={() => navigate(`/produto/${product.produto_id}`)}
+          onClick={() => navigate(`/produto/${product.slug}`)}
         >
           {product.titulo}
         </div>
 
-        {/* Economia */}
-        {hasDiscount && (
-          <div className="economy">
-            Economize R${" "}
-            {(product.preco_anterior! - product.preco_atual).toFixed(2)}
-          </div>
-        )}
-
-        {/* Preços */}
-        <div className="price-info">
-          {hasDiscount && (
-            <span className="old-price">
-              R$ {product.preco_anterior!.toFixed(2)}
-            </span>
-          )}
-
-          <span className="current-price">
-            R$ {product.preco_atual.toFixed(2)}
-          </span>
-        </div>
-
-        {/* Ações */}
-        <a
-          href={`/produto/${product.slug}`}
-          className="details-btn"
-        >
-          Detalhes
-        </a>
-
+        <div className="action-row">
+          <button
+            className="details-btn"
+            onClick={() => navigate(`/produto/${product.slug}`)}
+          >
+            Detalhes
+          </button>
 
           <button
             className="buy-btn"
@@ -88,7 +55,6 @@ export default function ProductCard({ product }: Props) {
           </button>
         </div>
       </div>
+    </div>
   );
 }
-
-      
