@@ -20,7 +20,7 @@ export default function ProductCard({ product }: Props) {
 
       <div
         className="product-img clickable"
-        onClick={() => navigate(`/produto/${product.slug}`)}
+        onClick={() => navigate(`/produto/${product.produto_id}`)}
       >
         <img
           src={product.imagem_url}
@@ -32,7 +32,7 @@ export default function ProductCard({ product }: Props) {
       <div className="product-content">
         <div
           className="product-title clickable"
-          onClick={() => navigate(`/produto/${product.slug}`)}
+          onClick={() => navigate(`/produto/${product.produto_id}`)}
         >
           {product.titulo}
         </div>
@@ -59,7 +59,8 @@ export default function ProductCard({ product }: Props) {
         <div className="action-row">
           <button
             className="details-btn"
-            onClick={() => navigate(`/produto/${product.slug}`)}
+            onClick={() => navigate(`/produto/${product.produto_id}`)
+}
           >
             Detalhes
           </button>

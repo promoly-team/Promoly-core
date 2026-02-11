@@ -2,33 +2,28 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchProduct } from "../services/api";
 import type { Product } from "../types";
-
 import "./ProductPage.css";
 
 export default function ProductPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { id } = useParams<{ id: string }>();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [similares, setSimilares] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!id) return;
 
     setLoading(true);
 
-    fetchProduct(slug)
-      .then(({ produto, similares }) => {
-        setProduct(produto);
-        setSimilares(similares);
-      })
+    fetchProduct(Number(id))
+      .then(setProduct)
       .catch(err => {
         console.error(err);
         setError("Não foi possível carregar o produto");
       })
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [id]);
 
   if (loading) return <p>Carregando produto...</p>;
   if (error) return <p>{error}</p>;
@@ -66,21 +61,6 @@ export default function ProductPage() {
           Ver oferta
         </a>
       </section>
-
-      {similares.length > 0 && (
-        <aside className="product-aside">
-          <h3>Produtos semelhantes</h3>
-          {similares.map(p => (
-            <a
-              key={p.produto_id}
-              href={`/produto/${p.slug}`}
-              className="similar-item"
-            >
-              {p.titulo}
-            </a>
-          ))}
-        </aside>
-      )}
     </div>
   );
 }

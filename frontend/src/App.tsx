@@ -45,7 +45,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/categoria/:slug" element={<CategoryPage />} />
-        <Route path="/produto/:slug" element={<ProductPage />} />
+        <Route path="/produto/:id" element={<ProductPage />} />
       </Routes>
     </BrowserRouter>
   );

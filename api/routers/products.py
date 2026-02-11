@@ -75,7 +75,6 @@ def list_products(
     SELECT
         p.id AS produto_id,
         p.titulo,
-        p.slug,
         p.imagem_url,
 
         u.preco AS preco_atual,
@@ -151,7 +150,6 @@ def list_products(
         {
             "produto_id": r["produto_id"],
             "titulo": r["titulo"],
-            "slug": r["slug"],
             "imagem_url": r["imagem_url"],
             "preco_atual": float(r["preco_atual"]),
             "preco_anterior": float(r["preco_anterior"])
@@ -168,9 +166,9 @@ def list_products(
 
     return response
 
+@router.get("/{product_id}")
+def get_product(product_id: int, db = Depends(get_db)):
 
-@router.get("/{slug}")
-def get_produto(slug: str, db=Depends(get_db)):
     result = db.execute(
         text("""
             SELECT
@@ -179,10 +177,10 @@ def get_produto(slug: str, db=Depends(get_db)):
             FROM produtos p
             LEFT JOIN produto_categoria pc ON pc.produto_id = p.id
             LEFT JOIN categorias c ON c.id = pc.categoria_id
-            WHERE p.slug = :slug
+            WHERE p.product_id = :product_id
             GROUP BY p.id
         """),
-        {"slug": slug}
+        {"product_id": product_id}
     )
 
     produto = result.mappings().first()
