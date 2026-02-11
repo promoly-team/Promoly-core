@@ -29,6 +29,11 @@ export default function ProductPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link copiado!");
+  };
+
   if (loading) return <p>Carregando produto...</p>;
   if (error) return <p>{error}</p>;
   if (!product) return <p>Produto não encontrado.</p>;
@@ -42,32 +47,62 @@ export default function ProductPage() {
           className="product-image"
         />
 
-        <h1>{product.titulo}</h1>
+        <div className="product-header">
+          <h1>{product.titulo}</h1>
 
+          <span className="product-id">
+            ID: {product.produto_id}
+          </span>
+        </div>
+
+        {/* ⭐ Avaliação */}
         {product.avaliacao && (
           <div className="rating">⭐ {product.avaliacao}</div>
         )}
 
+        {/* 🏷 Categorias */}
+        {product.categorias && product.categorias.length > 0 && (
+          <div className="categories">
+            {product.categorias.map(cat => (
+              <span key={cat} className="category-tag">
+                {cat}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* 💰 Preço */}
         {product.preco !== null && (
           <div className="price">
             R$ {product.preco.toFixed(2)}
           </div>
         )}
 
+        {/* 📝 Descrição */}
         {product.descricao && (
           <p className="description">{product.descricao}</p>
         )}
 
-        <a
-          href={product.url_afiliada}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="buy-btn big"
-        >
-          Ver oferta
-        </a>
+        <div className="action-buttons">
+          <a
+            href={product.url_afiliada}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="buy-btn big"
+          >
+            Ver oferta
+          </a>
+
+          <button
+            onClick={copyLink}
+            className="secondary-btn"
+          >
+            Copiar link
+          </button>
+        </div>
       </section>
 
+      {/* ===== SIMILARES ===== */}
       {similares.length > 0 && (
         <aside className="product-aside">
           <h3>Produtos semelhantes</h3>
@@ -77,7 +112,9 @@ export default function ProductPage() {
               <div
                 key={p.produto_id}
                 className="similar-card"
-                onClick={() => window.location.href = `/produto/${p.produto_id}`}
+                onClick={() =>
+                  window.location.href = `/produto/${p.produto_id}`
+                }
               >
                 <img
                   src={p.imagem_url}
