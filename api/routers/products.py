@@ -1,3 +1,5 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -168,36 +170,15 @@ def list_products(
 
 @router.get("/{product_id}")
 def get_product(product_id: int, db: Session = Depends(get_db)):
-    query = """
-        SELECT
-            p.*,
-            ARRAY_AGG(c.nome) AS categorias
-        FROM produtos p
-        LEFT JOIN produto_categoria pc ON pc.produto_id = p.id
-        LEFT JOIN categorias c ON c.id = pc.categoria_id
-        WHERE p.id = :product_id
-        GROUP BY p.id
-    """
-
-    result = db.execute(text(query), {"product_id": product_id}).fetchone()
-
-    if not result:
-        raise HTTPException(status_code=404, detail="Produto não encontrado")
-
-    return dict(result._mapping)
-'''
-@router.get("/{product_id}")
-def get_product(product_id: int, db = Depends(get_db)):
-
     result = db.execute(
         text("""
             SELECT
                 p.*,
-                ARRAY_AGG(c.nome) AS categorias
+                ARRAY_AGG(c.nome) FILTER (WHERE c.nome IS NOT NULL) AS categorias
             FROM produtos p
             LEFT JOIN produto_categoria pc ON pc.produto_id = p.id
             LEFT JOIN categorias c ON c.id = pc.categoria_id
-            WHERE p.product_id = :product_id
+            WHERE p.id = :product_id
             GROUP BY p.id
         """),
         {"product_id": product_id}
@@ -206,10 +187,12 @@ def get_product(product_id: int, db = Depends(get_db)):
     produto = result.mappings().first()
 
     if not produto:
-        return JSONResponse(
+        raise HTTPException(
             status_code=404,
-            content={"detail": "Produto não encontrado"}
+            detail="Produto não encontrado"
         )
+
+    # ===== SIMILARES =====
 
     similares_cat = similares_por_categoria(db, produto["id"])
     similares_desc = similares_por_descricao(db, produto)
@@ -218,16 +201,15 @@ def get_product(product_id: int, db = Depends(get_db)):
     similares = []
 
     for p in similares_cat + similares_desc:
-        if p["id"] not in vistos:
+        if p["id"] not in vistos and p["id"] != produto["id"]:
             similares.append(p)
             vistos.add(p["id"])
 
     return {
-        "produto": produto,
+        "produto": dict(produto),
         "similares": similares[:6],
     }
 
-'''
 
 def similares_por_categoria(db, produto_id: int, limit=4):
     result = db.execute(
