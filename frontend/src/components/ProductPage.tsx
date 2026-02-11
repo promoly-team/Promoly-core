@@ -71,15 +71,40 @@ export default function ProductPage() {
       {similares.length > 0 && (
         <aside className="product-aside">
           <h3>Produtos semelhantes</h3>
-          {similares.map(p => (
-            <a
-              key={p.produto_id}
-              href={`/produto/${p.produto_id}`}
-              className="similar-item"
-            >
-              {p.titulo}
-            </a>
-          ))}
+
+          <div className="similar-grid">
+            {similares.map(p => (
+              <div
+                key={p.produto_id}
+                className="similar-card"
+                onClick={() => window.location.href = `/produto/${p.produto_id}`}
+              >
+                <img
+                  src={p.imagem_url}
+                  alt={p.titulo}
+                  className="similar-image"
+                />
+
+                <div className="similar-info">
+                  <div className="similar-title">
+                    {p.titulo}
+                  </div>
+
+                  {p.preco !== null && (
+                    <div className="similar-price">
+                      R$ {p.preco.toFixed(2)}
+                    </div>
+                  )}
+
+                  {p.avaliacao && (
+                    <div className="similar-rating">
+                      ⭐ {p.avaliacao}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </aside>
       )}
     </div>
