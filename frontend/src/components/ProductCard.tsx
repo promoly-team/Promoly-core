@@ -36,25 +36,28 @@ export default function ProductCard({ product }: Props) {
         >
           {product.titulo}
         </div>
-
         <div className="price-info">
           {isDeal ? (
             <>
-              {product.preco_anterior && (
+              {product.preco_anterior != null && (
                 <span className="old-price">
                   R$ {product.preco_anterior.toFixed(2)}
                 </span>
               )}
+
               <span className="current-price">
                 R$ {product.preco_atual.toFixed(2)}
               </span>
             </>
           ) : (
             <span className="current-price">
-              R$ {product.preco?.toFixed(2)}
+              {product.preco != null
+                ? `R$ ${product.preco.toFixed(2)}`
+                : "Preço indisponível"}
             </span>
           )}
         </div>
+
 
         <div className="action-row">
           <button

@@ -1,6 +1,6 @@
 export type BaseProduct = {
   produto_id: number;
-  slug: string;      
+  slug: string | null; 
   titulo: string;
   imagem_url: string;
   url_afiliada: string;
