@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetchProduct } from "../services/api";
 import "./ProductPage.css";
 
 type Product = {
@@ -12,29 +13,30 @@ type Product = {
 };
 
 export default function ProductPage() {
-  const id = window.location.pathname.split("/").pop();
+  const productId = Number(
+    window.location.pathname.split("/").pop()
+  );
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [similar, setSimilar] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!productId) return;
 
     setLoading(true);
 
-    fetch(`/api/produtos/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setProduct(data);
-        return fetch(`/api/produtos/${data.id}/similares`);
+    fetchProduct(productId)
+      .then(data => setProduct(data))
+      .catch(err => {
+        console.error(err);
+        setError("Não foi possível carregar o produto");
       })
-      .then(res => res.json())
-      .then(setSimilar)
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [productId]);
 
   if (loading) return <p>Carregando produto...</p>;
+  if (error) return <p>{error}</p>;
   if (!product) return <p>Produto não encontrado.</p>;
 
   return (
@@ -69,26 +71,6 @@ export default function ProductPage() {
           Ver oferta
         </a>
       </section>
-
-      <aside className="product-aside">
-        <h3>Produtos semelhantes</h3>
-
-        {similar.map(item => (
-          <a
-            key={item.id}
-            href={`/produto/${item.id}`}
-            className="similar-card"
-          >
-            <img src={item.imagem_url} alt={item.titulo} />
-            <div>
-              <p className="title">{item.titulo}</p>
-              <span className="price">
-                R$ {item.preco?.toFixed(2)}
-              </span>
-            </div>
-          </a>
-        ))}
-      </aside>
     </div>
   );
 }
