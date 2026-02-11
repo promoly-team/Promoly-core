@@ -170,45 +170,53 @@ def list_products(
 
 @router.get("/{product_id}")
 def get_product(product_id: int, db: Session = Depends(get_db)):
+
+    query = """
+        SELECT
+            p.id AS produto_id,
+            p.slug,
+            p.titulo,
+            p.descricao,
+            p.imagem_url,
+            p.preco,
+            p.avaliacao,
+            la.url_afiliada,
+            ARRAY_AGG(c.nome) AS categorias
+        FROM produtos p
+        LEFT JOIN produto_categoria pc ON pc.produto_id = p.id
+        LEFT JOIN categorias c ON c.id = pc.categoria_id
+        LEFT JOIN links_afiliados la
+            ON la.produto_id = p.id
+            AND la.status = 'ok'
+        WHERE p.id = :product_id
+        GROUP BY p.id, la.url_afiliada
+    """
+
     result = db.execute(
-        text("""
-            SELECT
-                p.*,
-                ARRAY_AGG(c.nome) FILTER (WHERE c.nome IS NOT NULL) AS categorias
-            FROM produtos p
-            LEFT JOIN produto_categoria pc ON pc.produto_id = p.id
-            LEFT JOIN categorias c ON c.id = pc.categoria_id
-            WHERE p.id = :product_id
-            GROUP BY p.id
-        """),
+        text(query),
         {"product_id": product_id}
-    )
+    ).mappings().first()
 
-    produto = result.mappings().first()
+    if not result:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
 
-    if not produto:
-        raise HTTPException(
-            status_code=404,
-            detail="Produto não encontrado"
-        )
-
-    # ===== SIMILARES =====
-
-    similares_cat = similares_por_categoria(db, produto["id"])
-    similares_desc = similares_por_descricao(db, produto)
+    # similares
+    similares_cat = similares_por_categoria(db, result["produto_id"])
+    similares_desc = similares_por_descricao(db, result)
 
     vistos = set()
     similares = []
 
     for p in similares_cat + similares_desc:
-        if p["id"] not in vistos and p["id"] != produto["id"]:
+        if p["id"] not in vistos:
             similares.append(p)
             vistos.add(p["id"])
 
     return {
-        "produto": dict(produto),
+        "produto": dict(result),
         "similares": similares[:6],
     }
+
 
 
 def similares_por_categoria(db, produto_id: int, limit=4):
