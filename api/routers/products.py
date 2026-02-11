@@ -75,7 +75,7 @@ def list_products(
     SELECT
         p.id AS produto_id,
         p.titulo,
-        p.slog,
+        p.slug,
         p.imagem_url,
 
         u.preco AS preco_atual,
