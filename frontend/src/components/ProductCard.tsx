@@ -72,13 +72,13 @@ export default function ProductCard({ product }: Props) {
         </div>
 
         {/* Ações */}
-        <div className="action-row">
-          <button
-            className="details-btn"
-            onClick={() => navigate(`/produto/${product.produto_id}`)}
-          >
-            Detalhes
-          </button>
+        <a
+          href={`/produto/${product.produto_id}`}
+          className="details-btn"
+        >
+          Detalhes
+        </a>
+
 
           <button
             className="buy-btn"
