@@ -10,13 +10,11 @@ type Props = {
 export default function ProductCard({ product }: Props) {
   const navigate = useNavigate();
 
-  const hasDiscount =
-    "preco_anterior" in product &&
-    product.preco_anterior > product.preco_atual;
+  const isDeal = "preco_atual" in product;
 
   return (
     <div className="product-card">
-      {"desconto_pct" in product && product.desconto_pct && (
+      {isDeal && product.desconto_pct && (
         <span className="badge">-{product.desconto_pct}%</span>
       )}
 
@@ -37,6 +35,25 @@ export default function ProductCard({ product }: Props) {
           onClick={() => navigate(`/produto/${product.slug}`)}
         >
           {product.titulo}
+        </div>
+
+        <div className="price-info">
+          {isDeal ? (
+            <>
+              {product.preco_anterior && (
+                <span className="old-price">
+                  R$ {product.preco_anterior.toFixed(2)}
+                </span>
+              )}
+              <span className="current-price">
+                R$ {product.preco_atual.toFixed(2)}
+              </span>
+            </>
+          ) : (
+            <span className="current-price">
+              R$ {product.preco?.toFixed(2)}
+            </span>
+          )}
         </div>
 
         <div className="action-row">

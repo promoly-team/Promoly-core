@@ -3,28 +3,20 @@ import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import ProductCard from "./components/ProductCard";
 import ProductPage from "./components/ProductPage";
-
 import CategoryPage from "./pages/Categorypage";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { fetchProducts } from "./services/api";
+import type { ProductCardData } from "./types";
 
 function App() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductCardData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
 
-    fetch(`${API_URL}/products?limit=20`)
-      .then(r => {
-        if (!r.ok) throw new Error("Erro ao buscar produtos");
-        return r.json();
-      })
+    fetchProducts(20)
       .then(setProducts)
-      .catch(err => {
-        console.error(err);
-        setProducts([]);
-      })
+      .catch(() => setProducts([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -37,7 +29,10 @@ function App() {
       ) : (
         <div className="cards-grid">
           {products.map(p => (
-            <ProductCard key={p.produto_id} product={p} />
+            <ProductCard
+              key={p.produto_id}
+              product={p}
+            />
           ))}
         </div>
       )}
@@ -52,7 +47,6 @@ function App() {
         <Route path="/categoria/:slug" element={<CategoryPage />} />
         <Route path="/produto/:slug" element={<ProductPage />} />
       </Routes>
-
     </BrowserRouter>
   );
 }

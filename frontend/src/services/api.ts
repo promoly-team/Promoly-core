@@ -1,16 +1,6 @@
-import type { Offer, Product } from "../types";
+import type { Offer, Product, ProductCardData } from "../types";
 
-/**
- * URL base da API
- * Definida no Vercel e no .env local
- *
- * VITE_API_URL=https://promoly-core-production.up.railway.app
- */
 const API_URL = "https://promoly-core-production.up.railway.app";
-
-if (!API_URL) {
-  throw new Error("VITE_API_URL não definida");
-}
 
 type ApiError = {
   status: number;
@@ -39,22 +29,10 @@ export async function apiGet<T>(
         message = data?.detail || data?.message || message;
       } catch {}
 
-      throw {
-        status: res.status,
-        message,
-      } as ApiError;
+      throw { status: res.status, message } as ApiError;
     }
 
     return res.json() as Promise<T>;
-  } catch (err) {
-    if ((err as any).name === "AbortError") {
-      throw {
-        status: 408,
-        message: "Timeout ao conectar com o servidor",
-      } as ApiError;
-    }
-
-    throw err;
   } finally {
     clearTimeout(timeout);
   }
@@ -64,25 +42,26 @@ export async function apiGet<T>(
    ENDPOINTS
 ========================= */
 
-export function fetchProducts(limit = 20): Promise<Product[]> {
-  return apiGet<Product[]>(`/products/?limit=${limit}`);
+export function fetchProducts(
+  limit = 20
+): Promise<ProductCardData[]> {
+  return apiGet<ProductCardData[]>(`/products?limit=${limit}`);
 }
 
-export function fetchOffers(limit = 20): Promise<Offer[]> {
-  return apiGet<Offer[]>(`/offers/?limit=${limit}`);
+export function fetchOffers(
+  limit = 20
+): Promise<Offer[]> {
+  return apiGet<Offer[]>(`/offers?limit=${limit}`);
 }
 
-export function fetchDeals(limit = 20) {
-  return apiGet(`/deals/?limit=${limit}`);
-}
-
-export function fetchProduct(slug: string): Promise<{
+export function fetchProduct(
+  slug: string
+): Promise<{
   produto: Product;
   similares: Product[];
 }> {
   return apiGet(`/products/${slug}`);
 }
-
 
 export function fetchPrices(productId: number) {
   return apiGet(`/prices/${productId}`);

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchProduct } from "../services/api";
 import type { Product } from "../types";
+
 import "./ProductPage.css";
 
 export default function ProductPage() {
-  const { slug } = useParams(); 
+  const { slug } = useParams<{ slug: string }>();
 
   const [product, setProduct] = useState<Product | null>(null);
-
+  const [similares, setSimilares] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,8 +19,9 @@ export default function ProductPage() {
     setLoading(true);
 
     fetchProduct(slug)
-      .then(data => {
-        setProduct(data.produto);
+      .then(({ produto, similares }) => {
+        setProduct(produto);
+        setSimilares(similares);
       })
       .catch(err => {
         console.error(err);
@@ -65,7 +67,20 @@ export default function ProductPage() {
         </a>
       </section>
 
-      {/* depois você pode renderizar similares aqui */}
+      {similares.length > 0 && (
+        <aside className="product-aside">
+          <h3>Produtos semelhantes</h3>
+          {similares.map(p => (
+            <a
+              key={p.produto_id}
+              href={`/produto/${p.slug}`}
+              className="similar-item"
+            >
+              {p.titulo}
+            </a>
+          ))}
+        </aside>
+      )}
     </div>
   );
 }

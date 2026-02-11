@@ -2,27 +2,19 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { apiGet } from "../services/api";
+import type { ProductCardData } from "../types";
 
 const LIMIT = 12;
 
-type Product = {
-  produto_id: number;
-  titulo: string;
-  imagem_url: string;
-  preco_atual: number;
-  preco_anterior?: number | null;
-  desconto_pct?: number | null;
-};
-
 export default function CategoryPage() {
-  const { slug } = useParams();
+  const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Number(searchParams.get("page") || 1);
   const search = searchParams.get("search") || "";
   const order = searchParams.get("order") || "desconto";
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductCardData[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +26,7 @@ export default function CategoryPage() {
     const offset = (page - 1) * LIMIT;
 
     Promise.all([
-      apiGet<Product[]>(
+      apiGet<ProductCardData[]>(
         `/products?category=${slug}&search=${search}&order=${order}&limit=${LIMIT}&offset=${offset}`
       ),
       apiGet<{ total: number }>(
@@ -57,7 +49,6 @@ export default function CategoryPage() {
 
   return (
     <div className="container">
-      {/* ===== HEADER DA CATEGORIA ===== */}
       <div className="category-header">
         <h1 className="category-title">{slug}</h1>
 
@@ -93,7 +84,6 @@ export default function CategoryPage() {
         </div>
       </div>
 
-      {/* ===== CONTEÚDO ===== */}
       {loading ? (
         <p>Carregando...</p>
       ) : products.length === 0 ? (
@@ -101,12 +91,14 @@ export default function CategoryPage() {
       ) : (
         <div className="cards-grid">
           {products.map(p => (
-            <ProductCard key={p.produto_id} product={p} />
+            <ProductCard
+              key={p.produto_id}
+              product={p}
+            />
           ))}
         </div>
       )}
 
-      {/* ===== PAGINAÇÃO ===== */}
       {totalPages > 1 && (
         <div className="pagination">
           {Array.from({ length: totalPages }).map((_, i) => (
