@@ -151,6 +151,7 @@ def list_products(
         {
             "produto_id": r["produto_id"],
             "titulo": r["titulo"],
+            "slug": r["slug"],
             "imagem_url": r["imagem_url"],
             "preco_atual": float(r["preco_atual"]),
             "preco_anterior": float(r["preco_anterior"])
