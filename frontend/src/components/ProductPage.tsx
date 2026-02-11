@@ -1,4 +1,3 @@
-import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./ProductPage.css";
 
@@ -12,35 +11,34 @@ type Product = {
   link_original: string;
 };
 
-const id = window.location.pathname.split("/").pop();
-
-
 export default function ProductPage() {
-  const { id } = useParams();
+  const id = window.location.pathname.split("/").pop();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [similar, setSimilar] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!id) return;
 
+    setLoading(true);
+
     fetch(`/api/produtos/${id}`)
-        .then(res => res.json())
-        .then(data => {
+      .then(res => res.json())
+      .then(data => {
         setProduct(data);
         return fetch(`/api/produtos/${data.id}/similares`);
-        })
-        .then(res => res.json())
-        .then(setSimilar);
-    }, [id]);
-
+      })
+      .then(res => res.json())
+      .then(setSimilar)
+      .finally(() => setLoading(false));
+  }, [id]);
 
   if (loading) return <p>Carregando produto...</p>;
   if (!product) return <p>Produto não encontrado.</p>;
 
   return (
     <div className="product-page">
-      {/* SECTION */}
       <section className="product-main">
         <img
           src={product.imagem_url}
@@ -72,19 +70,14 @@ export default function ProductPage() {
         </a>
       </section>
 
-      {/* ASIDE */}
       <aside className="product-aside">
         <h3>Produtos semelhantes</h3>
 
-        {similar.length === 0 && (
-          <p className="empty">Nenhum produto parecido encontrado.</p>
-        )}
-
         {similar.map(item => (
-          <div
+          <a
             key={item.id}
+            href={`/produto/${item.id}`}
             className="similar-card"
-            onClick={() => window.location.href = `/produto/${item.id}`}
           >
             <img src={item.imagem_url} alt={item.titulo} />
             <div>
@@ -93,7 +86,7 @@ export default function ProductPage() {
                 R$ {item.preco?.toFixed(2)}
               </span>
             </div>
-          </div>
+          </a>
         ))}
       </aside>
     </div>
