@@ -166,3 +166,132 @@ def list_products(
 
     return response
 
+
+@router.get("/{slug}")
+def get_produto(slug: str, db=Depends(get_db)):
+    result = db.execute(
+        text("""
+            SELECT
+                p.*,
+                ARRAY_AGG(c.nome) AS categorias
+            FROM produtos p
+            LEFT JOIN produto_categoria pc ON pc.produto_id = p.id
+            LEFT JOIN categorias c ON c.id = pc.categoria_id
+            WHERE p.slug = :slug
+            GROUP BY p.id
+        """),
+        {"slug": slug}
+    )
+
+    produto = result.mappings().first()
+
+    if not produto:
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "Produto não encontrado"}
+        )
+
+    similares_cat = similares_por_categoria(db, produto["id"])
+    similares_desc = similares_por_descricao(db, produto)
+
+    vistos = set()
+    similares = []
+
+    for p in similares_cat + similares_desc:
+        if p["id"] not in vistos:
+            similares.append(p)
+            vistos.add(p["id"])
+
+    return {
+        "produto": produto,
+        "similares": similares[:6],
+    }
+
+
+
+def similares_por_categoria(db, produto_id: int, limit=4):
+    result = db.execute(
+        text("""
+            SELECT DISTINCT p.*
+            FROM produtos p
+            JOIN produto_categoria pc ON pc.produto_id = p.id
+            WHERE pc.categoria_id IN (
+                SELECT categoria_id
+                FROM produto_categoria
+                WHERE produto_id = :produto_id
+            )
+            AND p.id != :produto_id
+            LIMIT :limit
+        """),
+        {"produto_id": produto_id, "limit": limit}
+    )
+
+    return result.mappings().all()
+
+import re
+
+def extract_keywords(texto: str):
+    if not texto:
+        return []
+
+    stopwords = {
+        "de", "para", "com", "sem", "uma", "um", "e", "ou", "por", "em"
+    }
+
+    words = re.findall(r"\b\w+\b", texto.lower())
+    return [w for w in words if len(w) > 3 and w not in stopwords]
+
+def similares_por_descricao(db, produto, limit=4):
+    keywords = extract_keywords(produto["descricao"])
+    if not keywords:
+        return []
+
+    conditions = " OR ".join(
+        [f"descricao ILIKE '%{k}%'" for k in keywords[:5]]
+    )
+
+    result = db.execute(
+        text(f"""
+            SELECT *
+            FROM produtos
+            WHERE ({conditions})
+              AND id != :id
+            LIMIT {limit}
+        """),
+        {"id": produto["id"]}
+    )
+
+    return result.mappings().all()
+
+
+@router.get("/{produto_id}/similares")
+def produtos_similares(produto_id: int, db=Depends(get_db)):
+    result = db.execute(
+        text("""
+            SELECT *
+            FROM produtos
+            WHERE id = :id
+        """),
+        {"id": produto_id}
+    )
+
+    produto = result.mappings().first()
+
+    if not produto:
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "Produto não encontrado"}
+        )
+
+    cat_items = similares_por_categoria(db, produto_id)
+    desc_items = similares_por_descricao(db, produto)
+
+    vistos = set()
+    similares = []
+
+    for item in cat_items + desc_items:
+        if item["id"] not in vistos:
+            similares.append(item)
+            vistos.add(item["id"])
+
+    return similares[:6]

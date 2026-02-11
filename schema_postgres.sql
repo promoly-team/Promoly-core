@@ -41,6 +41,8 @@ CREATE TABLE produtos (
     plataforma_id INTEGER NOT NULL,
 
     titulo TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+
     descricao TEXT,
     preco DOUBLE PRECISION,
     avaliacao DOUBLE PRECISION,
@@ -60,6 +62,7 @@ CREATE TABLE produtos (
     FOREIGN KEY (plataforma_id) REFERENCES plataformas(id)
 );
 
+
 -- ========================
 -- PRODUTO ↔ CATEGORIA
 -- ========================
@@ -69,11 +72,7 @@ CREATE TABLE produto_categoria (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (produto_id, categoria_id),
-
-    FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE,
-    FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
-);
+  '
 
 -- ========================
 -- HISTÓRICO DE PREÇO

@@ -187,3 +187,7 @@ CREATE INDEX idx_envios_grupo ON envios(grupo_id);
 CREATE INDEX idx_envios_produto ON envios(produto_id);
 CREATE INDEX idx_envios_enviado_em ON envios(enviado_em);
 CREATE INDEX idx_preco_historico_produto ON produto_preco_historico(produto_id);
+CREATE UNIQUE INDEX idx_produtos_slug ON produtos(slug);
+CREATE INDEX idx_produtos_descricao_fts
+ON produtos
+USING gin (to_tsvector('portuguese', descricao));

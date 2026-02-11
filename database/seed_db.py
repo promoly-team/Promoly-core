@@ -1,26 +1,72 @@
-from database.repositories.categoria_repository import CategoriaRepository
-from database.repositories.plataforma_repository import PlataformaRepository
+import os
+from sqlalchemy import create_engine, text
 
-repo = CategoriaRepository()
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-repo.create("Eletrônicos", "eletronicos")
-repo.create("Casa", "casa")
-repo.create("Pet", "pet")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL não definido")
 
-repo.close()
+engine = create_engine(DATABASE_URL)
 
-print("✅ Categorias criadas")
+def seed_categorias(conn):
+    categorias = [
+        ("Eletrônicos", "eletronicos"),
+        ("Casa", "casa"),
+        ("Pet", "pet"),
+    ]
 
-repo = PlataformaRepository()
+    for nome, slug in categorias:
+        conn.execute(
+            text("""
+                INSERT INTO categorias (nome, slug)
+                VALUES (:nome, :slug)
+                ON CONFLICT (slug) DO NOTHING
+            """),
+            {"nome": nome, "slug": slug}
+        )
 
-repo.create(
-    nome="Mercado Livre",
-    slug="mercado_livre",
-    dominio_principal="mercadolivre.com.br",
-    suporta_afiliado=True,
-    tipo_afiliado="link_builder",
-)
+    print("✅ Categorias seed executado")
 
-repo.close()
 
-print("✅ Plataforma Mercado Livre criada")
+def seed_plataformas(conn):
+    conn.execute(
+        text("""
+            INSERT INTO plataformas (
+                nome,
+                slug,
+                dominio_principal,
+                suporta_afiliado,
+                tipo_afiliado
+            )
+            VALUES (
+                :nome,
+                :slug,
+                :dominio,
+                :suporta_afiliado,
+                :tipo_afiliado
+            )
+            ON CONFLICT (slug) DO NOTHING
+        """),
+        {
+            "nome": "Mercado Livre",
+            "slug": "mercado_livre",
+            "dominio": "mercadolivre.com.br",
+            "suporta_afiliado": True,
+            "tipo_afiliado": "link_builder",
+        }
+    )
+
+    print("✅ Plataforma seed executado")
+
+
+def main():
+    # 🔥 TRANSAÇÃO REAL
+    with engine.begin() as conn:
+        seed_categorias(conn)
+        seed_plataformas(conn)
+
+    print("🚀 Seed finalizado com sucesso")
+
+
+if __name__ == "__main__":
+    main()

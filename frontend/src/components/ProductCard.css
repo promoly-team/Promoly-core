@@ -113,3 +113,32 @@
 .buy-btn:hover {
   background: #1d4ed8;
 }
+
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.details-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #333;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.details-btn:hover {
+  background: #f5f5f5;
+}
+
+.buy-btn {
+  flex: 1.2;
+}
+
+.clickable {
+  cursor: pointer;
+}
