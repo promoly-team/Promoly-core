@@ -73,7 +73,7 @@ export default function ProductCard({ product }: Props) {
 
         {/* Ações */}
         <a
-          href={`/produto/${product.produto_id}`}
+          href={`/produto/${product.slug}`}
           className="details-btn"
         >
           Detalhes

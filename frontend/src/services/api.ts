@@ -76,9 +76,13 @@ export function fetchDeals(limit = 20) {
   return apiGet(`/deals/?limit=${limit}`);
 }
 
-export function fetchProduct(productId: number): Promise<Product> {
-  return apiGet<Product>(`/products/${productId}`);
+export function fetchProduct(slug: string): Promise<{
+  produto: Product;
+  similares: Product[];
+}> {
+  return apiGet(`/products/${slug}`);
 }
+
 
 export function fetchPrices(productId: number) {
   return apiGet(`/prices/${productId}`);
