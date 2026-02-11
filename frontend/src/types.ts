@@ -1,9 +1,11 @@
 export type BaseProduct = {
   produto_id: number;
+  slug: string;      
   titulo: string;
   imagem_url: string;
   url_afiliada: string;
 };
+
 
 export type Deal = BaseProduct & {
   preco_atual: number;
