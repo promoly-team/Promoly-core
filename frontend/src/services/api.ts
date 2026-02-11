@@ -1,4 +1,4 @@
-import type { Offer } from "../types";
+import type { Offer, Product } from "../types";
 
 /**
  * URL base da API
@@ -16,8 +16,6 @@ type ApiError = {
   status: number;
   message: string;
 };
-
-
 
 export async function apiGet<T>(
   path: string,
@@ -47,7 +45,7 @@ export async function apiGet<T>(
       } as ApiError;
     }
 
-    return res.json();
+    return res.json() as Promise<T>;
   } catch (err) {
     if ((err as any).name === "AbortError") {
       throw {
@@ -63,29 +61,28 @@ export async function apiGet<T>(
 }
 
 /* =========================
-   ENDPOINTS (COM SLASH FINAL)
+   ENDPOINTS
 ========================= */
 
-export function fetchProducts(limit = 20) {
-  return apiGet(`/products/?limit=${limit}`);
+export function fetchProducts(limit = 20): Promise<Product[]> {
+  return apiGet<Product[]>(`/products/?limit=${limit}`);
 }
 
 export function fetchOffers(limit = 20): Promise<Offer[]> {
-  return apiGet(`/offers/?limit=${limit}`);
+  return apiGet<Offer[]>(`/offers/?limit=${limit}`);
 }
 
 export function fetchDeals(limit = 20) {
   return apiGet(`/deals/?limit=${limit}`);
 }
 
-export function fetchProduct(productId: number) {
-  return apiGet(`/products/${productId}`);
+export function fetchProduct(productId: number): Promise<Product> {
+  return apiGet<Product>(`/products/${productId}`);
 }
 
 export function fetchPrices(productId: number) {
   return apiGet(`/prices/${productId}`);
 }
-
 
 export function goToProduct(produto_id: number) {
   window.open(`${API_URL}/go/${produto_id}`, "_blank");
