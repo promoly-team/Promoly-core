@@ -12,27 +12,28 @@ type Product = {
   link_original: string;
 };
 
+const id = window.location.pathname.split("/").pop();
+
+
 export default function ProductPage() {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [similar, setSimilar] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!id) return;
 
-    setLoading(true);
-
     fetch(`/api/produtos/${id}`)
-      .then(res => res.json())
-      .then(data => {
+        .then(res => res.json())
+        .then(data => {
         setProduct(data);
         return fetch(`/api/produtos/${data.id}/similares`);
-      })
-      .then(res => res.json())
-      .then(setSimilar)
-      .finally(() => setLoading(false));
-  }, [id]);
+        })
+        .then(res => res.json())
+        .then(setSimilar);
+    }, [id]);
+
 
   if (loading) return <p>Carregando produto...</p>;
   if (!product) return <p>Produto não encontrado.</p>;
