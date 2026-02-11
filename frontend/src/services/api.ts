@@ -55,8 +55,13 @@ export function fetchOffers(
 }
 
 
-export function fetchProduct(productId: number): Promise<Product> {
-  return apiGet<Product>(`/products/${productId}`);
+export function fetchProduct(
+  productId: number
+): Promise<{
+  produto: Product;
+  similares: Product[];
+}> {
+  return apiGet(`/products/${productId}`);
 }
 
 export function fetchPrices(productId: number) {
