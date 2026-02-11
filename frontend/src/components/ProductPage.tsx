@@ -1,16 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchProduct } from "../services/api";
+import type { Product } from "../types";
 import "./ProductPage.css";
 
-type Product = {
-  id: number;
-  titulo: string;
-  descricao?: string;
-  imagem_url: string;
-  preco: number;
-  avaliacao?: number;
-  link_original: string;
-};
 
 export default function ProductPage() {
   const productId = Number(
@@ -63,7 +55,7 @@ export default function ProductPage() {
         )}
 
         <a
-          href={product.link_original}
+          href={product.url_afiliada}
           target="_blank"
           rel="noopener noreferrer"
           className="buy-btn big"
