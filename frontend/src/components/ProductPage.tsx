@@ -8,6 +8,7 @@ export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
 
   const [product, setProduct] = useState<Product | null>(null);
+  const [similares, setSimilares] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +18,10 @@ export default function ProductPage() {
     setLoading(true);
 
     fetchProduct(Number(id))
-      .then(setProduct)
+      .then(({ produto, similares }) => {
+        setProduct(produto);
+        setSimilares(similares);
+      })
       .catch(err => {
         console.error(err);
         setError("Não foi possível carregar o produto");
@@ -44,9 +48,11 @@ export default function ProductPage() {
           <div className="rating">⭐ {product.avaliacao}</div>
         )}
 
-        <div className="price">
-          R$ {product.preco?.toFixed(2)}
-        </div>
+        {product.preco !== null && (
+          <div className="price">
+            R$ {product.preco.toFixed(2)}
+          </div>
+        )}
 
         {product.descricao && (
           <p className="description">{product.descricao}</p>
@@ -61,6 +67,21 @@ export default function ProductPage() {
           Ver oferta
         </a>
       </section>
+
+      {similares.length > 0 && (
+        <aside className="product-aside">
+          <h3>Produtos semelhantes</h3>
+          {similares.map(p => (
+            <a
+              key={p.produto_id}
+              href={`/produto/${p.produto_id}`}
+              className="similar-item"
+            >
+              {p.titulo}
+            </a>
+          ))}
+        </aside>
+      )}
     </div>
   );
 }
