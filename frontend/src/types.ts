@@ -19,9 +19,9 @@ export type Offer = BaseProduct & {
 
 export type ProductCardData = Deal | Offer;
 
-
 export type Product = BaseProduct & {
-  descricao?: string;
+  descricao?: string | null;
   preco: number | null;
-  avaliacao?: number;
+  avaliacao?: number | null;
+  categorias?: string[];
 };

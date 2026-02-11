@@ -63,7 +63,7 @@ export default function ProductPage() {
         {/* 🏷 Categorias */}
         {product.categorias && product.categorias.length > 0 && (
           <div className="categories">
-            {product.categorias.map(cat => (
+            {product.categorias?.map((cat: string) => (
               <span key={cat} className="category-tag">
                 {cat}
               </span>
