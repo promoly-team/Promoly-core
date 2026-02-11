@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import ProductCard from "./components/ProductCard";
+import ProductPage from "./components/ProductPage";
+
 import CategoryPage from "./pages/Categorypage";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -45,11 +47,12 @@ function App() {
   return (
     <BrowserRouter>
       <Navbar />
-
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/categoria/:slug" element={<CategoryPage />} />
+        <Route path="/produto/:id" element={<ProductPage />} />
       </Routes>
+
     </BrowserRouter>
   );
 }
