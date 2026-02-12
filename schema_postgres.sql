@@ -72,7 +72,7 @@ CREATE TABLE produto_categoria (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-  '
+
 
 -- ========================
 -- HISTÓRICO DE PREÇO
