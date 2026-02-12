@@ -204,3 +204,5 @@ CREATE INDEX idx_envios_grupo ON envios(grupo_id);
 CREATE INDEX idx_envios_produto ON envios(produto_id);
 CREATE INDEX idx_envios_enviado_em ON envios(enviado_em);
 CREATE INDEX idx_preco_historico_produto ON produto_preco_historico(produto_id);
+CREATE INDEX idx_preco_historico_produto_data_desc
+ON produto_preco_historico (produto_id, created_at DESC);
