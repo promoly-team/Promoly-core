@@ -142,7 +142,7 @@ export default function ProductPage() {
           </div>
         )}
 
-        {product.categorias?.length > 0 && (
+        {product.categorias && product.categorias.length > 0 && (
           <div className="categories">
             {product.categorias.map((cat, index) => (
               <span
