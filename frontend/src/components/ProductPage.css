@@ -25,6 +25,7 @@
 }
 
 .product-header {
+  font-size: 0.7em;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -47,7 +48,7 @@
   color: #1e63e9;
   padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 1.0rem;
 }
 
 .rating {
@@ -56,14 +57,16 @@
 }
 
 .price {
-  font-size: 1.8rem;
-  font-weight: bold;
-  margin: 12px 0;
+  font-size: 3rem;
+  font-weight: 800;
+  color: #111;
+  letter-spacing: -1px;
 }
+
 
 .description {
   margin: 16px 0;
-  line-height: 1.0;
+  line-height: 1.5;
   color: #444;
 }
 
@@ -74,9 +77,18 @@
 }
 
 .buy-btn.big {
-  padding: 14px 20px;
-  font-size: 1.1rem;
+  background: linear-gradient(90deg, #2563eb, #1e40af);
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  transition: 0.25s ease;
 }
+
+.buy-btn.big:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
 
 .secondary-btn {
   background: #f2f2f2;
@@ -143,8 +155,8 @@
 
 .similar-title {
   font-size: 0.85rem;
-  font-weight: 300;
-  line-height: 1.8;
+  font-weight: 500;
+  line-height: 1.2;
   max-height: 2.4em;
   overflow: hidden;
 }
@@ -170,6 +182,10 @@
     padding: 16px;
   }
 
+  .product-header {
+    font-size: 0.5em;
+  }
+
   .product-image {
     max-height: 260px;
   }
@@ -187,3 +203,110 @@
     width: 100%;
   }
 }
+
+
+/* ======================
+   PRICE CHART
+====================== */
+
+.price-chart-wrapper {
+  margin-top: 60px;
+}
+
+.price-chart {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eee;
+}
+
+.price-chart-title {
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.chart-range-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.range-btn {
+  background: #f2f2f2;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: 0.2s ease;
+}
+
+.range-btn:hover {
+  background: #e5e5e5;
+}
+
+.range-btn.active {
+  background: #2563eb;
+  color: white;
+}
+
+
+/* ======================
+   MOBILE
+====================== */
+
+@media (max-width: 768px) {
+  .product-page {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 16px;
+  }
+
+  .product-header {
+    font-size: 0.5em;
+  }
+
+  .product-image {
+    max-height: 260px;
+  }
+
+  .price {
+    font-size: 1.5rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .buy-btn.big,
+  .secondary-btn {
+    width: 100%;
+  }
+
+  .price-chart {
+    padding: 16px;
+  }
+
+  .price-chart-wrapper {
+    margin-top: 40px;
+  }
+}
+
+.chart-scroll-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* MOBILE APENAS */
+@media (max-width: 768px) {
+  .chart-scroll-container {
+    overflow-x: auto;
+  }
+
+  .chart-inner {
+    min-width: 800px;
+  }
+}
+

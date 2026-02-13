@@ -64,8 +64,15 @@ export function fetchProduct(
   return apiGet(`/products/${productId}`);
 }
 
-export function fetchPrices(productId: number) {
-  return apiGet(`/prices/${productId}`);
+export type PriceHistoryItem = {
+  preco: number;
+  data: string;
+};
+
+export function fetchPrices(
+  productId: number
+): Promise<PriceHistoryItem[]> {
+  return apiGet<PriceHistoryItem[]>(`/prices/${productId}`);
 }
 
 export function goToProduct(produto_id: number) {
