@@ -7,6 +7,8 @@ from database.repositories.click_repository import ClickRepository
 
 router = APIRouter(tags=["redirect"])
 
+from database.repositories.produto_repository import ProdutoRepository
+
 
 @router.get("/go/{produto_id}")
 def go_to_affiliate(
@@ -14,28 +16,16 @@ def go_to_affiliate(
     request: Request,
     db=Depends(get_db),
 ):
-    result = db.execute(
-        text("""
-            SELECT
-                la.url_afiliada,
-                la.plataforma_id
-            FROM links_afiliados la
-            WHERE la.produto_id = :produto_id
-              AND la.status = 'ok'
-            LIMIT 1
-        """),
-        {"produto_id": produto_id},
-    )
+    produto_repo = ProdutoRepository(db)
 
-    row = result.mappings().first()
+    row = produto_repo.get_active_affiliate_link(produto_id)
 
     if not row:
         raise HTTPException(
             status_code=404,
-            detail="Link afiliado não encontrado",
+            detail="Produto inativo ou link afiliado inválido",
         )
 
-    # 🔗 registra clique
     click_repo = ClickRepository(db)
     click_repo.register(
         produto_id=produto_id,

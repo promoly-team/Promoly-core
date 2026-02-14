@@ -1,3 +1,5 @@
+import time
+
 from database.db import get_connection
 from database.repositories.categoria_repository import CategoriaRepository
 from database.repositories.link_aff_repository import LinkAfiliadoRepository

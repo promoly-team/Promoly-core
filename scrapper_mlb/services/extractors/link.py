@@ -1,32 +1,46 @@
-from urllib.parse import urljoin, urlparse
+import re
+from urllib.parse import urljoin, urlparse, urlunparse
 from scrapper_mlb.config import URL_MLB_BASE
 
-URL_MLB_BASE
 
 def extract_link(item):
     """
-    Extrai o link do produto a partir do card.
-    Retorna None se não for um produto válido.
+    Extrai somente o link canônico do produto.
+    Ignora links patrocinados, busca e tracking.
     """
 
-    # 1️⃣ Tentativa principal: link do título
-    a_tag = item.select_one("a[href]")
+    # Pega TODOS os <a> do card
+    anchors = item.select("a[href]")
 
-    if not a_tag:
-        return None
+    for a in anchors:
+        href = a.get("href")
+        if not href:
+            continue
 
-    href = a_tag.get("href")
-    if not href:
-        return None
+        # Normaliza relativo
+        if href.startswith("/"):
+            href = urljoin(URL_MLB_BASE, href)
 
-    # 2️⃣ Normaliza link relativo
-    if href.startswith("/"):
-        href = urljoin(URL_MLB_BASE, href)
+        parsed = urlparse(href)
 
-    # 3️⃣ Validação mínima: precisa ser URL do ML
-    parsed = urlparse(href)
+        # Precisa ser domínio ML válido
+        if "mercadolivre.com.br" not in parsed.netloc:
+            continue
 
-    if "mercadolivre.com.br" not in parsed.netloc:
-        return None
+        # Ignora links de busca
+        if "lista.mercadolivre" in parsed.netloc:
+            continue
 
-    return href
+        # Ignora tracking click1
+        if "click1.mercadolivre" in parsed.netloc:
+            continue
+
+        # 🔥 Regra principal: precisa conter /p/MLB
+        if re.search(r"/p/MLB\d+", parsed.path):
+            # Remove querystring (tracking)
+            clean_url = urlunparse(
+                (parsed.scheme, parsed.netloc, parsed.path, "", "", "")
+            )
+            return clean_url
+
+    return None

@@ -2,10 +2,31 @@ import type { Offer, Product, ProductCardData } from "../types";
 
 const API_URL = "https://promoly-core-production.up.railway.app";
 
+/* =========================
+   TIPOS
+========================= */
+
 type ApiError = {
   status: number;
   message: string;
 };
+
+export type PriceHistoryItem = {
+  preco: number;
+  data: string;
+};
+
+type FetchProductsParams = {
+  category?: string;
+  search?: string;
+  order?: string;
+  limit?: number;
+  offset?: number;
+};
+
+/* =========================
+   CORE REQUEST
+========================= */
 
 export async function apiGet<T>(
   path: string,
@@ -39,14 +60,42 @@ export async function apiGet<T>(
 }
 
 /* =========================
-   ENDPOINTS
+   PRODUCTS (COMPATÍVEL)
 ========================= */
 
 export function fetchProducts(
-  limit = 20
+  params: number | FetchProductsParams = 20
 ): Promise<ProductCardData[]> {
-  return apiGet<ProductCardData[]>(`/products?limit=${limit}`);
+
+  // 🔹 Modo antigo: fetchProducts(20)
+  if (typeof params === "number") {
+    return apiGet<ProductCardData[]>(`/products?limit=${params}`);
+  }
+
+  // 🔹 Modo novo: fetchProducts({ ... })
+  const {
+    category,
+    search,
+    order = "desconto",
+    limit = 20,
+    offset = 0,
+  } = params;
+
+  const query = new URLSearchParams();
+
+  if (category) query.append("category", category);
+  if (search) query.append("search", search);
+
+  query.append("order", order);
+  query.append("limit", String(limit));
+  query.append("offset", String(offset));
+
+  return apiGet<ProductCardData[]>(`/products?${query.toString()}`);
 }
+
+/* =========================
+   OFFERS
+========================= */
 
 export function fetchOffers(
   limit = 20
@@ -54,6 +103,9 @@ export function fetchOffers(
   return apiGet<Offer[]>(`/offers?limit=${limit}`);
 }
 
+/* =========================
+   PRODUCT DETAILS
+========================= */
 
 export function fetchProduct(
   productId: number
@@ -64,16 +116,19 @@ export function fetchProduct(
   return apiGet(`/products/${productId}`);
 }
 
-export type PriceHistoryItem = {
-  preco: number;
-  data: string;
-};
+/* =========================
+   PRICE HISTORY
+========================= */
 
 export function fetchPrices(
   productId: number
 ): Promise<PriceHistoryItem[]> {
   return apiGet<PriceHistoryItem[]>(`/prices/${productId}`);
 }
+
+/* =========================
+   REDIRECT AFILIADO
+========================= */
 
 export function goToProduct(produto_id: number) {
   window.open(`${API_URL}/go/${produto_id}`, "_blank");

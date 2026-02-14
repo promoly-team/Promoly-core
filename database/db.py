@@ -2,11 +2,13 @@ import os
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 load_dotenv()
 
 DB_URL = os.getenv("DATABASE_URL")
+
+Base = declarative_base()  # 👈 ESSENCIAL PARA O ALEMBIC
 
 def get_engine():
     return create_engine(
@@ -18,3 +20,9 @@ def get_engine():
 def get_connection():
     engine = get_engine()
     return engine.connect()
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=get_engine()
+)

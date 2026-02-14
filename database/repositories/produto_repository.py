@@ -14,6 +14,25 @@ class ProdutoRepository:
     def __init__(self, conn=None):
         self.conn = conn
 
+    def get_active_affiliate_link(self, produto_id: int) -> Optional[dict]:
+        result = self.conn.execute(
+            text("""
+                SELECT
+                    la.url_afiliada,
+                    la.plataforma_id
+                FROM links_afiliados la
+                JOIN produtos p ON p.id = la.produto_id
+                WHERE la.produto_id = :produto_id
+                AND la.status = 'ok'
+                AND p.status = 'ativo'
+                LIMIT 1
+            """),
+            {"produto_id": produto_id},
+        )
+
+        return result.mappings().first()
+
+
     # 🔎 retorna {id, card_hash, status}
     def get_by_external_id(self, external_id: str, plataforma_id: int) -> Optional[dict]:
         result = self.conn.execute(

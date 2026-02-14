@@ -1,15 +1,18 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from api.deps import get_db
 
 router = APIRouter(prefix="/products", tags=["products"])
 
 
-
+# =====================================================
+# TOTAL
+# =====================================================
 
 @router.get("/total")
 def count_products(
@@ -18,40 +21,34 @@ def count_products(
     db=Depends(get_db),
 ):
     query = """
-    SELECT COUNT(DISTINCT p.id) AS total
-    FROM produtos p
-
-    JOIN produto_categoria pc
-        ON pc.produto_id = p.id
-    JOIN categorias c
-        ON c.id = pc.categoria_id
-
-    JOIN links_afiliados la
-        ON la.produto_id = p.id
-        AND la.status = 'ok'
-        AND la.url_afiliada IS NOT NULL
-        AND la.url_afiliada != ''
-
-    WHERE p.status IN ('ativo', 'novo')
+        SELECT COUNT(DISTINCT p.id) AS total
+        FROM produtos_publicos p
+        JOIN produto_categoria pc ON pc.produto_id = p.id
+        JOIN categorias c ON c.id = pc.categoria_id
     """
 
     params = {}
+    conditions = []
 
     if category:
-        query += " AND c.slug = :category"
+        conditions.append("c.slug = :category")
         params["category"] = category
 
     if search:
-        query += " AND LOWER(p.titulo) LIKE LOWER(:search)"
+        conditions.append("LOWER(p.titulo) LIKE LOWER(:search)")
         params["search"] = f"%{search}%"
 
-    result = db.execute(text(query), params)
-    total = result.scalar()
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
 
-    return {
-        "total": total
-    }
+    total = db.execute(text(query), params).scalar()
 
+    return {"total": total}
+
+
+# =====================================================
+# LISTAGEM
+# =====================================================
 
 @router.get("")
 def list_products(
@@ -62,91 +59,66 @@ def list_products(
     offset: int = 0,
     db=Depends(get_db),
 ):
-
     query = """
-    WITH precos AS (
+        WITH precos AS (
+            SELECT
+                produto_id,
+                preco,
+                ROW_NUMBER() OVER (
+                    PARTITION BY produto_id
+                    ORDER BY created_at DESC
+                ) AS rn
+            FROM produto_preco_historico
+        )
         SELECT
-            produto_id,
-            preco,
-            ROW_NUMBER() OVER (
-                PARTITION BY produto_id
-                ORDER BY created_at DESC
-            ) AS rn
-        FROM produto_preco_historico
-    )
-    SELECT
-        p.id AS produto_id,
-        p.titulo,
-        p.imagem_url,
-
-        u.preco AS preco_atual,
-        a.preco AS preco_anterior,
-
-        CASE
-            WHEN a.preco IS NOT NULL AND a.preco > u.preco
-            THEN ROUND(
-                ((a.preco - u.preco) * 100.0 / a.preco)::numeric,
-                2
-            )
-            ELSE NULL
-        END AS desconto_pct,
-
-        la.url_afiliada
-    FROM produtos p
-
-    JOIN produto_categoria pc
-        ON pc.produto_id = p.id
-    JOIN categorias c
-        ON c.id = pc.categoria_id
-
-    JOIN links_afiliados la
-        ON la.produto_id = p.id
-        AND la.status = 'ok'
-        AND la.url_afiliada IS NOT NULL
-        AND la.url_afiliada != ''
-
-    JOIN precos u
-        ON u.produto_id = p.id AND u.rn = 1
-    LEFT JOIN precos a
-        ON a.produto_id = p.id AND a.rn = 2
-
-    WHERE p.status IN ('ativo', 'novo')
+            p.id AS produto_id,
+            p.titulo,
+            p.imagem_url,
+            p.url_afiliada,
+            u.preco AS preco_atual,
+            a.preco AS preco_anterior,
+            CASE
+                WHEN a.preco IS NOT NULL AND a.preco > u.preco
+                THEN ROUND(
+                    ((a.preco - u.preco) * 100.0 / a.preco)::numeric,
+                    2
+                )
+                ELSE NULL
+            END AS desconto_pct
+        FROM produtos_publicos p
+        JOIN produto_categoria pc ON pc.produto_id = p.id
+        JOIN categorias c ON c.id = pc.categoria_id
+        JOIN precos u ON u.produto_id = p.id AND u.rn = 1
+        LEFT JOIN precos a ON a.produto_id = p.id AND a.rn = 2
     """
 
-    params = {
-        "limit": limit,
-        "offset": offset,
-    }
+    params = {"limit": limit, "offset": offset}
+    conditions = []
 
     if category:
-        query += " AND c.slug = :category"
+        conditions.append("c.slug = :category")
         params["category"] = category
 
     if search:
-        query += " AND LOWER(p.titulo) LIKE LOWER(:search)"
+        conditions.append("LOWER(p.titulo) LIKE LOWER(:search)")
         params["search"] = f"%{search}%"
 
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
 
-    order_by = """
-        ORDER BY desconto_pct DESC NULLS LAST, p.updated_at DESC
-    """
+    order_by = "ORDER BY desconto_pct DESC NULLS LAST, p.updated_at DESC"
 
     if order == "preco":
-        order_by = """
-            ORDER BY u.preco ASC NULLS LAST
-        """
+        order_by = "ORDER BY u.preco ASC NULLS LAST"
     elif order == "recentes":
-        order_by = """
-            ORDER BY p.updated_at DESC
-        """
+        order_by = "ORDER BY p.updated_at DESC"
 
     query += f"""
         {order_by}
         LIMIT :limit OFFSET :offset
     """
 
-    result = db.execute(text(query), params)
-    rows = result.mappings().all()
+    rows = db.execute(text(query), params).mappings().all()
 
     payload = [
         {
@@ -163,10 +135,12 @@ def list_products(
         for r in rows
     ]
 
-    response = JSONResponse(content=payload)
-    response.headers["Cache-Control"] = "public, max-age=60"
+    return JSONResponse(content=payload)
 
-    return response
+
+# =====================================================
+# DETALHE
+# =====================================================
 
 @router.get("/{product_id}")
 def get_product(product_id: int, db: Session = Depends(get_db)):
@@ -181,14 +155,13 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
                 p.imagem_url,
                 p.preco,
                 p.avaliacao,
-                la.url_afiliada,
+                p.url_afiliada,
                 ARRAY_AGG(c.nome) AS categorias
-            FROM produtos p
+            FROM produtos_publicos p
             LEFT JOIN produto_categoria pc ON pc.produto_id = p.id
             LEFT JOIN categorias c ON c.id = pc.categoria_id
-            LEFT JOIN links_afiliados la ON la.produto_id = p.id
             WHERE p.id = :product_id
-            GROUP BY p.id, la.url_afiliada
+            GROUP BY p.id
         """),
         {"product_id": product_id}
     )
@@ -206,12 +179,15 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     }
 
 
+# =====================================================
+# SIMILARES
+# =====================================================
 
 def similares_por_categoria(db, produto_id: int, limit=4):
     result = db.execute(
         text("""
             SELECT DISTINCT p.*
-            FROM produtos p
+            FROM produtos_publicos p
             JOIN produto_categoria pc ON pc.produto_id = p.id
             WHERE pc.categoria_id IN (
                 SELECT categoria_id
@@ -226,70 +202,22 @@ def similares_por_categoria(db, produto_id: int, limit=4):
 
     return result.mappings().all()
 
-import re
-
-def extract_keywords(texto: str):
-    if not texto:
-        return []
-
-    stopwords = {
-        "de", "para", "com", "sem", "uma", "um", "e", "ou", "por", "em"
-    }
-
-    words = re.findall(r"\b\w+\b", texto.lower())
-    return [w for w in words if len(w) > 3 and w not in stopwords]
-
-def similares_por_descricao(db, produto, limit=4):
-    keywords = extract_keywords(produto["descricao"])
-    if not keywords:
-        return []
-
-    conditions = " OR ".join(
-        [f"descricao ILIKE '%{k}%'" for k in keywords[:5]]
-    )
-
-    result = db.execute(
-        text(f"""
-            SELECT *
-            FROM produtos
-            WHERE ({conditions})
-              AND id != :id
-            LIMIT {limit}
-        """),
-        {"id": produto["id"]}
-    )
-
-    return result.mappings().all()
-
 
 @router.get("/{produto_id}/similares")
 def produtos_similares(produto_id: int, db=Depends(get_db)):
-    result = db.execute(
+
+    produto = db.execute(
         text("""
-            SELECT *
-            FROM produtos
+            SELECT id
+            FROM produtos_publicos
             WHERE id = :id
         """),
         {"id": produto_id}
-    )
-
-    produto = result.mappings().first()
+    ).mappings().first()
 
     if not produto:
-        return JSONResponse(
-            status_code=404,
-            content={"detail": "Produto não encontrado"}
-        )
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
 
-    cat_items = similares_por_categoria(db, produto_id)
-    desc_items = similares_por_descricao(db, produto)
+    similares = similares_por_categoria(db, produto_id, limit=6)
 
-    vistos = set()
-    similares = []
-
-    for item in cat_items + desc_items:
-        if item["id"] not in vistos:
-            similares.append(item)
-            vistos.add(item["id"])
-
-    return similares[:6]
+    return similares
