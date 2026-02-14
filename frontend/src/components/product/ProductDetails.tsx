@@ -33,9 +33,9 @@ export default function ProductDetails({ product, onCopyLink }: Props) {
           </div>
         )}
 
-        {product.categorias?.length > 0 && (
+        {(product.categorias ?? []).length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {product.categorias.map((cat, index) => (
+            {(product.categorias ?? []).map((cat, index) => (
               <span
                 key={index}
                 className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium"
