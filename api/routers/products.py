@@ -141,7 +141,6 @@ def list_products(
 # =====================================================
 # DETALHE
 # =====================================================
-
 @router.get("/{product_id}")
 def get_product(product_id: int, db: Session = Depends(get_db)):
 
@@ -156,12 +155,23 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
                 p.preco,
                 p.avaliacao,
                 p.url_afiliada,
-                ARRAY_AGG(c.nome) AS categorias
+                COALESCE(
+                    ARRAY_REMOVE(ARRAY_AGG(c.nome), NULL),
+                    '{}'
+                ) AS categorias
             FROM produtos_publicos p
             LEFT JOIN produto_categoria pc ON pc.produto_id = p.id
             LEFT JOIN categorias c ON c.id = pc.categoria_id
             WHERE p.id = :product_id
-            GROUP BY p.id
+            GROUP BY
+                p.id,
+                p.slug,
+                p.titulo,
+                p.descricao,
+                p.imagem_url,
+                p.preco,
+                p.avaliacao,
+                p.url_afiliada
         """),
         {"product_id": product_id}
     )
@@ -171,11 +181,14 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
 
+    produto_dict = dict(produto)
+
     similares = similares_por_categoria(db, product_id)
+    similares_list = [dict(s) for s in similares]
 
     return {
-        "produto": produto,
-        "similares": similares
+        "produto": produto_dict,
+        "similares": similares_list
     }
 
 
