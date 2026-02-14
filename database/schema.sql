@@ -124,6 +124,28 @@ CREATE TABLE IF NOT EXISTS grupos_whatsapp (
     FOREIGN KEY (categoria_id) REFERENCES categorias(id)
 );
 
+CREATE TABLE IF NOT EXISTS envios_meta (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    produto_id INTEGER NOT NULL,
+    plataforma_id INTEGER NOT NULL,
+
+    tipo_post TEXT NOT NULL, -- feed, reel, story
+
+    status TEXT NOT NULL DEFAULT 'pendente',
+    tentativas INTEGER NOT NULL DEFAULT 0,
+    erro_mensagem TEXT,
+
+    post_id_externo TEXT, -- ID retornado pela Meta API
+
+    publicado_em TIMESTAMP,
+    agendado_para TIMESTAMP,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (produto_id) REFERENCES produtos(id),
+    FOREIGN KEY (plataforma_id) REFERENCES plataformas(id)
+);
 
 
 CREATE TABLE IF NOT EXISTS envios (
@@ -180,7 +202,7 @@ CREATE INDEX idx_clicks_created
 ON clicks(created_at);
 
 
-
+CREATE INDEX idx_envios_meta_status ON envios_meta(status);
 CREATE INDEX idx_produtos_status ON produtos(status);
 CREATE INDEX idx_links_status ON links_afiliados(status);
 CREATE INDEX idx_envios_grupo ON envios(grupo_id);
