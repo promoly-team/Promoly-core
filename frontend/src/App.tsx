@@ -15,7 +15,11 @@ function App() {
     setLoading(true);
 
     fetchProducts(20)
-      .then(setProducts)
+        .then(data => {
+        const unique = Array.from(
+          new Map(data.map(p => [p.produto_id, p])).values()
+        );
+        setProducts(unique);})
       .catch(() => setProducts([]))
       .finally(() => setLoading(false));
   }, []);

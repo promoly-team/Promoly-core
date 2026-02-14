@@ -47,7 +47,13 @@ export default function ProductPage() {
     ])
       .then(([productData, prices]) => {
         setProduct(productData.produto);
-        setSimilares(productData.similares);
+        setSimilares(
+          productData.similares.map((p: any) => ({
+            ...p,
+            produto_id: p.id, // converte id → produto_id
+          }))
+        );
+
 
         const normalized: PriceHistoryItem[] = prices
           .map((p) => ({
@@ -315,54 +321,57 @@ export default function ProductPage() {
       {/* =========================
          SIMILARES
       ========================= */}
+{similares.length > 0 && (
+  <aside className="product-aside">
+    <h3>Produtos semelhantes</h3>
 
-      {similares.length > 0 && (
-        <aside className="product-aside">
-          <h3>Produtos semelhantes</h3>
+    <div className="similar-grid">
+      {similares.map((p, index) => {
+        console.log("Similar:", p);
 
-          <div className="similar-grid">
-            {similares.map((p, index) => (
-              <div
-                key={`${p.produto_id}-${index}`}
-                className="similar-card"
-                onClick={() =>
-                  (window.location.href = `/produto/${p.produto_id}`)
-                }
-              >
-                <img
-                  src={p.imagem_url}
-                  alt={p.titulo}
-                  className="similar-image"
-                />
+        return (
+          <div
+            key={`${p.produto_id}-${index}`}
+            className="similar-card"
+            onClick={() =>
+              (window.location.href = `/produto/${p.produto_id}`)
+            }
 
-                <div className="similar-info">
-                  <div className="similar-title">
-                    {p.titulo}
-                  </div>
 
-                  {p.preco !== null && (
-                    <div className="similar-price">
-                      {p.preco.toLocaleString(
-                        "pt-BR",
-                        {
-                          style: "currency",
-                          currency: "BRL",
-                        }
-                      )}
-                    </div>
-                  )}
+          >
+            <img
+              src={p.imagem_url}
+              alt={p.titulo}
+              className="similar-image"
+            />
 
-                  {p.avaliacao && (
-                    <div className="similar-rating">
-                      ⭐ {p.avaliacao}
-                    </div>
-                  )}
-                </div>
+            <div className="similar-info">
+              <div className="similar-title">
+                {p.titulo}
               </div>
-            ))}
+
+              {p.preco !== null && (
+                <div className="similar-price">
+                  {p.preco.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </div>
+              )}
+
+              {p.avaliacao && (
+                <div className="similar-rating">
+                  ⭐ {p.avaliacao}
+                </div>
+              )}
+            </div>
           </div>
-        </aside>
+        );
+      })}
+    </div>
+  </aside>
       )}
     </div>
   );
 }
+

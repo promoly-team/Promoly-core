@@ -1,26 +1,20 @@
 import os
-from sqlalchemy import create_engine
 
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DB_URL = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
-    raise RuntimeError(
-        "DATABASE_URL não definido. "
-        "Este projeto requer PostgreSQL."
+def get_engine():
+    return create_engine(
+        DB_URL,
+        pool_pre_ping=True,
+        pool_recycle=1800,
     )
 
-_engine = None
-
 def get_connection():
-    global _engine
-    if _engine is None:
-        _engine = create_engine(
-            DATABASE_URL,
-            pool_pre_ping=True,
-            future=True,
-        )
-    return _engine.connect()
+    engine = get_engine()
+    return engine.connect()

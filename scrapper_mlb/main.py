@@ -2,38 +2,56 @@ from database.db import get_connection
 from database.repositories.categoria_repository import CategoriaRepository
 from database.repositories.link_aff_repository import LinkAfiliadoRepository
 from database.repositories.plataforma_repository import PlataformaRepository
-from database.repositories.produto_preco_repository import ProdutoPrecoRepository
+from database.repositories.produto_preco_repository import \
+    ProdutoPrecoRepository
 from database.repositories.produto_repository import ProdutoRepository
 from scrapper_mlb.config import CATEGORIES
+from scrapper_mlb.config_flags import get_enabled_categories
+from scrapper_mlb.pricing.service import resolve_price_range
 from scrapper_mlb.services.product_service import collect_products_by_query
 
 
 def main():
     total = 0
 
-    # conexão curta só para dados fixos
     base_conn = get_connection()
     plataforma_repo = PlataformaRepository(conn=base_conn)
     categoria_repo = CategoriaRepository(conn=base_conn)
 
     plataforma = plataforma_repo.get_by_slug("mercado_livre")
+    enabled_categories = get_enabled_categories()
 
     try:
         for categoria_slug, queries in CATEGORIES.items():
+
+            # 🔥 FEATURE FLAG
+            if enabled_categories is not None and categoria_slug not in enabled_categories:
+                print(f"⏭️ Pulando categoria (feature flag): {categoria_slug}")
+                continue
+
             categoria = categoria_repo.get_by_slug(categoria_slug)
+
+            if not categoria:
+                print(f"⚠️ Categoria não encontrada no banco: {categoria_slug}")
+                continue
+
             print(f"\n📦 Categoria: {categoria['nome']}")
 
             for query in queries:
                 print(f"🔍 Buscando: {query}")
 
+                min_price, max_price = resolve_price_range(categoria_slug, query)
+
+                price_filter = f"{min_price}-{max_price}"
+
                 produtos = collect_products_by_query(
                     query=query,
                     max_pages=1,
-                    filters={"PriceRange": "100-500"},
+                    filters={"PriceRange": price_filter},
                 )
 
+
                 for p in produtos:
-                    # 🔁 conexão NOVA POR PRODUTO
                     conn = get_connection()
 
                     try:

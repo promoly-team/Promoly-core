@@ -8,7 +8,7 @@ HEADERS = {
 }
 
 
-'''
+
 CATEGORIES = {
     # =========================
     # ELETRÔNICOS
@@ -140,71 +140,3 @@ CATEGORIES = {
         "inflador portátil",
     ],
 }
-'''
-CATEGORIES = {
-    "games": [
-        "controle xbox",
-        "controle ps4",
-        "controle ps5",
-        "headset gamer",
-        "mouse gamer",
-        "teclado gamer",
-        "cadeira gamer",
-        "suporte para controle",
-    ],
-
-    # =========================
-    # ILUMINAÇÃO
-    # =========================
-    "iluminacao": [
-        "lâmpada led",
-        "fita led rgb",
-        "luminária de mesa",
-        "luminária de chão",
-        "abajur",
-        "plafon led",
-        "luz noturna",
-    ],
-
-    # =========================
-    # LIMPEZA & ORGANIZAÇÃO
-    # =========================
-    "limpeza": [
-        "aspirador portátil",
-        "mop giratório",
-        "organizador multiuso",
-        "escova elétrica limpeza",
-        "dispenser automático",
-        "caixa organizadora",
-        "pano de microfibra",
-    ],
-
-    # =========================
-    # FITNESS & SAÚDE
-    # =========================
-    "fitness": [
-        "halter",
-        "kit elástico exercício",
-        "colchonete",
-        "balança digital",
-        "massageador elétrico",
-        "pistola massageadora",
-        "smartwatch fitness",
-    ],
-
-    # =========================
-    # AUTOMOTIVO
-    # =========================
-    "automotivo": [
-        "suporte celular carro",
-        "carregador veicular",
-        "aspirador automotivo",
-        "câmera veicular",
-        "organizador de porta malas",
-        "capa de banco",
-        "inflador portátil",
-    ],
-}
-
-
-
