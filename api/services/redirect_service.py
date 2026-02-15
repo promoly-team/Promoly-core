@@ -3,6 +3,9 @@ from fastapi import HTTPException
 
 from database.repositories.produto_repository import ProdutoRepository
 from database.repositories.click_repository import ClickRepository
+from api.core.logging_config import get_logger
+
+logger = get_logger("redirect")
 
 
 class RedirectService:
@@ -33,16 +36,27 @@ class RedirectService:
         row = self.produto_repo.get_active_affiliate_link(produto_id)
 
         if not row:
+            logger.warning(
+                f"Invalid affiliate redirect attempt for produto_id={produto_id}"
+            )
             raise HTTPException(
                 status_code=404,
                 detail="Produto inativo ou link afiliado inválido",
             )
 
+        # Registra clique
         self.click_repo.register(
             produto_id=produto_id,
             plataforma_id=row["plataforma_id"],
             ip=ip,
             user_agent=user_agent,
+        )
+
+        # Log estruturado do redirecionamento
+        logger.info(
+            f"Redirect | produto_id={produto_id} | "
+            f"plataforma_id={row['plataforma_id']} | "
+            f"ip={ip}"
         )
 
         return row["url_afiliada"]
