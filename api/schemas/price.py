@@ -2,6 +2,6 @@ from pydantic import BaseModel
 from datetime import datetime
 
 
-class PricePoint(BaseModel):
+class PricePointOut(BaseModel):
     preco: float
     created_at: datetime
