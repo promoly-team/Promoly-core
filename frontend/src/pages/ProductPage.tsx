@@ -42,9 +42,9 @@ export default function ProductPage() {
         );
 
         const normalized: PriceHistoryItem[] = prices
-          .map((p) => ({
+          .map((p: any) => ({
             preco: p.preco,
-            data: new Date(p.data).getTime(),
+            data: new Date(p.created_at).getTime(),
           }))
           .sort((a, b) => a.data - b.data);
 
@@ -92,7 +92,7 @@ export default function ProductPage() {
       : 0;
 
   const avgPrice =
-    priceHistory.length > 0
+    priceHistory.length > 1
       ? priceHistory.reduce((acc, p) => acc + p.preco, 0) /
         priceHistory.length
       : 0;
@@ -102,7 +102,8 @@ export default function ProductPage() {
       ? priceHistory[priceHistory.length - 1].preco
       : 0;
 
-  const isBelowAverage = currentPrice < avgPrice;
+  const isBelowAverage =
+    priceHistory.length > 1 && currentPrice < avgPrice;
 
   const padding = Math.max(maxPrice * 0.05, 20);
   const upperDomain = maxPrice + padding;
@@ -128,7 +129,9 @@ export default function ProductPage() {
           </div>
 
           {/* ================= ANÁLISE DE PREÇO ================= */}
-          {priceHistory.length > 0 && (
+
+          {/* CASO TENHA 2 OU MAIS REGISTROS */}
+          {priceHistory.length > 1 && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
 
               <h3 className="text-lg font-semibold text-gray-900 mb-6">
@@ -202,6 +205,24 @@ export default function ProductPage() {
                   </p>
                 </div>
 
+              </div>
+            </div>
+          )}
+
+          {/* CASO TENHA APENAS 1 REGISTRO */}
+          {priceHistory.length === 1 && (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Análise de preço
+              </h3>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 text-center">
+                <p className="text-gray-600 text-sm">
+                  📊 Ainda não há histórico suficiente para análise estatística.
+                </p>
+                <p className="text-gray-500 text-sm mt-2">
+                  O produto possui apenas um registro de preço.
+                </p>
               </div>
             </div>
           )}
