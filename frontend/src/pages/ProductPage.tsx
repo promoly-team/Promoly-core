@@ -44,7 +44,7 @@ export default function ProductPage() {
         const normalized: PriceHistoryItem[] = prices
           .map((p) => ({
             preco: p.preco,
-            data: new Date(p.data).getTime(),
+            data: new Date(p.data.replace(" ", "T")).getTime(),
           }))
           .sort((a, b) => a.data - b.data);
 
