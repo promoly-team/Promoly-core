@@ -7,6 +7,9 @@ database/*.db
 database/*.sqlite
 data/*.promoly
 
+
+*.csv
+
 # Environment variables
 .env
 .env.*
