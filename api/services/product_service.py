@@ -249,6 +249,32 @@ class ProductService:
             "similares": [dict(s) for s in similares],
         }
 
+    def get_product_by_slug(self, slug: str):
+        """
+        Busca produto pelo slug e reutiliza
+        a lógica de detalhe já existente.
+        """
+
+        result = self.db.execute(
+            text("""
+                SELECT id
+                FROM produtos_publicos
+                WHERE slug = :slug
+                LIMIT 1
+            """),
+            {"slug": slug}
+        )
+
+        row = result.first()
+
+        if not row:
+            return None
+
+        product_id = row[0]
+
+        return self.get_product_detail(product_id)
+
+
     # =====================================================
     # PRIVADOS
     # =====================================================
