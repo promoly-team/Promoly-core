@@ -213,3 +213,8 @@ CREATE UNIQUE INDEX idx_produtos_slug ON produtos(slug);
 CREATE INDEX idx_produtos_descricao_fts
 ON produtos
 USING gin (to_tsvector('portuguese', descricao));
+CREATE INDEX idx_produto_categoria_produto
+ON produto_categoria (produto_id);
+
+CREATE INDEX idx_produto_categoria_categoria
+ON produto_categoria (categoria_id);

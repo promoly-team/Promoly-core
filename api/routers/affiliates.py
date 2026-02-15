@@ -1,37 +1,30 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from api.schemas.affiliate import AffiliateLinkOut
 from api.deps import get_db
+from api.services.affiliate_service import AffiliateService
+from api.schemas.affiliate import AffiliateLinkOut
 
 router = APIRouter(prefix="/affiliates", tags=["affiliates"])
 
 
-@router.get("/{produto_id}", response_model=AffiliateLinkOut)
-def get_affiliate(produto_id: int, db=Depends(get_db)):
-    result = db.execute(
-        text("""
-            SELECT
-                produto_id,
-                url_afiliada,
-                status
-            FROM links_afiliados
-            WHERE produto_id = :produto_id
-            LIMIT 1
-        """),
-        {"produto_id": produto_id},
-    )
+@router.get(
+    "/{produto_id}",
+    response_model=AffiliateLinkOut,
+)
+def get_affiliate(produto_id: int, db: Session = Depends(get_db)):
+    """
+    Retorna o link afiliado de um produto.
+    """
 
-    row = result.mappings().first()
+    service = AffiliateService(db)
+    result = service.get_affiliate_link(produto_id)
 
-    if row is None:
+    if result is None:
         raise HTTPException(
             status_code=404,
             detail="Affiliate link not found",
         )
 
-    return {
-        "produto_id": int(row["produto_id"]),
-        "url_afiliada": row["url_afiliada"],
-        "status": row["status"],
-    }
+    return result

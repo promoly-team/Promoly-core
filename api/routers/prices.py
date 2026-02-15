@@ -1,28 +1,21 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from api.deps import get_db
+from api.services.price_service import PriceService
+from api.schemas.price import PricePointOut
 
 router = APIRouter(prefix="/prices", tags=["prices"])
 
 
-@router.get("/{produto_id}")
-def get_prices(produto_id: int, db=Depends(get_db)):
-    result = db.execute(
-        text("""
-            SELECT preco, created_at
-            FROM produto_preco_historico
-            WHERE produto_id = :produto_id
-            ORDER BY created_at ASC
-        """),
-        {"produto_id": produto_id},
-    )
+@router.get(
+    "/{produto_id}",
+    response_model=list[PricePointOut],
+)
+def get_prices(produto_id: int, db: Session = Depends(get_db)):
+    """
+    Retorna o histórico de preços de um produto específico.
+    """
 
-    rows = result.mappings().all()
-
-    return [
-        {
-            "preco": float(row["preco"]),
-            "data": row["created_at"],
-        }
-        for row in rows
-    ]
+    service = PriceService(db)
+    return service.get_price_history(produto_id)

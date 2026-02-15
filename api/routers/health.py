@@ -1,33 +1,21 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy import text
+from sqlalchemy.orm import Session
 from api.deps import get_db
+from api.schemas.health import HealthOut
+
+from api.services.health_service import HealthService
 
 router = APIRouter(prefix="/health", tags=["health"])
 
 
-@router.get("/")
-def health(db=Depends(get_db)):
-    result = db.execute(
-        text("""
-            SELECT
-                pipeline,
-                status,
-                started_at,
-                finished_at
-            FROM pipeline_runs
-            ORDER BY started_at DESC
-            LIMIT 5
-        """)
-    )
+@router.get(
+    "/",
+    response_model=list[HealthOut],
+)
+def health(db: Session = Depends(get_db)):
+    """
+    Retorna as últimas execuções do pipeline.
+    """
 
-    rows = result.mappings().all()
-
-    return [
-        {
-            "pipeline": row["pipeline"],
-            "status": row["status"],
-            "started_at": row["started_at"],
-            "finished_at": row["finished_at"],
-        }
-        for row in rows
-    ]
+    service = HealthService(db)
+    return service.get_recent_pipeline_runs()
