@@ -7,40 +7,28 @@ import requests
 from scrapper_mlb.config import HEADERS
 
 
+DEBUG_PATH = Path("scrapper_mlb_debug.html")
 
-DEBUG_PATH = Path("/tmp/scrapper_mlb_debug.html")
-
-MIN_HTML_SIZE = 50_000       # 50 KB
-MAX_HTML_SIZE = 5_000_000   # 5 MB
+MIN_HTML_SIZE = 50_000
+MAX_HTML_SIZE = 5_000_000
+MAX_RETRIES = 3
 
 
 class BackoffController:
-    def __init__(
-        self,
-        base_delay=1.5,
-        max_delay=30.0,
-        factor=2.0,
-        jitter=True,
-    ):
+    def __init__(self, base_delay=2.0, max_delay=30.0, factor=2.0):
         self.base_delay = base_delay
         self.max_delay = max_delay
         self.factor = factor
-        self.jitter = jitter
         self.current_delay = base_delay
 
     def success(self):
         self.current_delay = self.base_delay
 
     def error(self):
-        self.current_delay = min(
-            self.current_delay * self.factor,
-            self.max_delay
-        )
+        self.current_delay = min(self.current_delay * self.factor, self.max_delay)
 
     def wait(self):
-        delay = self.current_delay
-        if self.jitter:
-            delay = random.uniform(delay * 0.7, delay * 1.3)
+        delay = random.uniform(self.current_delay * 0.8, self.current_delay * 1.2)
         time.sleep(delay)
 
 
@@ -58,70 +46,79 @@ class RateLimiter:
 
         self.last_request = time.time()
 
-rate_limiter = RateLimiter(min_interval=3.5)
+
+# 🔥 Use apenas uma instância
+rate_limiter = RateLimiter(min_interval=5.0)
 backoff = BackoffController()
 
+# 🔥 Sessão persistente
+session = requests.Session()
+session.headers.update(HEADERS)
 
-backoff = BackoffController()
-rate_limiter = RateLimiter(min_interval=1.5) 
 
+def is_blocked(html: str) -> bool:
+    html_lower = html.lower()
 
-
-def is_silent_block(html: str) -> bool:
-    markers = [
+    block_markers = [
         "captcha",
         "verify you are human",
         "access denied",
         "unusual traffic",
-        "robot",
+        "suspicious_traffic",
+        "account-verification",
     ]
 
-    html_lower = html.lower()
-    return any(marker in html_lower for marker in markers)
-
+    return any(marker in html_lower for marker in block_markers)
 
 
 def fetch_html(url: str) -> str:
-    rate_limiter.wait()  # pode remover se quiser só backoff
+    for attempt in range(1, MAX_RETRIES + 1):
 
-    try:
-        response = requests.get(url, headers=HEADERS, timeout=15)
+        rate_limiter.wait()
 
-        html = response.text
-        size = len(html)
+        try:
+            response = session.get(url, timeout=20)
+            status = response.status_code
+            html = response.text
+            size = len(html)
 
-        '''if is_silent_block(html):
-            raise RuntimeError("Bloqueio silencioso detectado")'''
+            print(f"[DEBUG] Tentativa {attempt} | Status: {status} | Size: {size}")
 
-        if "ui-search-layout__item" not in html:
-            raise RuntimeError("HTML sem cards — bloqueio")
+            # 🔥 Primeiro valida status HTTP
+            if status == 429:
+                raise RuntimeError("Rate limit 429")
 
-        if size < MIN_HTML_SIZE:
-            raise RuntimeError(f"HTML muito pequeno ({size} bytes) — possível bloqueio")
+            response.raise_for_status()
 
-        if size > MAX_HTML_SIZE:
-            raise RuntimeError(f"HTML muito grande ({size} bytes) — layout inesperado")
+            # 🔥 Detecta bloqueio antifraude
+            if is_blocked(html):
+                raise RuntimeError("Página de bloqueio detectada")
 
+            # 🔥 Valida layout
+            if "ui-search-layout__item" not in html:
+                raise RuntimeError("Layout inesperado ou cards não encontrados")
 
-        if response.status_code == 429:
+            if size < MIN_HTML_SIZE:
+                raise RuntimeError(f"HTML muito pequeno ({size})")
+
+            if size > MAX_HTML_SIZE:
+                raise RuntimeError(f"HTML muito grande ({size})")
+
+            # 🔥 Salva debug
+            with open(DEBUG_PATH, "w", encoding="utf-8") as f:
+                f.write(html)
+
+            backoff.success()
+            print("✅ HTML válido capturado")
+            return html
+
+        except Exception as e:
+            print(f"⚠️ Erro: {e}")
             backoff.error()
-            raise RuntimeError("⚠️ Rate limit 429")
 
-        response.raise_for_status()
+            if attempt == MAX_RETRIES:
+                raise
 
-        backoff.success()
+            backoff.wait()
 
-        print(f"[DEBUG] Status: {response.status_code}")
-        print(f"[DEBUG] HTML size: {len(response.text)}")
-
-        with open(DEBUG_PATH, "w", encoding="utf-8") as f:
-            f.write(response.text)
-
-        return response.text
-
-    except requests.RequestException:
-        backoff.error()
-        raise
-
-    finally:
-        backoff.wait()
+    raise RuntimeError("Falha após múltiplas tentativas")
