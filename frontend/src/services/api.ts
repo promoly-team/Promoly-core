@@ -1,6 +1,8 @@
 import type { Offer, Product, ProductCardData } from "../types";
 
-const API_URL = "https://promoly-core-production.up.railway.app";
+/* const API_URL = "https://promoly-core-production.up.railway.app";*/
+
+const API_URL = "localhost:8080";
 
 /* =========================
    TIPOS
