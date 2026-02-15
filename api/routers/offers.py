@@ -1,41 +1,18 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from api.deps import get_db
+from api.services.offer_service import OfferService
+from api.schemas.offer import OfferOut
+
 
 router = APIRouter(prefix="/offers", tags=["offers"])
 
 
-@router.get("/")
-def get_offers(limit: int = 20, db=Depends(get_db)):
-    result = db.execute(
-        text("""
-            SELECT
-                p.id AS produto_id,
-                p.titulo,
-                p.imagem_url,
-                p.preco,
-                la.url_afiliada
-            FROM produtos p
-            JOIN links_afiliados la
-                ON la.produto_id = p.id
-                AND la.url_afiliada IS NOT NULL
-                AND la.url_afiliada != ''
-                AND la.status = 'ok'
-            ORDER BY p.created_at DESC
-            LIMIT :limit
-        """),
-        {"limit": limit},
-    )
-
-    rows = result.mappings().all()
-
-    return [
-        {
-            "produto_id": row["produto_id"],
-            "titulo": row["titulo"],
-            "imagem_url": row["imagem_url"],
-            "preco": float(row["preco"]) if row["preco"] is not None else None,
-            "url_afiliada": row["url_afiliada"],
-        }
-        for row in rows
-    ]
+@router.get("/", response_model=list[OfferOut])
+def get_offers(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+):
+    service = OfferService(db)
+    return service.get_offers(limit)

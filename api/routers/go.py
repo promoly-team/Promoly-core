@@ -1,40 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
-from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from api.deps import get_db
-from database.repositories.click_repository import ClickRepository
+from api.services.redirect_service import RedirectService
 
 router = APIRouter(tags=["redirect"])
-
-from database.repositories.produto_repository import ProdutoRepository
 
 
 @router.get("/go/{produto_id}")
 def go_to_affiliate(
     produto_id: int,
     request: Request,
-    db=Depends(get_db),
+    db: Session = Depends(get_db),
 ):
-    produto_repo = ProdutoRepository(db)
+    """
+    Redireciona para o link afiliado ativo do produto
+    e registra o clique.
+    """
 
-    row = produto_repo.get_active_affiliate_link(produto_id)
+    service = RedirectService(db)
 
-    if not row:
-        raise HTTPException(
-            status_code=404,
-            detail="Produto inativo ou link afiliado inválido",
-        )
-
-    click_repo = ClickRepository(db)
-    click_repo.register(
+    url = service.process_redirect(
         produto_id=produto_id,
-        plataforma_id=row["plataforma_id"],
         ip=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
     )
 
     return RedirectResponse(
-        url=row["url_afiliada"],
+        url=url,
         status_code=302,
     )
