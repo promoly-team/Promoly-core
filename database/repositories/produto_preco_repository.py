@@ -1,4 +1,3 @@
-from decimal import Decimal
 from sqlalchemy import text
 
 
@@ -19,11 +18,7 @@ class ProdutoPrecoRepository:
         )
 
         row = result.first()
-        if row is None:
-            return None
-
-        preco = row[0]
-        return float(preco) if isinstance(preco, Decimal) else preco
+        return row[0] if row else None
 
     def insert(self, produto_id: int, preco):
         self.conn.execute(
@@ -33,9 +28,6 @@ class ProdutoPrecoRepository:
             """),
             {
                 "produto_id": produto_id,
-                "preco": float(preco),
+                "preco": preco,
             },
         )
-
-        # 🔥 ISSO É O QUE FALTAVA
-        self.conn.commit()
