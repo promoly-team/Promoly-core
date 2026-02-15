@@ -41,12 +41,13 @@ export default function ProductPage() {
           }))
         );
 
-        const normalized: PriceHistoryItem[] = prices
-          .map((p) => ({
-            preco: p.preco,
-            data: new Date(p.data).getTime(),
-          }))
-          .sort((a, b) => a.data - b.data);
+      const normalized: PriceHistoryItem[] = prices
+        .map((p: any) => ({
+          preco: p.preco,
+          data: new Date(p.created_at).getTime(),
+        }))
+        .sort((a, b) => a.data - b.data);
+
 
         setPriceHistory(normalized);
       })
