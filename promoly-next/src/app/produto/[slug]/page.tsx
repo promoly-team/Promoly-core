@@ -16,9 +16,9 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ||
   "https://promoly-core.vercel.app";
 
-/* =========================
-   METADATA
-========================= */
+/* =====================================================
+   🔥 METADATA
+===================================================== */
 
 export async function generateMetadata(
   { params }: Props
@@ -39,29 +39,38 @@ export async function generateMetadata(
   const produto = productData.produto;
   const imageUrl = produto.imagem_url ?? "/placeholder.png";
 
+  const shortTitle =
+    produto.titulo.length > 55
+      ? produto.titulo.slice(0, 55) + "..."
+      : produto.titulo;
+
   return {
-    title: `${produto.titulo} | Histórico de preço e menor valor`,
+    title: `${shortTitle} – Histórico de preço`,
     description:
-      produto.descricao?.slice(0, 155) ||
-      `Veja histórico de preços, menor valor e análise completa do ${produto.titulo}.`,
+      `Veja o histórico de preços do ${produto.titulo}, menor valor registrado e análise se vale a pena comprar hoje.`,
     alternates: {
       canonical: `${BASE_URL}/produto/${slug}`,
     },
     openGraph: {
+      type: "website",
       title: produto.titulo,
       description:
-        produto.descricao?.slice(0, 155) ||
-        `Confira o histórico de preços do ${produto.titulo}.`,
+        "Confira o histórico de preços e descubra se está barato hoje.",
       url: `${BASE_URL}/produto/${slug}`,
-      type: "website",
       images: [{ url: imageUrl, width: 800, height: 600 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: produto.titulo,
+      description: "Histórico de preços e análise completa.",
+      images: [imageUrl],
     },
   };
 }
 
-/* =========================
-   PAGE
-========================= */
+/* =====================================================
+   🔥 PAGE
+===================================================== */
 
 export default async function ProductPage({ params }: Props) {
 
@@ -85,11 +94,11 @@ export default async function ProductPage({ params }: Props) {
   const metrics = calculatePriceMetrics(priceHistory);
   const produto = productData.produto;
 
+  const diff = metrics.priceDiffPercent;
+
   /* =========================
      CLASSIFICAÇÃO UX PREMIUM
   ========================== */
-
-  const diff = metrics.priceDiffPercent;
 
   let decisionTitle = "";
   let decisionDescription = "";
@@ -127,9 +136,11 @@ export default async function ProductPage({ params }: Props) {
     decisionIcon = "🔴";
   }
 
-  /* ========================= */
+  /* =========================
+     STRUCTURED DATA
+  ========================== */
 
-  const structuredData = {
+  const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: produto.titulo,
@@ -139,19 +150,43 @@ export default async function ProductPage({ params }: Props) {
     url: `${BASE_URL}/produto/${slug}`,
     offers: {
       "@type": "Offer",
+      url: `${BASE_URL}/produto/${slug}`,
       priceCurrency: "BRL",
       price: metrics.currentPrice,
       availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
     },
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: `Vale a pena comprar ${produto.titulo}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: decisionDescription,
+        },
+      },
+    ],
   };
 
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
 
+      {/* JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
+          __html: JSON.stringify(productSchema),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
         }}
       />
 
@@ -164,7 +199,7 @@ export default async function ProductPage({ params }: Props) {
             <ProductDetails product={produto} />
           </div>
 
-          {/* DECISÃO INTELIGENTE */}
+          {/* DECISÃO INTELIGENTE (COMPLETA COMO ERA) */}
           <div className="bg-surface-subtle rounded-3xl border border-gray-300 p-8">
 
             <h2 className="text-2xl font-bold mb-4 text-gray-900">

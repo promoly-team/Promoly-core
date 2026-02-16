@@ -1,5 +1,12 @@
+// utils/priceMetrics.ts
+
+export type PricePoint = {
+  preco: number;
+  data: number;
+};
+
 export function calculatePriceMetrics(
-  priceHistory: { preco: number }[]
+  priceHistory: PricePoint[]
 ) {
   if (priceHistory.length === 0) {
     return {
@@ -7,8 +14,8 @@ export function calculatePriceMetrics(
       minPrice: 0,
       avgPrice: 0,
       currentPrice: 0,
-      priceStatus: "equal" as "below" | "above" | "equal",
       priceDiffPercent: 0,
+      priceStatus: "no-data" as const,
       lowerDomain: 0,
       upperDomain: 0,
     };
@@ -18,17 +25,21 @@ export function calculatePriceMetrics(
 
   const maxPrice = Math.max(...prices);
   const minPrice = Math.min(...prices);
-  const avgPrice =
-    prices.reduce((a, b) => a + b, 0) / prices.length;
 
-  const currentPrice = prices[prices.length - 1];
+  const avgPrice =
+    prices.length > 1
+      ? prices.reduce((a, b) => a + b, 0) / prices.length
+      : prices[0];
+
+  // SEMPRE o último registro (já ordenado)
+  const currentPrice = priceHistory[priceHistory.length - 1].preco;
 
   const priceDiffPercent =
     avgPrice > 0
       ? ((currentPrice - avgPrice) / avgPrice) * 100
       : 0;
 
-  let priceStatus: "below" | "above" | "equal" = "equal";
+  let priceStatus: "below" | "above" | "equal";
 
   if (Math.abs(priceDiffPercent) < 0.5) {
     priceStatus = "equal";
@@ -45,8 +56,8 @@ export function calculatePriceMetrics(
     minPrice,
     avgPrice,
     currentPrice,
-    priceStatus,
     priceDiffPercent,
+    priceStatus,
     lowerDomain: Math.max(0, minPrice - padding),
     upperDomain: maxPrice + padding,
   };

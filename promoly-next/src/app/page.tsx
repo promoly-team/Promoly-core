@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 ===================================================== */
 
 export const metadata: Metadata = {
-  title: "PromoLy – Compare preços e encontre o menor valor antes de comprar",
+  title: "PromoLy – Compare preços e encontre o menor valor",
   description:
     "Compare preços, acompanhe o histórico e descubra quando um produto está realmente abaixo da média. PromoLy monitora milhares de ofertas diariamente.",
   keywords: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     url: "https://promoly-core.vercel.app",
     siteName: "PromoLy",
     title:
-      "PromoLy – Compare preços e encontre o menor valor antes de comprar",
+      "PromoLy – Compare preços e encontre o menor valor",
     description:
       "Acompanhe histórico de preços e descubra oportunidades reais antes de comprar.",
     images: [
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title:
-      "PromoLy – Compare preços e encontre o menor valor antes de comprar",
+      "PromoLy – Compare preços e encontre o menor valor",
     description:
       "Descubra quando um produto está realmente barato.",
     images: ["https://promoly-core.vercel.app/og-image.png"],
@@ -231,6 +231,16 @@ export default async function HomePage() {
               ))}
             </div>
           </section>
+        <section className="mt-24 text-gray-600 max-w-3xl">
+          <h2 className="text-2xl font-bold mb-4">
+            Como encontrar o menor preço online?
+          </h2>
+          <p>
+            O PromoLy é um comparador de preços que analisa o histórico
+            de valores e identifica oportunidades reais. Antes de comprar,
+            verifique se o preço atual está abaixo da média histórica.
+          </p>
+        </section>
 
         </div>
       </div>
