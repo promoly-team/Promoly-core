@@ -13,8 +13,7 @@ type Props = {
 };
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ||
-  "https://promoly.com.br";
+  process.env.NEXT_PUBLIC_BASE_URL || "https//promoly-core.vercel.app";
 
 /* =====================================================
    🔥 METADATA
