@@ -1,12 +1,5 @@
-// utils/priceMetrics.ts
-
-export type PricePoint = {
-  preco: number;
-  data: number;
-};
-
 export function calculatePriceMetrics(
-  priceHistory: PricePoint[]
+  priceHistory: { preco: number }[]
 ) {
   if (priceHistory.length === 0) {
     return {
@@ -31,7 +24,7 @@ export function calculatePriceMetrics(
       ? prices.reduce((a, b) => a + b, 0) / prices.length
       : prices[0];
 
-  // SEMPRE o último registro (já ordenado)
+  // Sempre o último elemento recebido
   const currentPrice = priceHistory[priceHistory.length - 1].preco;
 
   const priceDiffPercent =
