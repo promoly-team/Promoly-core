@@ -116,7 +116,7 @@ export async function fetchProductBySlug(
 
 export async function fetchPrices(
   productId: number
-): Promise<{ preco: number; data: string }[]> {
+): Promise<{ preco: number; created_at: string }[]> {
   return apiGet(`/prices/${productId}`, {
     noStore: true,
   });

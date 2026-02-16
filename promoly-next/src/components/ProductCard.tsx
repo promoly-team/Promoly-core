@@ -10,14 +10,13 @@ type Props = {
 export default function ProductCard({ product }: Props) {
   const isDeal = "preco_atual" in product;
 
-  // 🔥 URL correta com slug + ID
   const productUrl = `/produto/${product.slug}-${product.produto_id}`;
 
   return (
     <div className="relative bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 group">
 
       {/* BADGE */}
-      {isDeal && product.desconto_pct && (
+      {isDeal && product.desconto_pct != null && (
         <span className="absolute top-3 left-3 z-20 bg-[#22c177] text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
           -{product.desconto_pct}%
         </span>
@@ -29,7 +28,7 @@ export default function ProductCard({ product }: Props) {
         className="bg-gray-50 rounded-xl p-4 flex items-center justify-center overflow-hidden"
       >
         <img
-          src={product.imagem_url}
+          src={product.imagem_url ?? "/placeholder.png"}
           alt={product.titulo}
           className="h-36 object-contain transition-transform duration-300 group-hover:scale-105"
         />
@@ -56,13 +55,15 @@ export default function ProductCard({ product }: Props) {
                 </span>
               )}
 
-              <span className="text-lg font-bold text-[#22c177]">
-                R$ {product.preco_atual.toFixed(2)}
-              </span>
+              {product.preco_atual != null && (
+                <span className="text-lg font-bold text-[#22c177]">
+                  R$ {product.preco_atual.toFixed(2)}
+                </span>
+              )}
             </>
           ) : (
             <span className="text-lg font-bold text-[#22c177]">
-              {product.preco != null
+              {"preco" in product && product.preco != null
                 ? `R$ ${product.preco.toFixed(2)}`
                 : "Preço indisponível"}
             </span>
@@ -80,14 +81,16 @@ export default function ProductCard({ product }: Props) {
             Detalhes
           </Link>
 
-          <a
-            href={product.url_afiliada}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-lg transition text-center"
-          >
-            Ver Oferta
-          </a>
+          {product.url_afiliada && (
+            <a
+              href={product.url_afiliada}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-lg transition text-center"
+            >
+              Ver Oferta
+            </a>
+          )}
 
         </div>
       </div>

@@ -23,11 +23,11 @@ export default function SimilarProducts({ products }: Props) {
         {products.map((p) => {
 
           // 🔥 Monta slug + id corretamente
-          const productUrl = `/produto/${p.slug}-${p.id}`;
+          const productUrl = `/produto/${p.slug}-${p.produto_id}`;
 
           return (
             <Link
-              key={p.id}
+              key={p.produto_id}
               href={productUrl}
               className="flex gap-4 p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition bg-gray-50 hover:bg-white"
             >
@@ -35,7 +35,7 @@ export default function SimilarProducts({ products }: Props) {
               {/* IMAGEM */}
               <div className="w-16 h-16 relative flex-shrink-0 bg-white rounded-lg p-2">
                 <Image
-                  src={p.imagem_url}
+                  src={p.imagem_url ?? "/placeholder.png"}
                   alt={p.titulo}
                   fill
                   className="object-contain"

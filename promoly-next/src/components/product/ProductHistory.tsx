@@ -47,11 +47,11 @@ export default function ProductHistory({
             <XAxis
               dataKey="data"
               tick={{ fill: "#6b7280", fontSize: 12 }}
-              tickFormatter={(timestamp) =>
-                new Date(timestamp as number).toLocaleDateString(
-                  "pt-BR",
-                  { day: "2-digit", month: "2-digit" }
-                )
+              tickFormatter={(timestamp: number) =>
+                new Date(timestamp).toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                })
               }
             />
 
@@ -60,8 +60,8 @@ export default function ProductHistory({
               width={70}
               domain={[lowerDomain, upperDomain]}
               tick={{ fill: "#6b7280", fontSize: 12 }}
-              tickFormatter={(value) =>
-                (value as number).toLocaleString("pt-BR", {
+              tickFormatter={(value: number) =>
+                value.toLocaleString("pt-BR", {
                   style: "currency",
                   currency: "BRL",
                   maximumFractionDigits: 0,
@@ -87,18 +87,22 @@ export default function ProductHistory({
                 color: "#16a34a",
                 fontWeight: 500,
               }}
-              formatter={(value: number) =>
-                value.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                })
+
+              formatter={(value: number | undefined) =>
+                value != null
+                  ? value.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })
+                  : ""
               }
-              labelFormatter={(label) =>
-                new Date(label as number).toLocaleDateString("pt-BR")
+
+              labelFormatter={(label: number) =>
+                new Date(label).toLocaleDateString("pt-BR")
               }
             />
 
-            {/* ÁREA (SEM DUPLICAR TOOLTIP) */}
+            {/* ÁREA */}
             <Area
               type="monotone"
               dataKey="preco"
