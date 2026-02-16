@@ -4,6 +4,8 @@ import Navbar from "@/components/layout/Navbar";
 import StructuredData from "@/components/StructuredData";
 import { Analytics } from "@vercel/analytics/next";
 
+const GOOGLE_TAG = "YFOTAGIpLnjCazAebuC9kywR7MxbP3Nt6aGosOGaDWU";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://promoly-core.vercel.app/"),
 
@@ -15,6 +17,10 @@ export const metadata: Metadata = {
   description:
     "Compare preços, veja histórico e encontre as melhores promoções atualizadas.",
 
+  verification: {
+    google: GOOGLE_TAG,
+  },
+  
   openGraph: {
     type: "website",
     locale: "pt_BR",
