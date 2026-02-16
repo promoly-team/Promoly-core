@@ -190,7 +190,7 @@ export async function fetchAllProducts(): Promise<{
   slug: string;
   updated_at?: string;
 }[]> {
-  return apiGet(`/products/all`, {
+  return apiGet(`/products/sitemap`, {
     revalidate: 3600, // 1h
   });
 }
@@ -202,7 +202,7 @@ export async function fetchAllProducts(): Promise<{
 export async function fetchAllCategories(): Promise<{
   slug: string;
 }[]> {
-  return apiGet(`/categories/all`, {
+  return apiGet(`/categories/sitemap`, {
     revalidate: 3600,
   });
 }

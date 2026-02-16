@@ -304,3 +304,29 @@ class ProductService:
         )
 
         return result.mappings().all()
+
+
+    # =====================================================
+    # SITEMAP
+    # =====================================================
+
+    def list_products_for_sitemap(self):
+        """
+        Retorna apenas os dados necessários
+        para geração do sitemap.
+
+        Query leve e otimizada.
+        """
+
+        result = self.db.execute(
+            text("""
+                SELECT
+                    p.id AS produto_id,
+                    p.slug,
+                    p.updated_at
+                FROM produtos_publicos p
+                WHERE p.slug IS NOT NULL
+            """)
+        )
+
+        return result.mappings().all()
