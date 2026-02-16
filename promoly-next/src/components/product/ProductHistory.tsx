@@ -97,9 +97,18 @@ export default function ProductHistory({
                   : ""
               }
 
-              labelFormatter={(label: number) =>
-                new Date(label).toLocaleDateString("pt-BR")
-              }
+            labelFormatter={(label) => {
+              if (!label) return "";
+
+              const date =
+                typeof label === "number"
+                  ? label
+                  : Number(label);
+
+              if (isNaN(date)) return "";
+
+              return new Date(date).toLocaleDateString("pt-BR");
+            }}
             />
 
             {/* ÁREA */}
