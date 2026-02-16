@@ -27,7 +27,7 @@ export default function ProductDetails({ product }: Props) {
 
       <div className="flex flex-col gap-4">
 
-        <h1 className="text-lg sm:text-2xl font-semibold leading-snug">
+        <h1 className="text-black text-sm sm:text-base leading-relaxed">
           {product.titulo}
         </h1>
 
