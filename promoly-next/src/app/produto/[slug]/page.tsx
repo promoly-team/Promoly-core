@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
 import { fetchProductById, fetchPrices } from "@/lib/api";
 import { calculatePriceMetrics } from "@/utils/priceMetrics";
 
@@ -12,10 +14,85 @@ type Props = {
   }>;
 };
 
-export default async function ProductPage({ params }: Props) {
+/* ==================================================
+   METADATA DINÂMICA (NEXT 15 FIX)
+================================================== */
+
+export async function generateMetadata(
+  { params }: Props
+): Promise<Metadata> {
+
   const { slug } = await params;
 
-  // Extrai ID do final do slug
+  const parts = slug.split("-");
+  const id = Number(parts[parts.length - 1]);
+
+  if (isNaN(id)) {
+    return {
+      title: "Produto não encontrado",
+      robots: { index: false },
+    };
+  }
+
+  try {
+    const productData = await fetchProductById(id);
+
+    if (!productData?.produto) {
+      return {
+        title: "Produto não encontrado",
+        robots: { index: false },
+      };
+    }
+
+    const produto = productData.produto;
+
+    const title = `${produto.titulo} com menor preço hoje`;
+    const description =
+      produto.descricao?.slice(0, 155) ||
+      `Veja histórico de preços, ofertas e onde comprar ${produto.titulo} pelo menor valor.`;
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical: `/produto/${slug}`,
+      },
+      openGraph: {
+        title,
+        description,
+        url: `https://promoly.com.br/produto/${slug}`,
+        type: "website",
+        images: [
+          {
+            url: produto.imagem,
+            width: 800,
+            height: 600,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [produto.imagem],
+      },
+    };
+  } catch {
+    return {
+      title: "Erro ao carregar produto",
+      robots: { index: false },
+    };
+  }
+}
+
+/* ==================================================
+   PAGE (NEXT 15 FIX)
+================================================== */
+
+export default async function ProductPage({ params }: Props) {
+
+  const { slug } = await params;
+
   const parts = slug.split("-");
   const id = Number(parts[parts.length - 1]);
 
@@ -31,7 +108,6 @@ export default async function ProductPage({ params }: Props) {
 
   const prices = await fetchPrices(id);
 
-  // 🔥 CORREÇÃO AQUI — usando created_at
   const priceHistory = prices
     .map((p) => ({
       preco: Number(p.preco),
@@ -40,29 +116,48 @@ export default async function ProductPage({ params }: Props) {
     .sort((a, b) => a.data - b.data);
 
   const metrics = calculatePriceMetrics(priceHistory);
+  const produto = productData.produto;
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: produto.titulo,
+    image: produto.imagem,
+    description: produto.descricao,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "BRL",
+      price: metrics?.currentPrice ?? undefined,
+      availability: "https://schema.org/InStock",
+      url: `https://promoly.com.br/produto/${slug}`,
+    },
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen">
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid lg:grid-cols-[2fr_1fr] gap-10">
 
         <section className="space-y-8">
 
-          {/* PRODUCT DETAILS */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-            <ProductDetails product={productData.produto} />
+            <ProductDetails product={produto} />
           </div>
 
-          {/* ANÁLISE DE PREÇO */}
           {priceHistory.length > 1 && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-
               <h3 className="text-lg font-semibold text-gray-900 mb-6">
                 Análise de preço
               </h3>
 
               <div className="grid sm:grid-cols-3 gap-5">
-
-                {/* MENOR PREÇO */}
                 <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-200">
                   <p className="text-sm text-emerald-700 mb-2 font-medium">
                     📉 Menor preço histórico
@@ -75,7 +170,6 @@ export default async function ProductPage({ params }: Props) {
                   </p>
                 </div>
 
-                {/* MAIOR PREÇO */}
                 <div className="bg-red-50 rounded-2xl p-5 border border-red-200">
                   <p className="text-sm text-red-600 mb-2 font-medium">
                     📈 Maior preço histórico
@@ -88,7 +182,6 @@ export default async function ProductPage({ params }: Props) {
                   </p>
                 </div>
 
-                {/* MÉDIA */}
                 <div
                   className={`rounded-2xl p-5 border ${
                     metrics.isBelowAverage
@@ -126,12 +219,10 @@ export default async function ProductPage({ params }: Props) {
                     })}
                   </p>
                 </div>
-
               </div>
             </div>
           )}
 
-          {/* HISTÓRICO */}
           {priceHistory.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
               <ProductHistory
@@ -141,10 +232,8 @@ export default async function ProductPage({ params }: Props) {
               />
             </div>
           )}
-
         </section>
 
-        {/* SIDEBAR */}
         <aside>
           <div className="sticky top-24">
             <SimilarProducts products={productData.similares} />
