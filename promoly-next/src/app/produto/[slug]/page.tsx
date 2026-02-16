@@ -24,6 +24,7 @@ export async function generateMetadata(
 
   const { slug } = await params;
 
+  
   const parts = slug.split("-");
   const id = Number(parts[parts.length - 1]);
 
@@ -45,7 +46,7 @@ export async function generateMetadata(
     }
 
     const produto = productData.produto;
-
+    const imageUrl = produto.imagem_url ?? "/placeholder.png";
     const title = `${produto.titulo} com menor preço hoje`;
     const description =
       produto.descricao?.slice(0, 155) ||
@@ -64,7 +65,7 @@ export async function generateMetadata(
         type: "website",
         images: [
           {
-            url: produto.imagem,
+            url: imageUrl,
             width: 800,
             height: 600,
           },
@@ -74,7 +75,7 @@ export async function generateMetadata(
         card: "summary_large_image",
         title,
         description,
-        images: [produto.imagem],
+        images: [imageUrl],
       },
     };
   } catch {
@@ -122,7 +123,7 @@ export default async function ProductPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: produto.titulo,
-    image: produto.imagem,
+    image: produto.imagem_url,
     description: produto.descricao,
     offers: {
       "@type": "Offer",
