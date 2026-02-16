@@ -4,6 +4,69 @@ import { fetchProducts } from "@/lib/api";
 import { calculatePriceMetrics } from "@/utils/priceMetrics";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import type { ProductCardData } from "@/types";
+import type { Metadata } from "next";
+
+/* =====================================================
+   🔥 METADATA COMPLETA
+===================================================== */
+
+export const metadata: Metadata = {
+  title: "PromoLy – Compare preços e encontre o menor valor antes de comprar",
+  description:
+    "Compare preços, acompanhe o histórico e descubra quando um produto está realmente abaixo da média. PromoLy monitora milhares de ofertas diariamente.",
+  keywords: [
+    "menor preço",
+    "comparador de preços",
+    "histórico de preço",
+    "promoções online",
+    "ofertas hoje",
+    "descontos reais"
+  ],
+  authors: [{ name: "PromoLy" }],
+  creator: "PromoLy",
+  publisher: "PromoLy",
+
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://promoly-core.vercel.app",
+    siteName: "PromoLy",
+    title:
+      "PromoLy – Compare preços e encontre o menor valor antes de comprar",
+    description:
+      "Acompanhe histórico de preços e descubra oportunidades reais antes de comprar.",
+    images: [
+      {
+        url: "https://promoly-core.vercel.app/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "PromoLy – Compare preços antes de comprar",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title:
+      "PromoLy – Compare preços e encontre o menor valor antes de comprar",
+    description:
+      "Descubra quando um produto está realmente barato.",
+    images: ["https://promoly-core.vercel.app/og-image.png"],
+  },
+
+  alternates: {
+    canonical: "https://promoly-core.vercel.app",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+/* =====================================================
+   🔥 HOMEPAGE
+===================================================== */
 
 export default async function HomePage() {
   const products: ProductCardData[] = await fetchProducts({
@@ -11,17 +74,9 @@ export default async function HomePage() {
     limit: 20,
   });
 
-  /* =========================
-     REMOVE DUPLICADOS
-  ========================== */
-
   const unique = Array.from(
     new Map(products.map((p) => [p.produto_id, p])).values()
   );
-
-  /* =========================
-     ENRIQUECE PRODUTOS
-  ========================== */
 
   const enhanced = unique.map((product) => {
     if ("preco_atual" in product && product.preco_atual != null) {
@@ -55,14 +110,6 @@ export default async function HomePage() {
 
       return {
         ...product,
-        priceDiffPercent,
-        priceStatus:
-          trend === "queda"
-            ? "below"
-            : trend === "alta"
-            ? "above"
-            : "equal",
-        isBelowAverage: trend === "queda",
         opportunityScore,
       };
     }
@@ -70,18 +117,10 @@ export default async function HomePage() {
     return product;
   });
 
-  /* =========================
-     RANKING POR SCORE
-  ========================== */
-
   const ranked = enhanced.sort(
     (a: any, b: any) =>
       (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0)
   );
-
-  /* =========================
-     CATEGORIAS
-  ========================== */
 
   const categories = [
     { label: "Eletrônicos", slug: "eletronicos" },
@@ -93,148 +132,108 @@ export default async function HomePage() {
   ];
 
   return (
-    <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
+    <>
+      {/* 🔥 STRUCTURED DATA */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "PromoLy",
+            url: "https://promoly-core.vercel.app",
+            description:
+              "Compare preços e acompanhe histórico real antes de comprar.",
+            potentialAction: {
+              "@type": "SearchAction",
+              target:
+                "https://promoly-core.vercel.app/ofertas?q={search_term_string}",
+              "query-input": "required name=search_term_string",
+            },
+          }),
+        }}
+      />
 
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 py-16">
 
-        {/* ================= HERO ================= */}
+          {/* HERO */}
 
-        <section className="text-center mb-20">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6">
-            Encontre o{" "}
-            <span className="text-primary">menor preço</span> antes de comprar
-          </h1>
+          <section className="text-center mb-20">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6">
+              Compare preços e encontre o{" "}
+              <span className="text-primary">menor valor</span> antes de comprar
+            </h1>
 
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg mb-8">
-            O Promoly monitora preços diariamente e identifica automaticamente
-            quando um produto está abaixo da média histórica.
-          </p>
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg mb-8">
+              Acompanhe o histórico real de preços e descubra quando um produto
+              está abaixo da média histórica.
+            </p>
 
-          <Link
-            href="/ofertas"
-            className="
-              inline-block
-              bg-success
-              hover:opacity-90
-              text-white
-              font-semibold
-              px-8 py-3
-              rounded-xl2
-              shadow-medium
-              transition
-            "
-          >
-            🔥 Ver melhores ofertas
-          </Link>
+            <Link
+              href="/ofertas"
+              className="inline-block bg-success hover:opacity-90 text-white font-semibold px-8 py-3 rounded-xl shadow-medium transition"
+            >
+              🔥 Ver melhores ofertas
+            </Link>
+          </section>
 
-          <div className="flex justify-center gap-8 text-sm text-muted mt-10">
-            <span>📊 +3.000 produtos monitorados</span>
-            <span>📉 Atualização diária</span>
-            <span>💰 Oportunidades reais</span>
-          </div>
-        </section>
+          {/* TOP OPORTUNIDADES */}
 
-        {/* ================= TOP 3 ================= */}
-
-        <section className="mb-24">
-
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">
+          <section className="mb-24">
+            <h2 className="text-3xl font-bold text-gray-900 mb-10">
               🔥 Top oportunidades de hoje
             </h2>
 
-            <Link
-              href="/ofertas"
-              className="text-primary font-semibold hover:underline"
-            >
-              Ver todas →
-            </Link>
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {ranked.slice(0, 3).map((p) => (
+                <ProductCard
+                  key={`${p.produto_id}-top`}
+                  product={p}
+                />
+              ))}
+            </div>
+          </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {ranked.slice(0, 3).map((p) => (
-              <ProductCard
-                key={`${p.produto_id}-top`}
-                product={p}
-              />
-            ))}
-          </div>
-        </section>
+          {/* CATEGORIAS */}
 
-        {/* ================= CATEGORIAS ================= */}
+          <section className="mb-24">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">
+              Navegue por categorias
+            </h2>
 
-        <section className="mb-24">
+            <div className="flex flex-wrap gap-4">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  href={`/categoria/${cat.slug}`}
+                  className="px-6 py-2.5 bg-surface border border-gray-200 rounded-full text-sm font-medium text-gray-800 hover:bg-primary hover:text-white transition shadow-soft"
+                >
+                  {cat.label}
+                </Link>
+              ))}
+            </div>
+          </section>
 
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">
-            Navegue por categorias
-          </h2>
+          {/* GRID */}
 
-          <div className="flex flex-wrap gap-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.slug}
-                href={`/categoria/${cat.slug}`}
-                className="
-                  px-6 py-2.5
-                  bg-surface
-                  border border-gray-200
-                  rounded-full
-                  text-sm
-                  font-medium
-                  text-gray-800
-                  hover:bg-primary
-                  hover:text-white
-                  hover:border-primary
-                  transition
-                  shadow-soft
-                "
-              >
-                {cat.label}
-              </Link>
-            ))}
-          </div>
-
-        </section>
-
-        {/* ================= GRID PRINCIPAL ================= */}
-
-        <section>
-
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">
+          <section>
+            <h2 className="text-3xl font-bold text-gray-900 mb-10">
               Ofertas em destaque
             </h2>
 
-            <Link
-              href="/ofertas"
-              className="
-                bg-primary
-                hover:bg-primary-hover
-                text-white
-                text-sm
-                font-semibold
-                px-6 py-2.5
-                rounded-xl
-                transition
-                shadow-soft
-              "
-            >
-              Ver todas →
-            </Link>
-          </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+              {ranked.map((p) => (
+                <ProductCard
+                  key={`${p.produto_id}-grid`}
+                  product={p}
+                />
+              ))}
+            </div>
+          </section>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
-            {ranked.map((p) => (
-              <ProductCard
-                key={`${p.produto_id}-grid`}
-                product={p}
-              />
-            ))}
-          </div>
-
-        </section>
-
+        </div>
       </div>
-    </div>
+    </>
   );
 }
