@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchProduct, fetchPrices } from "../services/api";
-import type { Product } from "../types";
+import type { Product } from "../../../promoly-next/src/types";
 
 import ProductDetails from "../components/product/ProductDetails";
 import PriceHistory from "../components/product/ProductHistory";

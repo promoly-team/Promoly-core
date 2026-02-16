@@ -1,14 +1,17 @@
-import { useNavigate } from "react-router-dom";
-import { goToProduct } from "../services/api";
-import type { ProductCardData } from "../../../promoly-next/src/types";
+"use client";
+
+import Link from "next/link";
+import type { ProductCardData } from "@/types";
 
 type Props = {
   product: ProductCardData;
 };
 
 export default function ProductCard({ product }: Props) {
-  const navigate = useNavigate();
   const isDeal = "preco_atual" in product;
+
+  // 🔥 URL correta com slug + ID
+  const productUrl = `/produto/${product.slug}-${product.produto_id}`;
 
   return (
     <div className="relative bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 group">
@@ -21,27 +24,26 @@ export default function ProductCard({ product }: Props) {
       )}
 
       {/* IMAGEM */}
-      <div
-        onClick={() => navigate(`/produto/${product.produto_id}`)}
-        className="bg-gray-50 rounded-xl p-4 flex items-center justify-center cursor-pointer overflow-hidden"
+      <Link
+        href={productUrl}
+        className="bg-gray-50 rounded-xl p-4 flex items-center justify-center overflow-hidden"
       >
         <img
           src={product.imagem_url}
           alt={product.titulo}
-          loading="lazy"
-          className="relative z-0 h-36 object-contain transition-transform duration-300 group-hover:scale-105"
+          className="h-36 object-contain transition-transform duration-300 group-hover:scale-105"
         />
-      </div>
+      </Link>
 
       {/* CONTEÚDO */}
       <div className="mt-4 flex flex-col gap-2">
 
-        <div
-          onClick={() => navigate(`/produto/${product.produto_id}`)}
-          className="text-sm font-medium text-gray-800 line-clamp-2 cursor-pointer hover:text-[#2563eb] transition"
+        <Link
+          href={productUrl}
+          className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-[#2563eb] transition"
         >
           {product.titulo}
-        </div>
+        </Link>
 
         {/* PREÇO */}
         <div className="flex flex-col">
@@ -71,19 +73,21 @@ export default function ProductCard({ product }: Props) {
         {/* BOTÕES */}
         <div className="flex gap-2 mt-3">
 
-          <button
-            onClick={() => navigate(`/produto/${product.produto_id}`)}
-            className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black text-sm font-semibold py-2 rounded-lg transition"
+          <Link
+            href={productUrl}
+            className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black text-sm font-semibold py-2 rounded-lg transition text-center"
           >
             Detalhes
-          </button>
+          </Link>
 
-          <button
-            onClick={() => goToProduct(product.produto_id)}
-            className="flex-1 bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-lg transition"
+          <a
+            href={product.url_afiliada}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-lg transition text-center"
           >
             Ver Oferta
-          </button>
+          </a>
 
         </div>
       </div>

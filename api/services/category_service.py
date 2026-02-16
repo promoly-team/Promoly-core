@@ -1,120 +1,152 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
 from api.utils.pricing import calculate_discount
 
 
 class CategoryService:
-    """
-    Camada de serviço responsável por recuperar produtos
-    por categoria.
-
-    Responsabilidades:
-    - Consulta de produtos vinculados à categoria
-    - Recuperação de preço atual e anterior
-    - Aplicação da regra de desconto no domínio
-    - Ordenação por maior desconto
-    """
 
     def __init__(self, db: Session):
         self.db = db
 
-    def get_products_by_category(
+    # =====================================================
+    # PRODUCTS BY SLUG (PAGINADO E ORDENADO NO SQL)
+    # =====================================================
+
+    def get_products_by_category_slug(
         self,
-        categoria_id: int,
+        slug: str,
         limit: int = 20,
+        offset: int = 0,
+        search: str | None = None,
+        order: str = "desconto",
     ):
-        """
-        Retorna produtos de uma categoria específica,
-        ordenados pelo maior desconto percentual.
+
+        search_filter = ""
+        if search:
+            search_filter = "AND LOWER(p.titulo) LIKE LOWER(:search)"
+
+        order_clause = """
+            CASE
+                WHEN a.preco IS NOT NULL
+                    AND u.preco IS NOT NULL
+                THEN ((a.preco - u.preco) / a.preco)
+                ELSE -1
+            END DESC
         """
 
-        result = self.db.execute(
-            text("""
-                WITH precos AS (
-                    SELECT
-                        produto_id,
-                        preco,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY produto_id
-                            ORDER BY created_at DESC
-                        ) AS rn
-                    FROM produto_preco_historico
-                )
+
+        if order == "preco":
+            order_clause = "preco_atual ASC"
+        elif order == "recentes":
+            order_clause = "p.id DESC"
+
+        query = f"""
+            WITH precos AS (
                 SELECT
-                    p.id AS produto_id,
-                    p.titulo,
-                    p.imagem_url,
-                    u.preco AS preco_atual,
-                    a.preco AS preco_anterior,
-                    la.url_afiliada
-                FROM produtos p
-                JOIN produto_categoria pc
-                    ON pc.produto_id = p.id
-                    AND pc.categoria_id = :categoria_id
+                    produto_id,
+                    preco,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY produto_id
+                        ORDER BY created_at DESC
+                    ) AS rn
+                FROM produto_preco_historico
+            )
 
-                JOIN links_afiliados la
-                    ON la.produto_id = p.id
-                    AND la.status = 'ok'
-                    AND la.url_afiliada IS NOT NULL
-                    AND la.url_afiliada != ''
+            SELECT
+                p.id AS produto_id,
+                p.slug,
+                p.titulo,
+                p.imagem_url,
+                u.preco AS preco_atual,
+                a.preco AS preco_anterior,
+                la.url_afiliada
+            FROM produtos p
 
-                JOIN precos u
-                    ON u.produto_id = p.id AND u.rn = 1
-                LEFT JOIN precos a
-                    ON a.produto_id = p.id AND a.rn = 2
+            JOIN produto_categoria pc
+                ON pc.produto_id = p.id
 
-                LIMIT :limit
-            """),
-            {
-                "categoria_id": categoria_id,
-                "limit": limit,
-            },
-        )
+            JOIN categorias c
+                ON c.id = pc.categoria_id
+                AND c.slug = :slug
+
+            JOIN links_afiliados la
+                ON la.produto_id = p.id
+                AND la.status = 'ok'
+                AND la.url_afiliada IS NOT NULL
+                AND la.url_afiliada != ''
+
+            JOIN precos u
+                ON u.produto_id = p.id AND u.rn = 1
+
+            LEFT JOIN precos a
+                ON a.produto_id = p.id AND a.rn = 2
+
+            WHERE 1=1
+            {search_filter}
+
+            ORDER BY {order_clause}
+
+            LIMIT :limit OFFSET :offset
+        """
+
+        params = {
+            "slug": slug,
+            "limit": limit,
+            "offset": offset,
+        }
+
+        if search:
+            params["search"] = f"%{search}%"
+
+        result = self.db.execute(text(query), params)
 
         rows = result.mappings().all()
 
         produtos = []
 
         for row in rows:
-            preco_atual = (
-                float(row["preco_atual"])
-                if row["preco_atual"] is not None
-                else None
-            )
+            preco_atual = float(row["preco_atual"]) if row["preco_atual"] else None
+            preco_anterior = float(row["preco_anterior"]) if row["preco_anterior"] else None
 
-            preco_anterior = (
-                float(row["preco_anterior"])
-                if row["preco_anterior"] is not None
-                else None
-            )
+            desconto = calculate_discount(preco_atual, preco_anterior)
 
-            desconto = calculate_discount(
-                preco_atual,
-                preco_anterior,
-            )
-
-            produtos.append(
-                {
-                    "produto_id": row["produto_id"],
-                    "titulo": row["titulo"],
-                    "imagem_url": row["imagem_url"],
-                    "preco_atual": preco_atual,
-                    "preco_anterior": preco_anterior,
-                    "desconto_pct": desconto,
-                    "url_afiliada": row["url_afiliada"],
-                }
-            )
-
-        # -------------------------------------------------
-        # Ordenação por maior desconto
-        # -------------------------------------------------
-
-        produtos.sort(
-            key=lambda x: (
-                x["desconto_pct"] is None,
-                -(x["desconto_pct"] or 0),
-            )
-        )
+            produtos.append({
+                "produto_id": row["produto_id"],
+                "slug": row["slug"],
+                "titulo": row["titulo"],
+                "imagem_url": row["imagem_url"],
+                "preco_atual": preco_atual,
+                "preco_anterior": preco_anterior,
+                "desconto_pct": desconto,
+                "url_afiliada": row["url_afiliada"],
+            })
 
         return produtos
+
+    # =====================================================
+    # TOTAL CORRIGIDO (COM MESMOS FILTROS)
+    # =====================================================
+
+    def get_category_total(self, slug: str):
+        result = self.db.execute(
+            text("""
+                SELECT COUNT(DISTINCT p.id)
+                FROM produtos p
+
+                JOIN produto_categoria pc
+                    ON pc.produto_id = p.id
+
+                JOIN categorias c
+                    ON c.id = pc.categoria_id
+                    AND c.slug = :slug
+
+                JOIN links_afiliados la
+                    ON la.produto_id = p.id
+                    AND la.status = 'ok'
+                    AND la.url_afiliada IS NOT NULL
+                    AND la.url_afiliada != ''
+            """),
+            {"slug": slug},
+        )
+
+        return result.scalar() or 0

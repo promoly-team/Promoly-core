@@ -1,6 +1,8 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { useState } from "react";
-import { CATEGORIES } from "../../../../promoly-next/src/constants/categories";
+import { CATEGORIES } from "@/constants/categories";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -21,7 +23,7 @@ export default function Navbar() {
 
         {/* LOGO */}
         <Link
-          to="/"
+          href="/"
           className="text-2xl font-bold text-[#2563eb]"
         >
           Promoly
@@ -33,7 +35,7 @@ export default function Navbar() {
           {mainCategories.map(cat => (
             <Link
               key={cat.slug}
-              to={`/categoria/${cat.slug}`}
+              href={`/categoria/${cat.slug}`}
               className="text-gray-700 hover:text-[#22c177] transition font-medium"
             >
               {cat.label}
@@ -47,27 +49,26 @@ export default function Navbar() {
               Mais ▾
             </button>
 
-            {/* Área invisível para evitar fechamento prematuro */}
             <div className="absolute left-0 top-full h-3 w-full"></div>
 
             <div className="
                 absolute left-0 top-full
-                mt-0
                 w-48
                 bg-white
                 border border-gray-100
                 rounded-xl
                 shadow-lg
                 p-3
-                flex-col gap-2
                 hidden
                 group-hover:flex
+                flex-col
+                gap-2
               "
             >
               {otherCategories.map(cat => (
                 <Link
                   key={cat.slug}
-                  to={`/categoria/${cat.slug}`}
+                  href={`/categoria/${cat.slug}`}
                   className="text-gray-700 hover:text-[#2563eb] text-sm transition"
                 >
                   {cat.label}
@@ -96,7 +97,7 @@ export default function Navbar() {
             {mainCategories.map(cat => (
               <Link
                 key={cat.slug}
-                to={`/categoria/${cat.slug}`}
+                href={`/categoria/${cat.slug}`}
                 onClick={() => setMobileOpen(false)}
                 className="text-gray-700 hover:text-[#22c177] transition"
               >
@@ -104,7 +105,6 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* MOBILE DROPDOWN */}
             <button
               className="text-left text-gray-700 font-medium"
               onClick={() => setMoreOpen(!moreOpen)}
@@ -117,7 +117,7 @@ export default function Navbar() {
                 {otherCategories.map(cat => (
                   <Link
                     key={cat.slug}
-                    to={`/categoria/${cat.slug}`}
+                    href={`/categoria/${cat.slug}`}
                     onClick={() => {
                       setMobileOpen(false);
                       setMoreOpen(false);

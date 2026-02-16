@@ -1,7 +1,10 @@
+"use client";
+
+
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { fetchProducts, apiGet } from "../services/api";
+import { fetchProducts, apiGet } from "../../frontend-next/src/services/api";
 import type { ProductCardData } from "../../../promoly-next/src/types";
 
 const LIMIT = 12;

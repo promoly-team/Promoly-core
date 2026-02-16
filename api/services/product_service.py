@@ -92,6 +92,7 @@ class ProductService:
             )
             SELECT
                 p.id AS produto_id,
+                p.slug,
                 p.titulo,
                 p.imagem_url,
                 p.url_afiliada,
@@ -166,6 +167,7 @@ class ProductService:
             produtos.append(
                 {
                     "produto_id": r["produto_id"],
+                    "slug": r["slug"],
                     "titulo": r["titulo"],
                     "imagem_url": r["imagem_url"],
                     "preco_atual": preco_atual,

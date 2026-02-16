@@ -1,4 +1,4 @@
-import type { Offer, Product, ProductCardData } from "../types";
+import type { Offer, Product, ProductCardData } from "../../../promoly-next/src/types";
 
 const API_URL = "https://promoly-core-production.up.railway.app";
 
