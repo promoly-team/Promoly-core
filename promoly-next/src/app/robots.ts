@@ -1,11 +1,15 @@
 import type { MetadataRoute } from "next";
 
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL ||
+  "https://promoly-core.vercel.app";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://promoly.com.br/sitemap.xml",
+    sitemap: `${BASE_URL}/sitemap.xml`,
   };
 }

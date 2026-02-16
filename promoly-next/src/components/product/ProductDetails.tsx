@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { Product } from "@/types";
 
 type Props = {
@@ -17,14 +18,21 @@ export default function ProductDetails({ product }: Props) {
   return (
     <div className="grid md:grid-cols-2 gap-10 items-start">
 
+      {/* IMAGEM PRINCIPAL (CRÍTICA PARA DISCOVER) */}
       <div className="bg-gray-50 rounded-3xl p-8 flex items-center justify-center">
-        <img
+
+        <Image
           src={product.imagem_url ?? "/placeholder.png"}
           alt={`Imagem do produto ${product.titulo}`}
-          className="max-h-[420px] object-contain"
+          width={1200}
+          height={1200}
+          priority
+          className="object-contain w-full h-auto max-h-[500px]"
         />
+
       </div>
 
+      {/* INFORMAÇÕES */}
       <div className="flex flex-col gap-5">
 
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
@@ -42,11 +50,9 @@ export default function ProductDetails({ product }: Props) {
 
         {product.descricao && (
           <p className="text-gray-700 leading-relaxed">
-
             {product.descricao}
           </p>
         )}
-
 
         <div className="flex gap-4 mt-6 flex-wrap">
 

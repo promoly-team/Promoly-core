@@ -68,7 +68,10 @@ export const metadata: Metadata = {
    🔥 HOMEPAGE
 ===================================================== */
 
+export const revalidate = 60;
+
 export default async function HomePage() {
+
   const products: ProductCardData[] = await fetchProducts({
     order: "desconto",
     limit: 20,
@@ -122,6 +125,35 @@ export default async function HomePage() {
       (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0)
   );
 
+  const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL ||
+  "https://promoly-core.vercel.app";
+
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: ranked.slice(0, 10).map((product, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Product",
+        name: product.titulo,
+        url: `${BASE_URL}/produto/${product.slug}-${product.produto_id}`,
+        image: product.imagem_url,
+        offers:
+          "preco_atual" in product && product.preco_atual != null
+            ? {
+                "@type": "Offer",
+                priceCurrency: "BRL",
+                price: product.preco_atual.toFixed(2),
+                availability: "https://schema.org/InStock",
+              }
+            : undefined,
+      },
+    })),
+  };
+
+
   const categories = [
     { label: "Eletrônicos", slug: "eletronicos" },
     { label: "Casa", slug: "casa" },
@@ -141,18 +173,25 @@ export default async function HomePage() {
             "@context": "https://schema.org",
             "@type": "WebSite",
             name: "PromoLy",
-            url: "https://promoly-core.vercel.app",
+            url: BASE_URL,
             description:
               "Compare preços e acompanhe histórico real antes de comprar.",
             potentialAction: {
               "@type": "SearchAction",
-              target:
-                "https://promoly-core.vercel.app/ofertas?q={search_term_string}",
+              target: `${BASE_URL}/ofertas?q={search_term_string}`,
               "query-input": "required name=search_term_string",
             },
           }),
         }}
       />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(itemListSchema),
+        }}
+      />
+
 
       <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
         <div className="max-w-7xl mx-auto px-6 py-16">

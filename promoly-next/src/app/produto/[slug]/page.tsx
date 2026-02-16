@@ -14,7 +14,7 @@ type Props = {
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ||
-  "https://promoly-core.vercel.app";
+  "https://promoly.com.br";
 
 /* =====================================================
    🔥 METADATA
@@ -57,7 +57,13 @@ export async function generateMetadata(
       description:
         "Confira o histórico de preços e descubra se está barato hoje.",
       url: `${BASE_URL}/produto/${slug}`,
-      images: [{ url: imageUrl, width: 800, height: 600 }],
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 1200,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -92,12 +98,12 @@ export default async function ProductPage({ params }: Props) {
     .sort((a, b) => a.data - b.data);
 
   const metrics = calculatePriceMetrics(priceHistory);
+  const isLowestEver = metrics.currentPrice <= metrics.minPrice;
   const produto = productData.produto;
-
   const diff = metrics.priceDiffPercent;
 
   /* =========================
-     CLASSIFICAÇÃO UX PREMIUM
+     DECISÃO DE COMPRA
   ========================== */
 
   let decisionTitle = "";
@@ -152,9 +158,10 @@ export default async function ProductPage({ params }: Props) {
       "@type": "Offer",
       url: `${BASE_URL}/produto/${slug}`,
       priceCurrency: "BRL",
-      price: metrics.currentPrice,
+      price: metrics.currentPrice.toFixed(2),
       availability: "https://schema.org/InStock",
       itemCondition: "https://schema.org/NewCondition",
+      priceValidUntil: "2026-12-31",
     },
   };
 
@@ -169,6 +176,31 @@ export default async function ProductPage({ params }: Props) {
           "@type": "Answer",
           text: decisionDescription,
         },
+      },
+    ],
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: BASE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Ofertas",
+        item: `${BASE_URL}/ofertas`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: produto.titulo,
+        item: `${BASE_URL}/produto/${slug}`,
       },
     ],
   };
@@ -189,6 +221,12 @@ export default async function ProductPage({ params }: Props) {
           __html: JSON.stringify(faqSchema),
         }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
 
       <div className="max-w-7xl mx-auto px-6 py-14 grid lg:grid-cols-[2fr_1fr] gap-14">
 
@@ -199,9 +237,8 @@ export default async function ProductPage({ params }: Props) {
             <ProductDetails product={produto} />
           </div>
 
-          {/* DECISÃO INTELIGENTE (COMPLETA COMO ERA) */}
+          {/* DECISÃO */}
           <div className="bg-surface-subtle rounded-3xl border border-gray-300 p-8">
-
             <h2 className="text-2xl font-bold mb-4 text-gray-900">
               💡 Vale a pena comprar hoje?
             </h2>
@@ -215,16 +252,21 @@ export default async function ProductPage({ params }: Props) {
                 })}
               </strong>.
             </p>
+            {isLowestEver && (
+                  <p className="text-sm mt-2 font-semibold text-success">
+                    🎯 Este é o menor preço já registrado para este produto.
+                  </p>
+                )}
 
             <div className={`mt-6 rounded-2xl p-6 border ${decisionBg}`}>
               <p className={`text-lg font-bold ${decisionColor}`}>
                 {decisionIcon} {decisionTitle}
               </p>
-
+                {/* 🔥 NOVA INFORMAÇÃO SEM REMOVER NADA */}
+                
               <p className="text-sm mt-2 text-gray-700">
                 {decisionDescription}
               </p>
-
               <p className="text-sm mt-3 font-medium text-gray-800">
                 {Math.abs(diff).toFixed(1)}% em relação à média histórica (
                 {metrics.avgPrice.toLocaleString("pt-BR", {
@@ -234,10 +276,9 @@ export default async function ProductPage({ params }: Props) {
                 )
               </p>
             </div>
-
           </div>
 
-          {/* INDICADORES */}
+          {/* INDICADORES RESTAURADOS */}
           <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
             <h2 className="text-2xl font-bold mb-6 text-gray-900">
               📊 Indicadores de preço

@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from api.deps import get_db
 from api.services.category_service import CategoryService
 from api.schemas.product_card import ProductCardOut
+from api.schemas.category_sitemap import CategorySitemapOut
+
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -36,3 +38,9 @@ def get_category_total(
 ):
     service = CategoryService(db)
     return {"total": service.get_category_total(slug)}
+
+
+@router.get("/sitemap", response_model=list[CategorySitemapOut])
+def list_categories_for_sitemap(db: Session = Depends(get_db)):
+    service = CategoryService(db)
+    return service.list_categories_for_sitemap()

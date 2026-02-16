@@ -11,18 +11,19 @@ type ExtendedProduct = ProductCardData & {
 
 type Props = {
   product: ExtendedProduct;
+  priority?: boolean;
 };
 
-export default function ProductCard({ product }: Props) {
+export default function ProductCard({ product, priority = false }: Props) {
   const isDeal = "preco_atual" in product;
   const productUrl = `/produto/${product.slug}-${product.produto_id}`;
 
-const showOpportunity =
-  product.isBelowAverage ||
-  (isDeal && (product.desconto_pct ?? 0) >= 15);
+  const showOpportunity =
+    product.isBelowAverage ||
+    (isDeal && (product.desconto_pct ?? 0) >= 15);
 
   return (
-    <div
+    <article
       className="
         relative
         bg-surface
@@ -56,20 +57,25 @@ const showOpportunity =
         href={productUrl}
         className="bg-surface-subtle rounded-xl p-6 flex items-center justify-center overflow-hidden"
       >
-        <div className="relative w-full h-40">
+        <div className="relative w-full h-48">
           <Image
             src={product.imagem_url ?? "/placeholder.png"}
             alt={product.titulo}
             fill
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
             className="object-contain group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 768px) 100vw, 300px"
+            sizes="
+              (max-width: 640px) 100vw,
+              (max-width: 1024px) 50vw,
+              300px
+            "
           />
         </div>
       </Link>
 
       {/* CONTEÚDO */}
       <div className="mt-5 flex flex-col gap-3 flex-1">
-
         {/* TÍTULO */}
         <Link
           href={productUrl}
@@ -80,7 +86,6 @@ const showOpportunity =
 
         {/* PREÇO */}
         <div className="flex flex-col">
-
           {isDeal ? (
             <>
               {product.preco_anterior != null && (
@@ -114,7 +119,6 @@ const showOpportunity =
 
         {/* BOTÕES */}
         <div className="flex gap-3 mt-4">
-
           <Link
             href={productUrl}
             className="
@@ -154,9 +158,8 @@ const showOpportunity =
               Comprar
             </a>
           )}
-
         </div>
       </div>
-    </div>
+    </article>
   );
 }

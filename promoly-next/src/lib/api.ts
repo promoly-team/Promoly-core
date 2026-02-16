@@ -179,3 +179,30 @@ export async function fetchCategoryTotal(
     { revalidate: 30 }
   );
 }
+
+
+/* ==================================================
+   ALL PRODUCTS (SITEMAP)
+================================================== */
+
+export async function fetchAllProducts(): Promise<{
+  produto_id: number;
+  slug: string;
+  updated_at?: string;
+}[]> {
+  return apiGet(`/products/all`, {
+    revalidate: 3600, // 1h
+  });
+}
+
+/* ==================================================
+   ALL CATEGORIES (SITEMAP)
+================================================== */
+
+export async function fetchAllCategories(): Promise<{
+  slug: string;
+}[]> {
+  return apiGet(`/categories/all`, {
+    revalidate: 3600,
+  });
+}

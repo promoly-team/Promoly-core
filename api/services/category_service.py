@@ -150,3 +150,27 @@ class CategoryService:
         )
 
         return result.scalar() or 0
+
+
+    # =====================================================
+    # SITEMAP
+    # =====================================================
+
+    def list_categories_for_sitemap(self):
+        """
+        Retorna apenas os dados necessários
+        para geração do sitemap.
+        Query leve.
+        """
+
+        result = self.db.execute(
+            text("""
+                SELECT
+                    c.slug,
+                    c.created_at
+                FROM categorias c
+                WHERE c.slug IS NOT NULL
+            """)
+        )
+
+        return result.mappings().all()
