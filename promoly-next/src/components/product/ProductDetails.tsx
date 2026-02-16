@@ -57,7 +57,7 @@ export default function ProductDetails({ product }: Props) {
               rel="noopener noreferrer sponsored"
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl transition shadow-md hover:shadow-lg"
             >
-              Ver oferta
+              Comprar pelo menor preço
             </a>
           )}
 

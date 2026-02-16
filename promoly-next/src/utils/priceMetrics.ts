@@ -7,7 +7,8 @@ export function calculatePriceMetrics(
       minPrice: 0,
       avgPrice: 0,
       currentPrice: 0,
-      pricePosition: "stable" as "below" | "above" | "equal",
+      priceStatus: "equal" as "below" | "above" | "equal",
+      priceDiffPercent: 0,
       lowerDomain: 0,
       upperDomain: 0,
     };
@@ -17,18 +18,25 @@ export function calculatePriceMetrics(
 
   const maxPrice = Math.max(...prices);
   const minPrice = Math.min(...prices);
-
   const avgPrice =
-    prices.length > 1
-      ? prices.reduce((a, b) => a + b, 0) / prices.length
-      : prices[0];
+    prices.reduce((a, b) => a + b, 0) / prices.length;
 
   const currentPrice = prices[prices.length - 1];
 
-  let pricePosition: "below" | "above" | "equal" = "equal";
+  const priceDiffPercent =
+    avgPrice > 0
+      ? ((currentPrice - avgPrice) / avgPrice) * 100
+      : 0;
 
-  if (currentPrice < avgPrice) pricePosition = "below";
-  else if (currentPrice > avgPrice) pricePosition = "above";
+  let priceStatus: "below" | "above" | "equal" = "equal";
+
+  if (Math.abs(priceDiffPercent) < 0.5) {
+    priceStatus = "equal";
+  } else if (priceDiffPercent < 0) {
+    priceStatus = "below";
+  } else {
+    priceStatus = "above";
+  }
 
   const padding = Math.max(maxPrice * 0.05, 20);
 
@@ -37,7 +45,8 @@ export function calculatePriceMetrics(
     minPrice,
     avgPrice,
     currentPrice,
-    pricePosition,
+    priceStatus,
+    priceDiffPercent,
     lowerDomain: Math.max(0, minPrice - padding),
     upperDomain: maxPrice + padding,
   };

@@ -1,67 +1,70 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { ProductCardData } from "@/types";
 
+type ExtendedProduct = ProductCardData & {
+  isBelowAverage?: boolean;
+  priceDiffPercent?: number;
+};
+
 type Props = {
-  product: ProductCardData;
+  product: ExtendedProduct;
 };
 
 export default function ProductCard({ product }: Props) {
   const isDeal = "preco_atual" in product;
   const productUrl = `/produto/${product.slug}-${product.produto_id}`;
 
-  return (
-    <div className="
-      relative
-      bg-surface
-      rounded-xl2
-      border border-gray-200
-      shadow-soft
-      hover:shadow-medium
-      transition
-      p-5
-      flex flex-col
-      group
-    ">
+  const showOpportunity =
+    product.isBelowAverage ||
+    (isDeal && product.desconto_pct >= 15);
 
+  return (
+    <div
+      className="
+        relative
+        bg-surface
+        rounded-xl2
+        border border-gray-200
+        shadow-soft
+        hover:shadow-medium
+        transition-all duration-300
+        hover:-translate-y-1
+        p-6
+        flex flex-col
+        group
+      "
+    >
       {/* BADGE DESCONTO */}
       {isDeal && product.desconto_pct != null && (
-        <span className="
-          absolute top-4 left-4 z-20
-          bg-success
-          text-white
-          text-xs
-          font-semibold
-          px-3 py-1
-          rounded-full
-          shadow
-        ">
+        <span className="absolute top-4 left-4 bg-success text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
           -{product.desconto_pct}%
+        </span>
+      )}
+
+      {/* BADGE OPORTUNIDADE */}
+      {showOpportunity && (
+        <span className="absolute top-4 right-4 bg-accent text-black text-xs font-semibold px-3 py-1 rounded-full shadow">
+          🔥 Oportunidade
         </span>
       )}
 
       {/* IMAGEM */}
       <Link
         href={productUrl}
-        className="
-          bg-surface-subtle
-          rounded-xl
-          p-6
-          flex items-center justify-center
-          overflow-hidden
-        "
+        className="bg-surface-subtle rounded-xl p-6 flex items-center justify-center overflow-hidden"
       >
-        <img
-          src={product.imagem_url ?? "/placeholder.png"}
-          alt={product.titulo}
-          className="
-            h-36
-            object-contain
-            transition-transform duration-300
-            group-hover:scale-105
-          "
-        />
+        <div className="relative w-full h-40">
+          <Image
+            src={product.imagem_url ?? "/placeholder.png"}
+            alt={product.titulo}
+            fill
+            className="object-contain group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, 300px"
+          />
+        </div>
       </Link>
 
       {/* CONTEÚDO */}
@@ -70,38 +73,30 @@ export default function ProductCard({ product }: Props) {
         {/* TÍTULO */}
         <Link
           href={productUrl}
-          className="
-            text-sm
-            font-semibold
-            text-gray-900
-            line-clamp-2
-            hover:text-primary
-            transition
-            min-h-[40px]
-          "
+          className="text-base font-semibold text-gray-900 line-clamp-2 hover:text-primary transition"
         >
           {product.titulo}
         </Link>
 
-        {/* PREÇOS */}
+        {/* PREÇO */}
         <div className="flex flex-col">
 
           {isDeal ? (
             <>
               {product.preco_anterior != null && (
-                <span className="text-xs text-muted line-through">
+                <span className="text-sm text-muted line-through">
                   R$ {product.preco_anterior.toFixed(2)}
                 </span>
               )}
 
               {product.preco_atual != null && (
-                <span className="text-xl font-bold text-success">
+                <span className="text-2xl font-bold text-success">
                   R$ {product.preco_atual.toFixed(2)}
                 </span>
               )}
             </>
           ) : (
-            <span className="text-xl font-bold text-primary">
+            <span className="text-2xl font-bold text-primary">
               {"preco" in product && product.preco != null
                 ? `R$ ${product.preco.toFixed(2)}`
                 : "Preço indisponível"}
@@ -109,8 +104,16 @@ export default function ProductCard({ product }: Props) {
           )}
         </div>
 
+        {/* ABAIXO DA MÉDIA */}
+        {product.isBelowAverage &&
+          product.priceDiffPercent != null && (
+            <div className="text-base text-success font-semibold">
+              ⬇ {Math.abs(product.priceDiffPercent).toFixed(1)}% abaixo da média
+            </div>
+          )}
+
         {/* BOTÕES */}
-        <div className="flex gap-3 mt-auto">
+        <div className="flex gap-3 mt-4">
 
           <Link
             href={productUrl}
@@ -148,7 +151,7 @@ export default function ProductCard({ product }: Props) {
                 text-center
               "
             >
-              Ver oferta
+              Comprar
             </a>
           )}
 

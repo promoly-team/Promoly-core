@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { fetchProductById, fetchPrices } from "@/lib/api";
 import { calculatePriceMetrics } from "@/utils/priceMetrics";
@@ -86,30 +85,47 @@ export default async function ProductPage({ params }: Props) {
   const metrics = calculatePriceMetrics(priceHistory);
   const produto = productData.produto;
 
-  /* ===== Status de preço ===== */
+  /* =========================
+     CLASSIFICAÇÃO UX PREMIUM
+  ========================== */
 
-  const position = metrics.pricePosition;
+  const diff = metrics.priceDiffPercent;
 
-  const statusText =
-    position === "below"
-      ? "📉 Abaixo da média histórica"
-      : position === "above"
-      ? "📈 Acima da média histórica"
-      : "➖ Na média histórica";
+  let decisionTitle = "";
+  let decisionDescription = "";
+  let decisionColor = "";
+  let decisionBg = "";
+  let decisionIcon = "";
 
-  const statusColor =
-    position === "below"
-      ? "text-success"
-      : position === "above"
-      ? "text-danger"
-      : "text-gray-700";
-
-  const statusBg =
-    position === "below"
-      ? "bg-success-light border-success"
-      : position === "above"
-      ? "bg-red-50 border-danger"
-      : "bg-gray-100 border-gray-300";
+  if (diff <= -20) {
+    decisionTitle = "Excelente momento para comprar";
+    decisionDescription =
+      "O preço está muito abaixo da média histórica. Forte indicação de oportunidade.";
+    decisionColor = "text-success";
+    decisionBg = "bg-success-light border-success";
+    decisionIcon = "🟢";
+  } else if (diff < -5) {
+    decisionTitle = "Bom momento para comprar";
+    decisionDescription =
+      "O preço está abaixo da média histórica.";
+    decisionColor = "text-success";
+    decisionBg = "bg-success-light border-success";
+    decisionIcon = "🟢";
+  } else if (Math.abs(diff) <= 5) {
+    decisionTitle = "Preço dentro da média";
+    decisionDescription =
+      "O preço está alinhado com a média histórica.";
+    decisionColor = "text-gray-700";
+    decisionBg = "bg-gray-100 border-gray-300";
+    decisionIcon = "🟡";
+  } else {
+    decisionTitle = "Momento desfavorável para compra";
+    decisionDescription =
+      "O preço está acima da média histórica.";
+    decisionColor = "text-danger";
+    decisionBg = "bg-red-50 border-danger";
+    decisionIcon = "🔴";
+  }
 
   /* ========================= */
 
@@ -150,6 +166,7 @@ export default async function ProductPage({ params }: Props) {
 
           {/* DECISÃO INTELIGENTE */}
           <div className="bg-surface-subtle rounded-3xl border border-gray-300 p-8">
+
             <h2 className="text-2xl font-bold mb-4 text-gray-900">
               💡 Vale a pena comprar hoje?
             </h2>
@@ -164,19 +181,25 @@ export default async function ProductPage({ params }: Props) {
               </strong>.
             </p>
 
-            <div className={`mt-6 rounded-2xl p-6 border ${statusBg}`}>
-              <p className={`text-lg font-semibold ${statusColor}`}>
-                {statusText}
+            <div className={`mt-6 rounded-2xl p-6 border ${decisionBg}`}>
+              <p className={`text-lg font-bold ${decisionColor}`}>
+                {decisionIcon} {decisionTitle}
               </p>
 
               <p className="text-sm mt-2 text-gray-700">
-                Média histórica:{" "}
+                {decisionDescription}
+              </p>
+
+              <p className="text-sm mt-3 font-medium text-gray-800">
+                {Math.abs(diff).toFixed(1)}% em relação à média histórica (
                 {metrics.avgPrice.toLocaleString("pt-BR", {
                   style: "currency",
                   currency: "BRL",
                 })}
+                )
               </p>
             </div>
+
           </div>
 
           {/* INDICADORES */}
@@ -211,12 +234,12 @@ export default async function ProductPage({ params }: Props) {
                 </p>
               </div>
 
-              <div className={`rounded-2xl p-6 border ${statusBg}`}>
-                <p className={`text-sm font-medium mb-2 ${statusColor}`}>
-                  Preço atual vs média
+              <div className={`rounded-2xl p-6 border ${decisionBg}`}>
+                <p className={`text-sm font-medium mb-2 ${decisionColor}`}>
+                  Comparação com a média
                 </p>
-                <p className={`text-xl font-bold ${statusColor}`}>
-                  {statusText}
+                <p className={`text-xl font-bold ${decisionColor}`}>
+                  {decisionTitle}
                 </p>
               </div>
 
