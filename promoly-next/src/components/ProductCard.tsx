@@ -17,9 +17,9 @@ export default function ProductCard({ product }: Props) {
   const isDeal = "preco_atual" in product;
   const productUrl = `/produto/${product.slug}-${product.produto_id}`;
 
-  const showOpportunity =
-    product.isBelowAverage ||
-    (isDeal && product.desconto_pct >= 15);
+const showOpportunity =
+  product.isBelowAverage ||
+  (isDeal && (product.desconto_pct ?? 0) >= 15);
 
   return (
     <div
