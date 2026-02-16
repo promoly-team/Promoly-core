@@ -17,16 +17,17 @@ export default function Navbar() {
   );
 
   return (
-    <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <header className="bg-surface border-b border-gray-200 sticky top-0 z-50 shadow-soft">
 
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
 
         {/* LOGO */}
         <Link
           href="/"
-          className="text-2xl font-bold text-[#2563eb]"
+          className="flex items-center gap-2 text-2xl font-extrabold tracking-tight"
         >
-          Promoly
+          <span className="text-primary">Promo</span>
+          <span className="text-success">ly</span>
         </Link>
 
         {/* DESKTOP MENU */}
@@ -36,16 +37,16 @@ export default function Navbar() {
             <Link
               key={cat.slug}
               href={`/categoria/${cat.slug}`}
-              className="text-gray-700 hover:text-[#22c177] transition font-medium"
+              className="text-gray-900 hover:text-success transition font-semibold"
             >
               {cat.label}
             </Link>
           ))}
 
-          {/* DROPDOWN DESKTOP */}
+          {/* DROPDOWN */}
           <div className="relative group">
 
-            <button className="text-gray-700 hover:text-[#22c177] transition font-medium">
+            <button className="text-gray-900 hover:text-success transition font-semibold">
               Mais ▾
             </button>
 
@@ -53,12 +54,12 @@ export default function Navbar() {
 
             <div className="
                 absolute left-0 top-full
-                w-48
+                w-52
                 bg-white
-                border border-gray-100
+                border border-gray-200
                 rounded-xl
-                shadow-lg
-                p-3
+                shadow-medium
+                p-4
                 hidden
                 group-hover:flex
                 flex-col
@@ -69,7 +70,7 @@ export default function Navbar() {
                 <Link
                   key={cat.slug}
                   href={`/categoria/${cat.slug}`}
-                  className="text-gray-700 hover:text-[#2563eb] text-sm transition"
+                  className="text-gray-800 hover:text-primary text-sm transition font-medium"
                 >
                   {cat.label}
                 </Link>
@@ -82,7 +83,7 @@ export default function Navbar() {
 
         {/* MOBILE BUTTON */}
         <button
-          className="md:hidden text-gray-700"
+          className="md:hidden text-gray-900 text-2xl"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           ☰
@@ -91,29 +92,29 @@ export default function Navbar() {
 
       {/* MOBILE MENU */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 shadow-sm">
-          <div className="flex flex-col px-4 py-4 gap-3 text-sm">
+        <div className="md:hidden bg-white border-t border-gray-200 shadow-soft">
+          <div className="flex flex-col px-4 py-4 gap-4 text-sm">
 
             {mainCategories.map(cat => (
               <Link
                 key={cat.slug}
                 href={`/categoria/${cat.slug}`}
                 onClick={() => setMobileOpen(false)}
-                className="text-gray-700 hover:text-[#22c177] transition"
+                className="text-gray-900 font-medium hover:text-success transition"
               >
                 {cat.label}
               </Link>
             ))}
 
             <button
-              className="text-left text-gray-700 font-medium"
+              className="text-left text-gray-900 font-semibold"
               onClick={() => setMoreOpen(!moreOpen)}
             >
-              Mais
+              Mais categorias
             </button>
 
             {moreOpen && (
-              <div className="flex flex-col gap-2 pl-4 border-l border-gray-200">
+              <div className="flex flex-col gap-2 pl-4 border-l border-gray-300">
                 {otherCategories.map(cat => (
                   <Link
                     key={cat.slug}
@@ -122,7 +123,7 @@ export default function Navbar() {
                       setMobileOpen(false);
                       setMoreOpen(false);
                     }}
-                    className="text-gray-600 hover:text-[#2563eb] transition"
+                    className="text-gray-700 hover:text-primary transition"
                   >
                     {cat.label}
                   </Link>

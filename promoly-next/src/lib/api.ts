@@ -4,7 +4,13 @@ import type { Offer, Product, ProductCardData } from "@/types";
    CONFIG
 ================================================== */
 
-const API_URL = process.env.API_URL;
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8080"; // fallback seguro
+
+if (!API_URL) {
+  console.warn("⚠️ API_URL não definida, usando fallback.");
+}
 
 if (!API_URL) {
   throw new Error("API_URL não está definida nas variáveis de ambiente.");

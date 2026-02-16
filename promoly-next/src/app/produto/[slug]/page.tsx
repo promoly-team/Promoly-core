@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { fetchProductById, fetchPrices } from "@/lib/api";
 import { calculatePriceMetrics } from "@/utils/priceMetrics";
@@ -9,103 +10,69 @@ import ProductHistory from "@/components/product/ProductHistory";
 import SimilarProducts from "@/components/product/SimilarProducts";
 
 type Props = {
-  params: Promise<{
-    slug: string;
-  }>;
+  params: Promise<{ slug: string }>;
 };
 
-/* ==================================================
-   METADATA DINÂMICA (NEXT 15 FIX)
-================================================== */
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL ||
+  "https://promoly-core.vercel.app";
+
+/* =========================
+   METADATA
+========================= */
 
 export async function generateMetadata(
   { params }: Props
 ): Promise<Metadata> {
 
   const { slug } = await params;
-
-  
-  const parts = slug.split("-");
-  const id = Number(parts[parts.length - 1]);
+  const id = Number(slug.split("-").pop());
 
   if (isNaN(id)) {
-    return {
-      title: "Produto não encontrado",
-      robots: { index: false },
-    };
+    return { title: "Produto não encontrado", robots: { index: false } };
   }
 
-  try {
-    const productData = await fetchProductById(id);
+  const productData = await fetchProductById(id);
+  if (!productData?.produto) {
+    return { title: "Produto não encontrado", robots: { index: false } };
+  }
 
-    if (!productData?.produto) {
-      return {
-        title: "Produto não encontrado",
-        robots: { index: false },
-      };
-    }
+  const produto = productData.produto;
+  const imageUrl = produto.imagem_url ?? "/placeholder.png";
 
-    const produto = productData.produto;
-    const imageUrl = produto.imagem_url ?? "/placeholder.png";
-    const title = `${produto.titulo} com menor preço hoje`;
-    const description =
+  return {
+    title: `${produto.titulo} | Histórico de preço e menor valor`,
+    description:
       produto.descricao?.slice(0, 155) ||
-      `Veja histórico de preços, ofertas e onde comprar ${produto.titulo} pelo menor valor.`;
-
-    return {
-      title,
-      description,
-      alternates: {
-        canonical: `/produto/${slug}`,
-      },
-      openGraph: {
-        title,
-        description,
-        url: `https://promoly.com.br/produto/${slug}`,
-        type: "website",
-        images: [
-          {
-            url: imageUrl,
-            width: 800,
-            height: 600,
-          },
-        ],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title,
-        description,
-        images: [imageUrl],
-      },
-    };
-  } catch {
-    return {
-      title: "Erro ao carregar produto",
-      robots: { index: false },
-    };
-  }
+      `Veja histórico de preços, menor valor e análise completa do ${produto.titulo}.`,
+    alternates: {
+      canonical: `${BASE_URL}/produto/${slug}`,
+    },
+    openGraph: {
+      title: produto.titulo,
+      description:
+        produto.descricao?.slice(0, 155) ||
+        `Confira o histórico de preços do ${produto.titulo}.`,
+      url: `${BASE_URL}/produto/${slug}`,
+      type: "website",
+      images: [{ url: imageUrl, width: 800, height: 600 }],
+    },
+  };
 }
 
-/* ==================================================
-   PAGE (NEXT 15 FIX)
-================================================== */
+/* =========================
+   PAGE
+========================= */
 
 export default async function ProductPage({ params }: Props) {
 
   const { slug } = await params;
+  const id = Number(slug.split("-").pop());
 
-  const parts = slug.split("-");
-  const id = Number(parts[parts.length - 1]);
-
-  if (isNaN(id)) {
-    notFound();
-  }
+  if (isNaN(id)) notFound();
 
   const productData = await fetchProductById(id);
-
-  if (!productData?.produto) {
-    notFound();
-  }
+  if (!productData?.produto) notFound();
 
   const prices = await fetchPrices(id);
 
@@ -119,23 +86,51 @@ export default async function ProductPage({ params }: Props) {
   const metrics = calculatePriceMetrics(priceHistory);
   const produto = productData.produto;
 
+  /* ===== Status de preço ===== */
+
+  const position = metrics.pricePosition;
+
+  const statusText =
+    position === "below"
+      ? "📉 Abaixo da média histórica"
+      : position === "above"
+      ? "📈 Acima da média histórica"
+      : "➖ Na média histórica";
+
+  const statusColor =
+    position === "below"
+      ? "text-success"
+      : position === "above"
+      ? "text-danger"
+      : "text-gray-700";
+
+  const statusBg =
+    position === "below"
+      ? "bg-success-light border-success"
+      : position === "above"
+      ? "bg-red-50 border-danger"
+      : "bg-gray-100 border-gray-300";
+
+  /* ========================= */
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: produto.titulo,
     image: produto.imagem_url,
     description: produto.descricao,
+    sku: produto.produto_id,
+    url: `${BASE_URL}/produto/${slug}`,
     offers: {
       "@type": "Offer",
       priceCurrency: "BRL",
-      price: metrics?.currentPrice ?? undefined,
+      price: metrics.currentPrice,
       availability: "https://schema.org/InStock",
-      url: `https://promoly.com.br/produto/${slug}`,
     },
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
 
       <script
         type="application/ld+json"
@@ -144,99 +139,103 @@ export default async function ProductPage({ params }: Props) {
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid lg:grid-cols-[2fr_1fr] gap-10">
+      <div className="max-w-7xl mx-auto px-6 py-14 grid lg:grid-cols-[2fr_1fr] gap-14">
 
-        <section className="space-y-8">
+        <section className="space-y-12">
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          {/* PRODUTO */}
+          <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
             <ProductDetails product={produto} />
           </div>
 
-          {priceHistory.length > 1 && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                Análise de preço
-              </h3>
+          {/* DECISÃO INTELIGENTE */}
+          <div className="bg-surface-subtle rounded-3xl border border-gray-300 p-8">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">
+              💡 Vale a pena comprar hoje?
+            </h2>
 
-              <div className="grid sm:grid-cols-3 gap-5">
-                <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-200">
-                  <p className="text-sm text-emerald-700 mb-2 font-medium">
-                    📉 Menor preço histórico
-                  </p>
-                  <p className="text-xl font-bold text-emerald-800">
-                    {metrics.minPrice.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </p>
-                </div>
+            <p className="text-gray-800 leading-relaxed">
+              O preço atual é{" "}
+              <strong className="text-primary">
+                {metrics.currentPrice.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </strong>.
+            </p>
 
-                <div className="bg-red-50 rounded-2xl p-5 border border-red-200">
-                  <p className="text-sm text-red-600 mb-2 font-medium">
-                    📈 Maior preço histórico
-                  </p>
-                  <p className="text-xl font-bold text-red-700">
-                    {metrics.maxPrice.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </p>
-                </div>
+            <div className={`mt-6 rounded-2xl p-6 border ${statusBg}`}>
+              <p className={`text-lg font-semibold ${statusColor}`}>
+                {statusText}
+              </p>
 
-                <div
-                  className={`rounded-2xl p-5 border ${
-                    metrics.isBelowAverage
-                      ? "bg-emerald-50 border-emerald-200"
-                      : "bg-red-50 border-red-200"
-                  }`}
-                >
-                  <p
-                    className={`text-sm mb-2 font-medium ${
-                      metrics.isBelowAverage
-                        ? "text-emerald-700"
-                        : "text-red-600"
-                    }`}
-                  >
-                    💰 Preço atual vs média
-                  </p>
+              <p className="text-sm mt-2 text-gray-700">
+                Média histórica:{" "}
+                {metrics.avgPrice.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </p>
+            </div>
+          </div>
 
-                  <p
-                    className={`text-xl font-bold ${
-                      metrics.isBelowAverage
-                        ? "text-emerald-800"
-                        : "text-red-700"
-                    }`}
-                  >
-                    {metrics.isBelowAverage
-                      ? "Abaixo da média"
-                      : "Acima da média"}
-                  </p>
+          {/* INDICADORES */}
+          <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+              📊 Indicadores de preço
+            </h2>
 
-                  <p className="text-sm text-gray-500 mt-1">
-                    Média:{" "}
-                    {metrics.avgPrice.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </p>
-                </div>
+            <div className="grid sm:grid-cols-3 gap-6">
+
+              <div className="bg-success-light rounded-2xl p-6 border border-success">
+                <p className="text-sm text-success font-medium mb-2">
+                  Menor preço histórico
+                </p>
+                <p className="text-2xl font-bold text-success">
+                  {metrics.minPrice.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </p>
               </div>
-            </div>
-          )}
 
-          {priceHistory.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-              <ProductHistory
-                data={priceHistory}
-                lowerDomain={metrics.lowerDomain}
-                upperDomain={metrics.upperDomain}
-              />
+              <div className="bg-red-50 rounded-2xl p-6 border border-danger">
+                <p className="text-sm text-danger font-medium mb-2">
+                  Maior preço histórico
+                </p>
+                <p className="text-2xl font-bold text-danger">
+                  {metrics.maxPrice.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </p>
+              </div>
+
+              <div className={`rounded-2xl p-6 border ${statusBg}`}>
+                <p className={`text-sm font-medium mb-2 ${statusColor}`}>
+                  Preço atual vs média
+                </p>
+                <p className={`text-xl font-bold ${statusColor}`}>
+                  {statusText}
+                </p>
+              </div>
+
             </div>
-          )}
+          </div>
+
+          {/* HISTÓRICO */}
+          <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
+            <ProductHistory
+              data={priceHistory}
+              lowerDomain={metrics.lowerDomain}
+              upperDomain={metrics.upperDomain}
+            />
+          </div>
+
         </section>
 
         <aside>
-          <div className="sticky top-24">
+          <div className="sticky top-28">
             <SimilarProducts products={productData.similares} />
           </div>
         </aside>

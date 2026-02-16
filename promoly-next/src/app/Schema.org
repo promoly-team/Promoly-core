@@ -1,0 +1,17 @@
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: produto.titulo,
+      image: produto.imagem_url,
+      offers: {
+        "@type": "Offer",
+        price: produto.preco_atual,
+        priceCurrency: "BRL",
+        availability: "https://schema.org/InStock"
+      }
+    })
+  }}
+/>

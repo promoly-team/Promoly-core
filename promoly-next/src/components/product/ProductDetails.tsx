@@ -15,47 +15,24 @@ export default function ProductDetails({ product }: Props) {
   };
 
   return (
-    <div className="grid md:grid-cols-2 gap-6 sm:gap-10 items-start">
+    <div className="grid md:grid-cols-2 gap-10 items-start">
 
-      <div className="bg-gray-50 rounded-2xl p-4 sm:p-8 flex items-center justify-center">
+      <div className="bg-gray-50 rounded-3xl p-8 flex items-center justify-center">
         <img
           src={product.imagem_url ?? "/placeholder.png"}
-          alt={product.titulo}
-          className="max-h-[220px] sm:max-h-[420px] object-contain"
+          alt={`Imagem do produto ${product.titulo}`}
+          className="max-h-[420px] object-contain"
         />
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
 
-        <h1 className="text-black text-sm sm:text-base leading-relaxed">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
           {product.titulo}
         </h1>
 
-        <span className="text-xs sm:text-sm text-gray-500">
-          ID: {product.produto_id}
-        </span>
-
-        {product.avaliacao && (
-          <div className="text-yellow-500 text-sm sm:text-base">
-            ⭐ {product.avaliacao}
-          </div>
-        )}
-
-        {(product.categorias ?? []).length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {product.categorias?.map((cat, index) => (
-              <span
-                key={index}
-                className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium"
-              >
-                {cat}
-              </span>
-            ))}
-          </div>
-        )}
-
         {product.preco !== null && (
-          <div className="text-2xl sm:text-4xl font-extrabold text-gray-900">
+          <div className="text-4xl font-extrabold text-blue-600">
             {product.preco.toLocaleString("pt-BR", {
               style: "currency",
               currency: "BRL",
@@ -64,18 +41,21 @@ export default function ProductDetails({ product }: Props) {
         )}
 
         {product.descricao && (
-          <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+          <p className="text-gray-700 leading-relaxed">
+
             {product.descricao}
           </p>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+
+        <div className="flex gap-4 mt-6 flex-wrap">
+
           {product.url_afiliada && (
             <a
               href={product.url_afiliada}
               target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 sm:px-8 py-3 rounded-xl text-center transition shadow-sm hover:shadow-md"
+              rel="noopener noreferrer sponsored"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl transition shadow-md hover:shadow-lg"
             >
               Ver oferta
             </a>
@@ -83,10 +63,11 @@ export default function ProductDetails({ product }: Props) {
 
           <button
             onClick={handleCopyLink}
-            className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 px-6 py-3 rounded-xl transition"
+            className="bg-gray-100 text-gray-800 hover:bg-gray-200 px-6 py-3 rounded-xl transition"
           >
             Copiar link
           </button>
+
         </div>
 
       </div>

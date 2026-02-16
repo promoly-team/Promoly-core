@@ -27,26 +27,85 @@ export default function ProductHistory({
   lowerDomain,
   upperDomain,
 }: Props) {
+
+  const firstPrice = data[0]?.preco ?? 0;
+  const lastPrice = data[data.length - 1]?.preco ?? 0;
+
+  let trend: "alta" | "queda" | "estabilidade" = "estabilidade";
+  let variation = 0;
+
+  if (firstPrice && lastPrice) {
+    variation = ((lastPrice - firstPrice) / firstPrice) * 100;
+
+    if (variation > 0) trend = "alta";
+    else if (variation < 0) trend = "queda";
+  }
+
+  const isOpportunity = trend === "queda" && Math.abs(variation) >= 5;
+
+  const trendColor =
+    trend === "queda"
+      ? "text-emerald-600"
+      : trend === "alta"
+      ? "text-red-600"
+      : "text-gray-600";
+
+  const chartColor =
+    trend === "queda"
+      ? "#16a34a"
+      : trend === "alta"
+      ? "#dc2626"
+      : "#6b7280";
+
   return (
     <div className="mt-10 sm:mt-16">
-      <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">
-        Histórico do preço
-      </h2>
+
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <h2 className="text-2xl font-bold text-gray-900">
+          Histórico de preço e variação ao longo do tempo
+        </h2>
+
+        {isOpportunity && (
+          <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full">
+            🔥 Oportunidade
+          </span>
+        )}
+      </div>
+
+      <p className={`mb-6 font-medium ${trendColor}`}>
+        {trend === "queda" && (
+          <>
+            📉 O produto apresentou uma queda de{" "}
+            {Math.abs(variation).toFixed(1)}% no período analisado.
+            {isOpportunity &&
+              " Essa variação indica uma possível excelente oportunidade de compra."}
+          </>
+        )}
+
+        {trend === "alta" && (
+          <>
+            📈 O produto apresentou uma alta de{" "}
+            {Math.abs(variation).toFixed(1)}% no período analisado,
+            indicando tendência de valorização.
+          </>
+        )}
+
+        {trend === "estabilidade" && (
+          <>
+            ➖ O preço manteve estabilidade no período analisado,
+            sem variações relevantes.
+          </>
+        )}
+      </p>
 
       <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm">
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
 
-            {/* GRID SUAVE */}
-            <CartesianGrid
-              strokeDasharray="4 4"
-              stroke="#e5e7eb"
-            />
+            <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
 
-            {/* EIXO X */}
             <XAxis
               dataKey="data"
-              tick={{ fill: "#6b7280", fontSize: 12 }}
               tickFormatter={(timestamp: number) =>
                 new Date(timestamp).toLocaleDateString("pt-BR", {
                   day: "2-digit",
@@ -55,11 +114,9 @@ export default function ProductHistory({
               }
             />
 
-            {/* EIXO Y */}
             <YAxis
               width={70}
               domain={[lowerDomain, upperDomain]}
-              tick={{ fill: "#6b7280", fontSize: 12 }}
               tickFormatter={(value: number) =>
                 value.toLocaleString("pt-BR", {
                   style: "currency",
@@ -69,25 +126,7 @@ export default function ProductHistory({
               }
             />
 
-            {/* TOOLTIP REFINADO */}
             <Tooltip
-              contentStyle={{
-                backgroundColor: "#ffffff",
-                borderRadius: "12px",
-                border: "1px solid #e5e7eb",
-                fontSize: "14px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-              }}
-              labelStyle={{
-                color: "#111827",
-                fontWeight: 600,
-                marginBottom: "4px",
-              }}
-              itemStyle={{
-                color: "#16a34a",
-                fontWeight: 500,
-              }}
-
               formatter={(value: number | undefined) =>
                 value != null
                   ? value.toLocaleString("pt-BR", {
@@ -96,44 +135,32 @@ export default function ProductHistory({
                     })
                   : ""
               }
-
-            labelFormatter={(label) => {
-              if (!label) return "";
-
-              const date =
-                typeof label === "number"
-                  ? label
-                  : Number(label);
-
-              if (isNaN(date)) return "";
-
-              return new Date(date).toLocaleDateString("pt-BR");
-            }}
             />
 
-            {/* ÁREA */}
             <Area
               type="monotone"
               dataKey="preco"
               stroke="none"
-              fill="#16a34a"
+              fill={chartColor}
               fillOpacity={0.08}
-              tooltipType="none"
             />
 
-            {/* LINHA PRINCIPAL */}
             <Line
               type="monotone"
               dataKey="preco"
-              stroke="#16a34a"
+              stroke={chartColor}
               strokeWidth={3}
-              dot={{ r: 5, fill: "#16a34a" }}
-              activeDot={{ r: 7 }}
             />
 
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      <p className="text-gray-600 mt-6">
+        A análise do comportamento histórico ajuda a entender
+        se o preço atual representa uma boa oportunidade de compra.
+      </p>
+
     </div>
   );
 }

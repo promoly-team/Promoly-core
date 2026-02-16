@@ -7,7 +7,7 @@ export function calculatePriceMetrics(
       minPrice: 0,
       avgPrice: 0,
       currentPrice: 0,
-      isBelowAverage: false,
+      pricePosition: "stable" as "below" | "above" | "equal",
       lowerDomain: 0,
       upperDomain: 0,
     };
@@ -21,12 +21,14 @@ export function calculatePriceMetrics(
   const avgPrice =
     prices.length > 1
       ? prices.reduce((a, b) => a + b, 0) / prices.length
-      : 0;
+      : prices[0];
 
   const currentPrice = prices[prices.length - 1];
 
-  const isBelowAverage =
-    prices.length > 1 && currentPrice < avgPrice;
+  let pricePosition: "below" | "above" | "equal" = "equal";
+
+  if (currentPrice < avgPrice) pricePosition = "below";
+  else if (currentPrice > avgPrice) pricePosition = "above";
 
   const padding = Math.max(maxPrice * 0.05, 20);
 
@@ -35,7 +37,7 @@ export function calculatePriceMetrics(
     minPrice,
     avgPrice,
     currentPrice,
-    isBelowAverage,
+    pricePosition,
     lowerDomain: Math.max(0, minPrice - padding),
     upperDomain: maxPrice + padding,
   };
