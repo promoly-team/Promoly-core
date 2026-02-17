@@ -228,3 +228,18 @@ class ProdutoRepository:
         result = self.conn.execute(stmt, {"ids": ids})
 
         return [dict(row._mapping) for row in result]
+    
+
+        # 🔎 retorna {id, titulo, link_original}
+    def get_by_id(self, produto_id: int) -> Optional[dict]:
+        result = self.conn.execute(
+            text("""
+                SELECT id, titulo, link_original
+                FROM produtos
+                WHERE id = :produto_id
+                LIMIT 1
+            """),
+            {"produto_id": produto_id},
+        )
+
+        return result.mappings().first()
