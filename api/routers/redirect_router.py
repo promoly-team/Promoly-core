@@ -16,20 +16,22 @@ def redirect_to_product(
     db: Session = Depends(get_db)
 ):
 
-    # ==========================
-    # 1️⃣ REGISTRA CLIQUE
-    # ==========================
+    # Define plataforma
+    # 1 = Twitter (ajuste conforme sua tabela plataformas)
+    plataforma_id = 1 if tp else 0
 
     db.execute(
         text("""
             INSERT INTO clicks (
                 produto_id,
+                plataforma_id,
                 twitter_post_id,
                 ip,
                 user_agent
             )
             VALUES (
                 :produto_id,
+                :plataforma_id,
                 :twitter_post_id,
                 :ip,
                 :user_agent
@@ -37,6 +39,7 @@ def redirect_to_product(
         """),
         {
             "produto_id": produto_id,
+            "plataforma_id": plataforma_id,
             "twitter_post_id": tp,
             "ip": request.client.host if request.client else None,
             "user_agent": request.headers.get("user-agent")
@@ -45,10 +48,7 @@ def redirect_to_product(
 
     db.commit()
 
-    # ==========================
-    # 2️⃣ REDIRECIONA PARA VERCEL
-    # ==========================
-
-    url = f"https://promoly-core.vercel.app/produto/{produto_id}"
-
-    return RedirectResponse(url=url, status_code=302)
+    return RedirectResponse(
+        url=f"https://promoly-core.vercel.app/produto/{produto_id}",
+        status_code=302
+    )
