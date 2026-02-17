@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api.deps import get_db
-from api.services.product_service import ProductService
 from api.schemas.product_card import ProductCardOut
-from api.schemas.product_detail import ProductWithSimilarsOut
-from api.schemas.product_detail import ProductTotalOut
+from api.schemas.product_detail import ProductTotalOut, ProductWithSimilarsOut
+from api.schemas.product_sitemap import ProductSitemapOut
+from api.services.product_service import ProductService
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -50,6 +50,12 @@ def get_product_by_slug(slug: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Produto não encontrado")
 
     return result
+
+
+@router.get("/sitemap", response_model=list[ProductSitemapOut])
+def list_products_for_sitemap(db: Session = Depends(get_db)):
+    service = ProductService(db)
+    return service.list_products_for_sitemap()
 
 
 @router.get("/{product_id}", response_model=ProductWithSimilarsOut)

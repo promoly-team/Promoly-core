@@ -11,11 +11,11 @@ from scrapper_mlb.product_page.service.update_service import collect_product_by_
 PRIORITY_IDS = []  # ex: [2647, 8190]
 
 
-BATCH_SIZE = 200
+BATCH_SIZE = 400
 MIN_HOURS_UPDATE = 6
 
-SLEEP_PRODUCT_MIN = 2.5
-SLEEP_PRODUCT_MAX = 4.5
+SLEEP_PRODUCT_MIN = 1.5
+SLEEP_PRODUCT_MAX = 2.5
 
 BLOCK_STREAK_LIMIT = 5
 GLOBAL_COOLDOWN_SECONDS = 120

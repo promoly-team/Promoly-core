@@ -11,6 +11,8 @@ import {
   Area,
 } from "recharts";
 
+import { motion } from "framer-motion";
+
 type PriceHistoryItem = {
   preco: number;
   data: number;
@@ -27,26 +29,77 @@ export default function ProductHistory({
   lowerDomain,
   upperDomain,
 }: Props) {
+
+  const lastPrice = data[data.length - 1]?.preco ?? 0;
+  const previousPrice =
+    data.length > 1
+      ? data[data.length - 2]?.preco
+      : lastPrice;
+
+  let trend: "alta" | "queda" | "estabilidade" = "estabilidade";
+  let variationPercent = 0;
+  let variationValue = 0;
+
+  if (previousPrice && lastPrice) {
+    variationPercent =
+      ((lastPrice - previousPrice) / previousPrice) * 100;
+
+    variationValue = lastPrice - previousPrice;
+
+    if (variationPercent > 0.2) trend = "alta";
+    else if (variationPercent < -0.2) trend = "queda";
+  }
+
+  const trendColor =
+    trend === "queda"
+      ? "text-success"
+      : trend === "alta"
+      ? "text-danger"
+      : "text-gray-600";
+
+  const chartColor =
+    trend === "queda"
+      ? "#22c177"
+      : trend === "alta"
+      ? "#dc2626"
+      : "#6b7280";
+
   return (
-    <div className="mt-10 sm:mt-16">
-      <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">
-        Histórico do preço
+    <motion.div
+      className="mt-16"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      viewport={{ once: true }}
+    >
+
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        Histórico de preço
       </h2>
 
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm">
-        <ResponsiveContainer width="100%" height={300}>
+      <p className={`text-lg font-semibold mb-6 ${trendColor}`}>
+        {trend === "queda" && "⬇ "}
+        {trend === "alta" && "⬆ "}
+        {trend === "estabilidade" && "➖ "}
+
+        {trend === "estabilidade"
+          ? "Sem variação relevante"
+          : `${Math.abs(variationPercent).toFixed(1)}% 
+             (${variationValue > 0 ? "+" : ""}${variationValue.toLocaleString("pt-BR", {
+               style: "currency",
+               currency: "BRL",
+             })}) comparado ao último registro`}
+      </p>
+
+      <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-soft">
+
+        <ResponsiveContainer width="100%" height={320}>
           <LineChart data={data}>
 
-            {/* GRID SUAVE */}
-            <CartesianGrid
-              strokeDasharray="4 4"
-              stroke="#e5e7eb"
-            />
+            <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
 
-            {/* EIXO X */}
             <XAxis
               dataKey="data"
-              tick={{ fill: "#6b7280", fontSize: 12 }}
               tickFormatter={(timestamp: number) =>
                 new Date(timestamp).toLocaleDateString("pt-BR", {
                   day: "2-digit",
@@ -55,11 +108,9 @@ export default function ProductHistory({
               }
             />
 
-            {/* EIXO Y */}
             <YAxis
-              width={70}
+              width={80}
               domain={[lowerDomain, upperDomain]}
-              tick={{ fill: "#6b7280", fontSize: 12 }}
               tickFormatter={(value: number) =>
                 value.toLocaleString("pt-BR", {
                   style: "currency",
@@ -69,25 +120,7 @@ export default function ProductHistory({
               }
             />
 
-            {/* TOOLTIP REFINADO */}
             <Tooltip
-              contentStyle={{
-                backgroundColor: "#ffffff",
-                borderRadius: "12px",
-                border: "1px solid #e5e7eb",
-                fontSize: "14px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-              }}
-              labelStyle={{
-                color: "#111827",
-                fontWeight: 600,
-                marginBottom: "4px",
-              }}
-              itemStyle={{
-                color: "#16a34a",
-                fontWeight: 500,
-              }}
-
               formatter={(value: number | undefined) =>
                 value != null
                   ? value.toLocaleString("pt-BR", {
@@ -96,44 +129,40 @@ export default function ProductHistory({
                     })
                   : ""
               }
+              labelFormatter={(label) => {
+                const date =
+                  typeof label === "number"
+                    ? label
+                    : Number(label);
 
-            labelFormatter={(label) => {
-              if (!label) return "";
+                if (isNaN(date)) return "";
 
-              const date =
-                typeof label === "number"
-                  ? label
-                  : Number(label);
-
-              if (isNaN(date)) return "";
-
-              return new Date(date).toLocaleDateString("pt-BR");
-            }}
+                return new Date(date).toLocaleDateString("pt-BR");
+              }}
             />
 
-            {/* ÁREA */}
             <Area
-              type="monotone"
+              type="stepAfter"
               dataKey="preco"
               stroke="none"
-              fill="#16a34a"
-              fillOpacity={0.08}
-              tooltipType="none"
+              fill={chartColor}
+              fillOpacity={0.1}
             />
 
-            {/* LINHA PRINCIPAL */}
             <Line
-              type="monotone"
+              type="stepAfter"
               dataKey="preco"
-              stroke="#16a34a"
+              stroke={chartColor}
               strokeWidth={3}
-              dot={{ r: 5, fill: "#16a34a" }}
-              activeDot={{ r: 7 }}
+              dot={{ r: 4, fill: chartColor }}
+              activeDot={{ r: 6 }}
             />
 
           </LineChart>
         </ResponsiveContainer>
+
       </div>
-    </div>
+
+    </motion.div>
   );
 }

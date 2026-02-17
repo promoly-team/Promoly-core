@@ -4,7 +4,13 @@ import type { Offer, Product, ProductCardData } from "@/types";
    CONFIG
 ================================================== */
 
-const API_URL = process.env.API_URL;
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8080"; // fallback seguro
+
+if (!API_URL) {
+  console.warn("⚠️ API_URL não definida, usando fallback.");
+}
 
 if (!API_URL) {
   throw new Error("API_URL não está definida nas variáveis de ambiente.");
@@ -172,4 +178,31 @@ export async function fetchCategoryTotal(
     `/categories/slug/${slug}/total?${query.toString()}`,
     { revalidate: 30 }
   );
+}
+
+
+/* ==================================================
+   ALL PRODUCTS (SITEMAP)
+================================================== */
+
+export async function fetchAllProducts(): Promise<{
+  produto_id: number;
+  slug: string;
+  updated_at?: string;
+}[]> {
+  return apiGet(`/products/sitemap`, {
+    revalidate: 3600, // 1h
+  });
+}
+
+/* ==================================================
+   ALL CATEGORIES (SITEMAP)
+================================================== */
+
+export async function fetchAllCategories(): Promise<{
+  slug: string;
+}[]> {
+  return apiGet(`/categories/sitemap`, {
+    revalidate: 3600,
+  });
 }

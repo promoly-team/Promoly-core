@@ -1,15 +1,16 @@
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from api.core.logging_config import get_logger, setup_logging
 from api.core.settings import settings
+from api.middlewarre.request_id import request_id_middleware
+from api.routers.redirect_router import router as redirect_router
 
 # ======================================================
 # Logger
 # ======================================================
 
-from api.core.logging_config import setup_logging, get_logger
-from api.middlewarre.request_id import request_id_middleware
 
 setup_logging()
 logger = get_logger("api")
@@ -18,22 +19,14 @@ logger = get_logger("api")
 # Schemas
 # ======================================================
 
+from api.routers import (affiliates, categories, deals, go,
+                         health, offers, prices, products, twitter_content)
 from api.schemas.error import ErrorResponse
 
 # ======================================================
 # Routers
 # ======================================================
 
-from api.routers import (
-    products,
-    deals,
-    offers,
-    categories,
-    prices,
-    affiliates,
-    go,
-    health,
-)
 
 # ======================================================
 # App
@@ -116,3 +109,5 @@ app.include_router(prices.router)
 app.include_router(affiliates.router)
 app.include_router(go.router)
 app.include_router(health.router)
+app.include_router(twitter_content.router)
+app.include_router(redirect_router)
