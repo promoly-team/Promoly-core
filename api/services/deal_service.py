@@ -21,6 +21,16 @@ class DealService:
     # 🔥 DEALS RECENTES (último preço vs anterior)
     # -------------------------------------------------
 
+    def _get_product_title(self, produto_id: int):
+        result = self.db.execute(text("""
+            SELECT titulo
+            FROM produtos
+            WHERE id = :produto_id
+        """), {"produto_id": produto_id}).scalar()
+
+        return result
+
+
     def get_deals(
         self,
         limit: int = 20,
@@ -145,13 +155,6 @@ class DealService:
             WITH historico AS (
                 SELECT
                     produto_id,
-                    MIN(preco) AS menor_preco_historico
-                FROM produto_preco_historico
-                GROUP BY produto_id
-            ),
-            ultimo_preco AS (
-                SELECT
-                    produto_id,
                     preco,
                     created_at,
                     ROW_NUMBER() OVER (
@@ -159,14 +162,31 @@ class DealService:
                         ORDER BY created_at DESC
                     ) AS rn
                 FROM produto_preco_historico
+            ),
+            agregados AS (
+                SELECT
+                    produto_id,
+                    AVG(preco) AS avg_price,
+                    MIN(preco) AS min_price,
+                    MAX(preco) AS max_price,
+                    COUNT(*) AS total_registros
+                FROM produto_preco_historico
+                GROUP BY produto_id
             )
 
             SELECT
                 p.id AS produto_id,
                 p.titulo,
                 p.imagem_url,
-                u.preco AS preco_atual,
-                h.menor_preco_historico,
+                u.preco AS current_price,
+                a.avg_price,
+                a.min_price,
+                a.max_price,
+                a.total_registros,
+                ROUND(
+                    ((u.preco - a.avg_price) / a.avg_price) * 100,
+                    2
+                ) AS price_diff_percent,
                 la.url_afiliada,
                 c.slug AS categoria_slug,
                 s.slug AS subcategoria_slug
@@ -179,12 +199,12 @@ class DealService:
                 AND la.url_afiliada IS NOT NULL
                 AND la.url_afiliada != ''
 
-            JOIN ultimo_preco u
+            JOIN historico u
                 ON u.produto_id = p.id
                 AND u.rn = 1
 
-            JOIN historico h
-                ON h.produto_id = p.id
+            JOIN agregados a
+                ON a.produto_id = p.id
 
             JOIN produto_categoria pc
                 ON pc.produto_id = p.id
@@ -199,7 +219,7 @@ class DealService:
                 ON s.id = ps.subcategoria_id
 
             WHERE
-                u.preco <= h.menor_preco_historico
+                u.preco = a.min_price
                 AND (:categoria_slug IS NULL OR c.slug = :categoria_slug)
                 AND (:subcategoria_slug IS NULL OR s.slug = :subcategoria_slug)
                 {exclusion_clause}
@@ -225,47 +245,94 @@ class DealService:
 
     def get_rotating_strong_deal(self, categoria_slug, exclude_recent_days=7):
 
-        result = self.db.execute(text("""
-            SELECT
-                p.id AS produto_id,
-                p.titulo,
-                p.preco AS preco_atual,
-                ROUND(AVG(h.preco)::numeric, 2) AS media_historica,
-                ROUND(
-                    (((AVG(h.preco) - p.preco) / AVG(h.preco)) * 100)::numeric
-                , 2) AS percentual_abaixo_media,
-                c.nome AS categoria,
-                c.slug AS categoria_slug
+        produtos = self.db.execute(text("""
+            SELECT p.id
             FROM produtos p
-            JOIN produto_preco_historico h
-                ON p.id = h.produto_id
-            JOIN produto_categoria pc
-                ON p.id = pc.produto_id
-            JOIN categorias c
-                ON pc.categoria_id = c.id
-            WHERE 
-                p.preco IS NOT NULL
-                AND c.slug = :categoria_slug
-                AND p.id NOT IN (
-                    SELECT produto_id
-                    FROM twitter_posts
-                    WHERE created_at >= NOW() - (:exclude_recent_days || ' days')::interval
-                )
-            GROUP BY p.id, c.nome, c.slug
-            HAVING 
-                COUNT(h.id) >= 3
-                AND p.preco = MIN(h.preco)
-                AND ((AVG(h.preco) - p.preco) / AVG(h.preco)) >= 0.20
-            ORDER BY percentual_abaixo_media DESC
-            LIMIT 5
+            JOIN produto_categoria pc ON pc.produto_id = p.id
+            JOIN categorias c ON c.id = pc.categoria_id
+            WHERE c.slug = :categoria_slug
+            AND p.id NOT IN (
+                SELECT produto_id
+                FROM twitter_posts
+                WHERE created_at >= NOW() - (:exclude_recent_days || ' days')::interval
+            )
         """), {
             "categoria_slug": categoria_slug,
             "exclude_recent_days": exclude_recent_days
+        }).scalars().all()
 
-        }).fetchall()
+        for produto_id in produtos:
 
-        if not result:
-            return None
+            metrics = self.get_price_metrics(produto_id)
 
-        return dict(result[0]._mapping)
+            if not metrics:
+                continue
 
+            # 🔥 Forte oportunidade real
+            if (
+                metrics["price_diff_percent"] <= -20
+                and metrics["current_price"] == metrics["min_price"]
+                and metrics["total_registros"] >= 3
+            ):
+                return {
+                    "produto_id": produto_id,
+                    "titulo": self._get_product_title(produto_id),
+                    "preco_atual": metrics["current_price"],
+                    "avg_price": metrics["avg_price"],
+                    "min_price": metrics["min_price"],
+                    "price_diff_percent": metrics["price_diff_percent"],
+                    "categoria_slug": categoria_slug,
+                }
+
+        return None
+
+    def get_price_metrics(self, produto_id: int):
+        """
+        Replica EXATAMENTE a lógica do frontend:
+        - avg = média simples de todos os preços
+        - current = último preço do histórico
+        - diff% = ((current - avg) / avg) * 100
+        """
+
+        result = self.db.execute(text("""
+            WITH historico AS (
+                SELECT
+                    produto_id,
+                    preco,
+                    created_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY produto_id
+                        ORDER BY created_at DESC
+                    ) AS rn
+                FROM produto_preco_historico
+                WHERE produto_id = :produto_id
+            ),
+            media AS (
+                SELECT
+                    produto_id,
+                    AVG(preco) AS avg_price,
+                    MIN(preco) AS min_price,
+                    MAX(preco) AS max_price,
+                    COUNT(*) AS total_registros
+                FROM produto_preco_historico
+                WHERE produto_id = :produto_id
+                GROUP BY produto_id
+            )
+
+            SELECT
+                h.preco AS current_price,
+                m.avg_price,
+                m.min_price,
+                m.max_price,
+                m.total_registros,
+                ROUND(
+                    (((h.preco - m.avg_price) / m.avg_price) * 100)::numeric,
+                    2
+                ) AS price_diff_percent
+
+            FROM historico h
+            JOIN media m ON m.produto_id = h.produto_id
+            WHERE h.rn = 1
+        """), {"produto_id": produto_id}).mappings().first()
+
+        return result

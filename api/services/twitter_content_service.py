@@ -274,7 +274,6 @@ class TwitterContentService:
     # =================================================
     # 🔥 HISTORICAL ROTATING (DINÂMICO)
     # =================================================
-
     def generate_rotating_historical_tweet(self):
 
         next_category = self._get_next_category()
@@ -287,27 +286,52 @@ class TwitterContentService:
         if not deal:
             return None
 
+        # 🔎 agora garantimos que estamos usando métricas reais
+        metrics = self.deal_service.get_price_metrics(deal["produto_id"])
+
+        if not metrics:
+            return None
+
         titulo = self._smart_truncate_title(deal["titulo"])
-        preco = f"R$ {deal['preco_atual']:.2f}".replace(".", ",")
-        desconto = f"{deal['percentual_abaixo_media']:.0f}%"
+        preco = f"R$ {metrics['current_price']:.2f}".replace(".", ",")
+        percentual = metrics["price_diff_percent"]
 
         hashtags = self._generate_hashtags(
-            deal.get("categoria"),
-            deal.get("subcategoria")
+            deal.get("categoria_slug"),
+            deal.get("subcategoria_slug")
         )
 
-        tweet_base = (
-            f"{self._emoji(EMOJIS_HEADLINE)} {desconto} MAIS BARATO que a média!\n\n"
-            f"{titulo}\n\n"
-            f"{self._emoji(EMOJIS_PRECO)} {preco}\n\n"
-            f"{self._emoji(EMOJIS_QUEDA)} Menor preço já registrado.\n\n"
-            f"{hashtags}"
-        )
+        # 🔥 ABAIXO DA MÉDIA (promoção real)
+        if percentual < 0:
+
+            desconto = f"{abs(percentual):.0f}%"
+
+            tweet_base = (
+                f"{self._emoji(EMOJIS_HEADLINE)} {desconto} MAIS BARATO que a média!\n\n"
+                f"{titulo}\n\n"
+                f"{self._emoji(EMOJIS_PRECO)} {preco}\n\n"
+                f"{self._emoji(EMOJIS_QUEDA)} Menor preço já registrado.\n\n"
+                f"{hashtags}"
+            )
+
+        # ⚠️ ACIMA DA MÉDIA (não é oportunidade)
+        else:
+
+            acrescimo = f"{percentual:.0f}%"
+
+            tweet_base = (
+                f"{self._emoji(EMOJIS_ALERTA)} Momento desfavorável\n\n"
+                f"{titulo}\n\n"
+                f"{self._emoji(EMOJIS_PRECO)} {preco}\n\n"
+                f"🔺 {acrescimo} acima da média histórica.\n\n"
+                "Espere uma queda para economizar.\n\n"
+                f"{hashtags}"
+            )
 
         twitter_post_id = self._register_post(
             produto_id=deal["produto_id"],
             categoria_slug=deal["categoria_slug"],
-            subcategoria_slug=None,
+            subcategoria_slug=deal.get("subcategoria_slug"),
             tipo_post="historical_strong",
             tweet_text=tweet_base,
             copy_type="historical"

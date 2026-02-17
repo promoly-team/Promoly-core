@@ -19,7 +19,7 @@ logger = get_logger("api")
 # Schemas
 # ======================================================
 
-from api.routers import (affiliates, categories, content_router, deals, go,
+from api.routers import (affiliates, categories, deals, go,
                          health, offers, prices, products, twitter_content)
 from api.schemas.error import ErrorResponse
 
@@ -109,6 +109,5 @@ app.include_router(prices.router)
 app.include_router(affiliates.router)
 app.include_router(go.router)
 app.include_router(health.router)
-app.include_router(content_router.router)
 app.include_router(twitter_content.router)
 app.include_router(redirect_router)
