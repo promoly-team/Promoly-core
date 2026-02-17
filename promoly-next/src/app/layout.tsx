@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import StructuredData from "@/components/StructuredData";
 import { Analytics } from "@vercel/analytics/next";
+import type { Metadata } from "next";
+import "./globals.css";
+
 
 const GOOGLE_TAG = "YFOTAGIpLnjCazAebuC9kywR7MxbP3Nt6aGosOGaDWU";
 
@@ -20,7 +22,7 @@ export const metadata: Metadata = {
   verification: {
     google: GOOGLE_TAG,
   },
-  
+
   openGraph: {
     type: "website",
     locale: "pt_BR",
@@ -52,6 +54,7 @@ export default function RootLayout({
         <StructuredData />
         <Navbar />
         {children}
+        <Footer />
         <Analytics />
       </body>
     </html>

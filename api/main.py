@@ -33,6 +33,8 @@ from api.routers import (
     affiliates,
     go,
     health,
+    content_router,
+    twitter_content,
 )
 
 # ======================================================
@@ -116,3 +118,5 @@ app.include_router(prices.router)
 app.include_router(affiliates.router)
 app.include_router(go.router)
 app.include_router(health.router)
+app.include_router(content_router.router)
+app.include_router(twitter_content.router)
