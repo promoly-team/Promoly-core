@@ -184,8 +184,10 @@ class DealService:
                 a.max_price,
                 a.total_registros,
                 ROUND(
-                    ((u.preco - a.avg_price) / a.avg_price) * 100,
-                    2
+                (((u.preco - a.avg_price) / a.avg_price) * 100)::numeric,
+                2
+            ) AS price_diff_percent,
+
                 ) AS price_diff_percent,
                 la.url_afiliada,
                 c.slug AS categoria_slug,
