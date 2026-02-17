@@ -8,7 +8,7 @@ from scrapper_mlb.config import HEADERS
 
 
 
-DEBUG_PATH = Path("/tmp/scrapper_mlb_debug.html")
+#DEBUG_PATH = Path("/tmp/scrapper_mlb_debug.html")
 
 MIN_HTML_SIZE = 50_000       # 50 KB
 MAX_HTML_SIZE = 5_000_000   # 5 MB
@@ -111,11 +111,11 @@ def fetch_html(url: str) -> str:
 
         backoff.success()
 
-        print(f"[DEBUG] Status: {response.status_code}")
-        print(f"[DEBUG] HTML size: {len(response.text)}")
+       #print(f"[DEBUG] Status: {response.status_code}")
+        #print(f"[DEBUG] HTML size: {len(response.text)}")
 
-        with open(DEBUG_PATH, "w", encoding="utf-8") as f:
-            f.write(response.text)
+        #with open(DEBUG_PATH, "w", encoding="utf-8") as f:
+        #   f.write(response.text)
 
         return response.text
 
