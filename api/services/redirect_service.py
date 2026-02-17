@@ -40,7 +40,7 @@ class RedirectService:
 
         self.click_repo.register(
             produto_id=produto_id,
-            twitter_post_id=twitter_post_id
+            twitter_post_id=twitter_post_id,
             ip=ip,
             user_agent=user_agent,
         )
