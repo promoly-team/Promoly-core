@@ -40,6 +40,18 @@ def list_products(
         offset=offset,
     )
 
+@router.get("/slug/{slug}", response_model=ProductWithSimilarsOut)
+def get_product_by_slug(slug: str, db: Session = Depends(get_db)):
+    service = ProductService(db)
+
+    result = service.get_product_by_slug(slug)
+
+    if result is None:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+
+    return result
+
+
 @router.get("/{product_id}", response_model=ProductWithSimilarsOut)
 def get_product(product_id: int, db: Session = Depends(get_db)):
     service = ProductService(db)
@@ -50,3 +62,5 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Produto não encontrado")
 
     return result
+
+

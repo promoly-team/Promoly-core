@@ -4,6 +4,7 @@ from typing import Optional
 
 class ProductCardOut(BaseModel):
     produto_id: int
+    slug: str
     titulo: str
     imagem_url: Optional[str]
     preco_atual: Optional[float]

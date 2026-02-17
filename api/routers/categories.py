@@ -9,18 +9,30 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 
 
 @router.get(
-    "/{categoria_id}/products",
+    "/slug/{slug}/products",
     response_model=list[ProductCardOut],
 )
-def get_products_by_category(
-    categoria_id: int,
+@router.get("/slug/{slug}/products")
+def get_products_by_category_slug(
+    slug: str,
     limit: int = 20,
+    offset: int = 0,
+    search: str | None = None,
+    order: str = "desconto",
     db: Session = Depends(get_db),
 ):
-    """
-    Retorna produtos de uma categoria específica,
-    ordenados pelo maior desconto.
-    """
-
     service = CategoryService(db)
-    return service.get_products_by_category(categoria_id, limit)
+    return service.get_products_by_category_slug(
+        slug, limit, offset, search, order
+    )
+
+
+@router.get(
+    "/slug/{slug}/total",
+)
+def get_category_total(
+    slug: str,
+    db: Session = Depends(get_db),
+):
+    service = CategoryService(db)
+    return {"total": service.get_category_total(slug)}

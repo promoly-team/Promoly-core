@@ -92,6 +92,7 @@ class ProductService:
             )
             SELECT
                 p.id AS produto_id,
+                p.slug,
                 p.titulo,
                 p.imagem_url,
                 p.url_afiliada,
@@ -166,6 +167,7 @@ class ProductService:
             produtos.append(
                 {
                     "produto_id": r["produto_id"],
+                    "slug": r["slug"],
                     "titulo": r["titulo"],
                     "imagem_url": r["imagem_url"],
                     "preco_atual": preco_atual,
@@ -248,6 +250,32 @@ class ProductService:
             "produto": produto_dict,
             "similares": [dict(s) for s in similares],
         }
+
+    def get_product_by_slug(self, slug: str):
+        """
+        Busca produto pelo slug e reutiliza
+        a lógica de detalhe já existente.
+        """
+
+        result = self.db.execute(
+            text("""
+                SELECT id
+                FROM produtos_publicos
+                WHERE slug = :slug
+                LIMIT 1
+            """),
+            {"slug": slug}
+        )
+
+        row = result.first()
+
+        if not row:
+            return None
+
+        product_id = row[0]
+
+        return self.get_product_detail(product_id)
+
 
     # =====================================================
     # PRIVADOS

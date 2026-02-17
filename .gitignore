@@ -6,9 +6,11 @@ debug.html
 database/*.db
 database/*.sqlite
 data/*.promoly
-
+debug_html/*
+prod.dump
 
 *.csv
+*.sh
 
 # Environment variables
 .env
