@@ -27,7 +27,7 @@ class RedirectService:
         URL interna do produto no frontend.
         """
 
-        produto = self.produto_repo.get_by_id(produto_id)
+        produto = self.produto_repo.get_by_ids(produto_id)
 
         if not produto:
             logger.warning(
