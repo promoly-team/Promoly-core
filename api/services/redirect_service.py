@@ -9,13 +9,6 @@ logger = get_logger("redirect")
 
 
 class RedirectService:
-    """
-    Serviço responsável por:
-
-    - Validar se produto possui link afiliado ativo
-    - Registrar clique
-    - Retornar URL de redirecionamento
-    """
 
     def __init__(self, db: Session):
         self.db = db
@@ -25,38 +18,39 @@ class RedirectService:
     def process_redirect(
         self,
         produto_id: int,
+        twitter_post_id: int | None,
         ip: str | None,
         user_agent: str | None,
     ) -> str:
         """
-        Valida produto e registra clique.
-        Retorna a URL de redirecionamento.
+        Valida produto, registra clique e retorna
+        URL interna do produto no frontend.
         """
 
-        row = self.produto_repo.get_active_affiliate_link(produto_id)
+        produto = self.produto_repo.get_by_id(produto_id)
 
-        if not row:
+        if not produto:
             logger.warning(
-                f"Invalid affiliate redirect attempt for produto_id={produto_id}"
+                f"Invalid redirect attempt for produto_id={produto_id}"
             )
             raise HTTPException(
                 status_code=404,
-                detail="Produto inativo ou link afiliado inválido",
+                detail="Produto não encontrado",
             )
 
         # Registra clique
         self.click_repo.register(
             produto_id=produto_id,
-            plataforma_id=row["plataforma_id"],
+            twitter_post_id=twitter_post_id,
             ip=ip,
             user_agent=user_agent,
         )
 
-        # Log estruturado do redirecionamento
         logger.info(
             f"Redirect | produto_id={produto_id} | "
-            f"plataforma_id={row['plataforma_id']} | "
+            f"twitter_post_id={twitter_post_id} | "
             f"ip={ip}"
         )
 
-        return row["url_afiliada"]
+        # 🔥 AGORA REDIRECIONA PARA O FRONT
+        return f"https://promoly-core.vercel.app/produto/{produto_id}"
