@@ -126,7 +126,7 @@ export default async function HomePage() {
   );
 
   const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
   "https://promoly-core.vercel.app";
 
   const itemListSchema = {
