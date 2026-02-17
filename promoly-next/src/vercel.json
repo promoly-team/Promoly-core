@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/redirect/:path*",
+      "destination": "https://promoly-core-production.up.railway.app/redirect/:path*"
+    }
+  ]
+}

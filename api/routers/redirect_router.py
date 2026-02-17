@@ -51,4 +51,4 @@ def redirect_to_product(
 
     url = f"https://promoly-core.vercel.app/produto/{produto_id}"
 
-    return RedirectResponse(url=url)
+    return RedirectResponse(url=url, status_code=302)
