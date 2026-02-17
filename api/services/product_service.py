@@ -98,7 +98,12 @@ class ProductService:
                 p.url_afiliada,
                 p.updated_at,
                 u.preco AS preco_atual,
-                a.preco AS preco_anterior
+                a.preco AS preco_anterior,
+
+                c.id   AS categoria_id,
+                c.slug AS categoria_slug,
+                c.nome AS categoria_nome
+
             FROM produtos_publicos p
             JOIN produto_categoria pc ON pc.produto_id = p.id
             JOIN categorias c ON c.id = pc.categoria_id
@@ -138,6 +143,8 @@ class ProductService:
             LIMIT :limit OFFSET :offset
         """
 
+        print(query)
+
         rows = self.db.execute(text(query), params).mappings().all()
 
         # -------------------------------------------------
@@ -174,7 +181,13 @@ class ProductService:
                     "preco_anterior": preco_anterior,
                     "desconto_pct": desconto,
                     "url_afiliada": r["url_afiliada"],
-                    "_updated_at": r["updated_at"],  # auxiliar para ordenação
+
+                    # 🔥 ADICIONAR ISSO
+                    "categoria_id": r["categoria_id"],
+                    "categoria_slug": r["categoria_slug"],
+                    "categoria_nome": r["categoria_nome"],
+
+                    "_updated_at": r["updated_at"],
                 }
             )
 

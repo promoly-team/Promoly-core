@@ -11,4 +11,8 @@ class ProductCardOut(BaseModel):
     preco_anterior: Optional[float]
     desconto_pct: Optional[float]
     url_afiliada: Optional[str]
+    categoria_id: int | None = None
+    categoria_slug: str | None = None
+    categoria_nome: str | None = None
+
 
