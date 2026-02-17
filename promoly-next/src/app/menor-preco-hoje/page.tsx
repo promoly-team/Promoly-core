@@ -4,10 +4,31 @@ import { fetchProducts, fetchPrices } from "@/lib/api";
 import { calculatePriceMetrics } from "@/utils/priceMetrics";
 import type { PriceStatus } from "@/utils/priceMetrics";
 import type { ProductCardData } from "@/types";
+import type { Metadata } from "next";
 
-/* ==================================================
-   TYPES
-================================================== */
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://promoly-core.vercel.app";
+
+export const metadata: Metadata = {
+  title:
+    "Menor preço hoje (Atualizado diariamente) | Ofertas reais abaixo da média histórica",
+  description:
+    "Veja os produtos com maior queda real de preço hoje. Monitoramento automático do histórico para identificar oportunidades reais de compra.",
+  alternates: {
+    canonical: `${BASE_URL}/menor-preco-hoje`,
+  },
+  openGraph: {
+    title:
+      "Menor preço hoje | Produtos abaixo da média histórica",
+    description:
+      "Descubra quais produtos estão realmente abaixo da média histórica e aproveite oportunidades reais.",
+    url: `${BASE_URL}/menor-preco-hoje`,
+    type: "website",
+  },
+};
+
+/* ================= TYPES ================= */
 
 type PricePoint = {
   preco: number;
@@ -20,16 +41,18 @@ type EnrichedProduct = ProductCardData & {
   minPrice: number;
   avgPrice: number;
   currentPrice: number;
+  lastPrice: number | null;
   priceDiffPercent: number;
+  variationVsLast: number;
+  diffVsAverageValue: number;
+  diffVsLastValue: number;
   priceStatus: PriceStatus;
   lowerDomain: number;
   upperDomain: number;
   hasThreeDrops: boolean;
 };
 
-/* ==================================================
-   HELPERS
-================================================== */
+/* ================= HELPERS ================= */
 
 function hasThreeConsecutiveDrops(history: PricePoint[]) {
   if (!history || history.length < 2) return false;
@@ -54,25 +77,7 @@ function hasThreeConsecutiveDrops(history: PricePoint[]) {
   return false;
 }
 
-function generateCategoryAnalysis(products: EnrichedProduct[]) {
-  const withThreeDrops = products.filter(
-    (p) => p.hasThreeDrops
-  ).length;
-
-  if (withThreeDrops >= 3) {
-    return `${withThreeDrops} produtos registraram três ou mais quedas consecutivas, indicando tendência clara de baixa recente nesta categoria.`;
-  }
-
-  if (withThreeDrops > 0) {
-    return `Alguns produtos apresentam sequência de quedas consecutivas, sugerindo possível continuação da redução de preços.`;
-  }
-
-  return `Os preços estão abaixo da média histórica, mas sem padrão consistente de queda contínua.`;
-}
-
-/* ==================================================
-   PAGE
-================================================== */
+/* ================= PAGE ================= */
 
 export const revalidate = 300;
 
@@ -86,12 +91,32 @@ export default async function MenorPrecoHojePage() {
     await Promise.all(
       products.map(async (product): Promise<EnrichedProduct | null> => {
         const history = await fetchPrices(product.produto_id);
-
         if (!history || history.length < 2) return null;
 
         const metrics = calculatePriceMetrics(history);
-
         if (metrics.priceDiffPercent > -2) return null;
+
+        const sortedHistory = [...history].sort(
+          (a, b) =>
+            new Date(a.created_at).getTime() -
+            new Date(b.created_at).getTime()
+        );
+
+        const lastPrice =
+          sortedHistory.length >= 2
+            ? sortedHistory[sortedHistory.length - 2].preco
+            : null;
+
+        const variationVsLast =
+          lastPrice
+            ? ((metrics.currentPrice - lastPrice) / lastPrice) * 100
+            : 0;
+
+        const diffVsLastValue =
+          lastPrice ? metrics.currentPrice - lastPrice : 0;
+
+        const diffVsAverageValue =
+          metrics.currentPrice - metrics.avgPrice;
 
         return {
           ...product,
@@ -100,7 +125,11 @@ export default async function MenorPrecoHojePage() {
           minPrice: metrics.minPrice,
           avgPrice: metrics.avgPrice,
           currentPrice: metrics.currentPrice,
+          lastPrice,
           priceDiffPercent: metrics.priceDiffPercent,
+          variationVsLast,
+          diffVsAverageValue,
+          diffVsLastValue,
           priceStatus: metrics.priceStatus,
           lowerDomain: metrics.lowerDomain,
           upperDomain: metrics.upperDomain,
@@ -110,7 +139,6 @@ export default async function MenorPrecoHojePage() {
     )
   ).filter((p): p is EnrichedProduct => p !== null);
 
-
   if (enriched.length === 0) {
     return (
       <div className="p-20 text-center">
@@ -119,12 +147,9 @@ export default async function MenorPrecoHojePage() {
     );
   }
 
-  /* ---------------- HERO ---------------- */
-
-  const heroProduct: EnrichedProduct = [...enriched]
-    .sort((a, b) => a.priceDiffPercent - b.priceDiffPercent)[0];
-
-  /* ---------------- AGRUPAR POR CATEGORIA ---------------- */
+  const heroProduct = [...enriched].sort(
+    (a, b) => a.priceDiffPercent - b.priceDiffPercent
+  )[0];
 
   const grouped: Record<string, EnrichedProduct[]> =
     enriched.reduce((acc, product) => {
@@ -135,34 +160,29 @@ export default async function MenorPrecoHojePage() {
     }, {} as Record<string, EnrichedProduct[]>);
 
   const today = new Date().toLocaleDateString("pt-BR");
-console.log(
-  enriched.slice(0, 5).map(p => ({
-    id: p.produto_id,
-    categoria: p.categoria_nome
-  }))
-);
 
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-14">
 
-        <h1 className="text-4xl font-bold mb-2">
-          🔥 Radar de Oportunidades – 40% Abaixo da Média
-        </h1>
+        <header className="mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            🔥 Radar de Oportunidades – Produtos abaixo da média histórica
+          </h1>
+          <p className="text-gray-500">
+            Atualizado em {today}
+          </p>
+        </header>
 
-        <p className="text-sm text-gray-500 mb-10">
-          Atualizado em {today}
-        </p>
+        {/* ================= HERO GLOBAL ================= */}
 
-        {/* ================= HERO ================= */}
+        <section className="bg-white rounded-2xl p-10 shadow mb-20 border">
 
-        <section className="bg-white rounded-2xl p-8 shadow mb-16">
-
-          <h2 className="text-2xl font-bold mb-4">
+          <h2 className="text-2xl font-bold mb-6">
             🏆 Maior Queda do Dia
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-12">
 
             <div>
               <img
@@ -173,21 +193,65 @@ console.log(
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-2">
+              <h3 className="text-xl font-semibold mb-4">
                 {heroProduct.titulo}
               </h3>
 
-              <p className="text-3xl font-bold text-green-600 mb-2">
-                {heroProduct.priceDiffPercent.toFixed(1)}%
-                abaixo da média
+              {/* PREÇO ATUAL */}
+              <p className="text-4xl font-bold text-gray-900 mb-6">
+                R$ {heroProduct.currentPrice.toFixed(2)}
               </p>
 
-              {heroProduct.hasThreeDrops && (
-                <p className="text-sm text-gray-600 mb-4">
-                  Este produto apresenta três ou mais quedas consecutivas,
-                  indicando tendência de baixa recente.
-                </p>
-              )}
+              <div className="grid grid-cols-2 gap-8 mb-6">
+
+                {/* MÉDIA HISTÓRICA */}
+                <div>
+                  <span className="text-xs text-muted uppercase block mb-1">
+                    Média histórica
+                  </span>
+                  <p className="font-semibold">
+                    R$ {heroProduct.avgPrice.toFixed(2)}
+                  </p>
+                  <p className="text-success font-bold">
+                    {heroProduct.priceDiffPercent.toFixed(1)}%
+                    {" "}
+                    ({heroProduct.diffVsAverageValue.toFixed(2)})
+                  </p>
+                </div>
+
+                {/* ÚLTIMO PREÇO */}
+                {heroProduct.lastPrice && (
+                  <div>
+                    <span className="text-xs text-muted uppercase block mb-1">
+                      Último preço
+                    </span>
+                    <p className="font-semibold">
+                      R$ {heroProduct.lastPrice.toFixed(2)}
+                    </p>
+                    <p
+                      className={`font-bold ${
+                        heroProduct.variationVsLast > 0
+                          ? "text-danger"
+                          : "text-success"
+                      }`}
+                    >
+                      {heroProduct.variationVsLast > 0 ? "+" : ""}
+                      {heroProduct.variationVsLast.toFixed(1)}%
+                      {" "}
+                      ({heroProduct.diffVsLastValue > 0 ? "+" : ""}
+                      {heroProduct.diffVsLastValue.toFixed(2)})
+                    </p>
+                  </div>
+                )}
+
+              </div>
+
+              {heroProduct.variationVsLast > 0 &&
+                heroProduct.priceDiffPercent < 0 && (
+                  <div className="bg-accent/20 border border-accent rounded-lg p-4 text-sm mb-6">
+                    📈 Apesar da alta recente, o preço ainda está abaixo da média histórica.
+                  </div>
+                )}
 
               <ProductHistory
                 data={heroProduct.history.map((h) => ({
@@ -197,64 +261,105 @@ console.log(
                 lowerDomain={heroProduct.lowerDomain}
                 upperDomain={heroProduct.upperDomain}
               />
-
-              <a
-                href={`/produto/${heroProduct.slug}-${heroProduct.produto_id}`}
-                className="inline-block mt-6 bg-green-600 text-white px-6 py-3 rounded-lg"
-              >
-                Ver histórico completo →
-              </a>
             </div>
+
           </div>
         </section>
 
         {/* ================= CATEGORIAS ================= */}
 
-        {Object.entries(grouped).map(
-          ([categoria, items]) => {
+        {Object.entries(grouped).map(([categoria, items]) => {
 
-            const topFive = [...items]
-              .sort(
-                (a, b) =>
-                  a.priceDiffPercent - b.priceDiffPercent
-              )
-              .slice(0, 5);
+          const sorted = [...items].sort(
+            (a, b) => a.priceDiffPercent - b.priceDiffPercent
+          );
 
-            const analysis =
-              generateCategoryAnalysis(topFive);
+          const topProduct = sorted[0];
+          const others = sorted.slice(1, 6);
 
-            return (
-              <section key={categoria} className="mb-16">
+          return (
+            <section key={categoria} className="mb-24">
 
-                <h2 className="text-2xl font-bold mb-4">
-                  {categoria}
-                </h2>
+              <h2 className="text-primary text-4xl font-bold mb-10">
+                {categoria}
+              </h2>
 
-                <p className="text-gray-600 mb-6">
-                  {analysis}
-                </p>
+              <div className="bg-white rounded-2xl p-8 shadow border mb-10">
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-                  {topFive.map((p) => (
-                    <ProductCard
-                      key={p.produto_id}
-                      product={p}
+                <div className="grid md:grid-cols-2 gap-10">
+
+                  <div>
+                    <img
+                      src={topProduct.imagem_url ?? "/placeholder.png"}
+                      alt={topProduct.titulo}
+                      className="w-full rounded-xl"
                     />
-                  ))}
-                </div>
+                  </div>
 
-                <div className="mt-6">
-                  <a
-                    href={`/categoria/${categoria}/menor-preco`}
-                    className="text-green-600 font-medium"
-                  >
-                    Ver mais em {categoria} →
-                  </a>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">
+                      {topProduct.titulo}
+                    </h3>
+
+                    <p className="text-3xl font-bold mb-4">
+                      R$ {topProduct.currentPrice.toFixed(2)}
+                    </p>
+
+                    <div className="flex gap-8 mb-6">
+
+                      <div>
+                        <span className="text-xs text-muted uppercase block mb-1">
+                          vs média
+                        </span>
+                        <span className="text-success font-bold">
+                          {topProduct.priceDiffPercent.toFixed(1)}%
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-xs text-muted uppercase block mb-1">
+                          vs último
+                        </span>
+                        <span
+                          className={`font-bold ${
+                            topProduct.variationVsLast > 0
+                              ? "text-danger"
+                              : "text-success"
+                          }`}
+                        >
+                          {topProduct.variationVsLast > 0 ? "+" : ""}
+                          {topProduct.variationVsLast.toFixed(1)}%
+                        </span>
+                      </div>
+
+                    </div>
+
+                    <ProductHistory
+                      data={topProduct.history.map((h) => ({
+                        preco: h.preco,
+                        data: new Date(h.created_at).getTime(),
+                      }))}
+                      lowerDomain={topProduct.lowerDomain}
+                      upperDomain={topProduct.upperDomain}
+                    />
+                  </div>
+
                 </div>
-              </section>
-            );
-          }
-        )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+                {others.map((p) => (
+                  <ProductCard
+                    key={p.produto_id}
+                    product={p}
+                  />
+                ))}
+              </div>
+
+            </section>
+          );
+        })}
+
       </div>
     </div>
   );
