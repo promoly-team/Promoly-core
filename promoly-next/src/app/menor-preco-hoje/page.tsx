@@ -5,7 +5,7 @@ import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import type { Metadata } from "next";
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
   "https://promoly-core.vercel.app";
 
 export const metadata: Metadata = {

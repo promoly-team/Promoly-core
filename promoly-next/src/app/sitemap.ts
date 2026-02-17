@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { fetchAllProducts, fetchAllCategories } from "@/lib/api";
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
   "https://promoly-core.vercel.app";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

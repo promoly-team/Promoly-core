@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 const LIMIT = 12;
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
   "https://promoly-core.vercel.app";
 
 /* =====================================================
