@@ -1,5 +1,8 @@
+import re
+import random
 from sqlalchemy import text
 from api.services.deal_service import DealService
+
 
 CATEGORY_ROTATION = [
     "eletronicos",
@@ -13,41 +16,104 @@ CATEGORY_ROTATION = [
     "iluminacao",
 ]
 
+EMOJIS_HEADLINE = ["💸", "🔥", "🚨", "💥", "⚡"]
+EMOJIS_PRECO = ["💰", "💵", "💲"]
+EMOJIS_QUEDA = ["📉", "⬇️", "🔻"]
+EMOJIS_ALERTA = ["⚠️", "🚨", "🔔"]
+EMOJIS_URGENCIA = ["⏳", "⌛", "🔥"]
+
+
 class TwitterContentService:
 
     def __init__(self, db):
         self.db = db
         self.deal_service = DealService(db)
 
-    # -------------------------------------------------
-    # 🔐 REGISTRA POST PARA EVITAR REPETIÇÃO
-    # -------------------------------------------------
+    # =================================================
+    # 🎲 UTIL
+    # =================================================
+
+    def _emoji(self, pool):
+        return random.choice(pool)
+
+    # =================================================
+    # ✂️ TÍTULO INTELIGENTE
+    # =================================================
+
+    def _smart_truncate_title(self, titulo: str, max_length: int = 70):
+
+        titulo = re.sub(r"\s+", " ", titulo).strip()
+
+        palavras_irrelevantes = [
+            "original", "novo", "nova",
+            "oficial", "importado", "100%"
+        ]
+
+        for palavra in palavras_irrelevantes:
+            titulo = re.sub(
+                rf"\b{palavra}\b", "", titulo, flags=re.IGNORECASE
+            )
+
+        titulo = re.sub(r"\s+", " ", titulo).strip()
+
+        if len(titulo) <= max_length:
+            return titulo
+
+        corte = titulo[:max_length]
+        if " " in corte:
+            corte = corte.rsplit(" ", 1)[0]
+
+        return corte.strip()
+
+    # =================================================
+    # 🏷 HASHTAGS
+    # =================================================
+
+    def _generate_hashtags(self, categoria, subcategoria):
+
+        tags = ["#Economize", "#Promoção", "#MenorPreço"]
+
+        if categoria:
+            tags.append(f"#{categoria.replace(' ', '')}")
+
+        if subcategoria:
+            tags.append(f"#{subcategoria.replace(' ', '')}")
+
+        return " ".join(tags[:6])
+
+    # =================================================
+    # 🔐 REGISTRA POST
+    # =================================================
 
     def _register_post(
         self,
-        produto_id: int,
-        categoria_slug: str | None,
-        subcategoria_slug: str | None,
-        tipo_post: str,
-        tweet_text: str,
+        produto_id,
+        categoria_slug,
+        subcategoria_slug,
+        tipo_post,
+        tweet_text,
+        copy_type,
     ):
 
-        self.db.execute(
+        result = self.db.execute(
             text("""
                 INSERT INTO twitter_posts (
                     produto_id,
                     categoria_slug,
                     subcategoria_slug,
                     tipo_post,
-                    tweet_text
+                    tweet_text,
+                    copy_type
                 )
                 VALUES (
                     :produto_id,
                     :categoria_slug,
                     :subcategoria_slug,
                     :tipo_post,
-                    :tweet_text
+                    :tweet_text,
+                    :copy_type
                 )
+                RETURNING id
             """),
             {
                 "produto_id": produto_id,
@@ -55,14 +121,45 @@ class TwitterContentService:
                 "subcategoria_slug": subcategoria_slug,
                 "tipo_post": tipo_post,
                 "tweet_text": tweet_text,
+                "copy_type": copy_type,
             },
+        )
+
+        twitter_post_id = result.scalar()
+        self.db.commit()
+
+        return twitter_post_id
+
+    # =================================================
+    # 🔗 FINALIZA COM TRACKING
+    # =================================================
+
+    def _finalize_with_tracking(self, twitter_post_id, produto_id, tweet_base):
+
+        tracking_link = (
+            f"https://promoly-core.vercel.app/redirect/"
+            f"{produto_id}?tp={twitter_post_id}"
+        )
+
+        tweet_final = f"{tweet_base}\n\n👉 {tracking_link}"
+        tweet_final = tweet_final[:280]
+
+        self.db.execute(
+            text("""
+                UPDATE twitter_posts
+                SET tweet_text = :tweet_text
+                WHERE id = :id
+            """),
+            {"tweet_text": tweet_final, "id": twitter_post_id}
         )
 
         self.db.commit()
 
-    # -------------------------------------------------
+        return tweet_final
+
+    # =================================================
     # 🔄 ROTAÇÃO DE CATEGORIA
-    # -------------------------------------------------
+    # =================================================
 
     def _get_next_category(self):
 
@@ -89,9 +186,9 @@ class TwitterContentService:
 
         return CATEGORY_ROTATION[next_index]
 
-    # -------------------------------------------------
-    # 🚨 QUEDA REAL DE PREÇO
-    # -------------------------------------------------
+    # =================================================
+    # 🚨 PRICE DROP
+    # =================================================
 
     def generate_price_drop_tweet(self):
 
@@ -109,28 +206,34 @@ class TwitterContentService:
         deal = deals[0]
 
         economia = deal["preco_anterior"] - deal["preco_atual"]
+        titulo = self._smart_truncate_title(deal["titulo"])
 
-        tweet = (
-            f"🚨 {deal['desconto_pct']:.0f}% DE QUEDA REAL! ({next_category.upper()})\n\n"
-            f"{deal['titulo'][:70]}\n\n"
-            f"De R$ {deal['preco_anterior']:.2f} → R$ {deal['preco_atual']:.2f}\n"
-            f"💸 Economia: R$ {economia:.2f}\n\n"
-            f"{deal['url_afiliada']}"
-        )[:280]
+        tweet_base = (
+            f"{self._emoji(EMOJIS_ALERTA)} {deal['desconto_pct']:.0f}% DE QUEDA REAL!\n\n"
+            f"{titulo}\n\n"
+            f"De R$ {deal['preco_anterior']:.2f} → "
+            f"R$ {deal['preco_atual']:.2f} {self._emoji(EMOJIS_PRECO)}\n"
+            f"Economia: R$ {economia:.2f}"
+        )
 
-        self._register_post(
+        twitter_post_id = self._register_post(
             produto_id=deal["produto_id"],
             categoria_slug=deal.get("categoria_slug"),
             subcategoria_slug=deal.get("subcategoria_slug"),
             tipo_post="price_drop",
-            tweet_text=tweet
+            tweet_text=tweet_base,
+            copy_type="price_drop"
         )
 
-        return tweet
+        return self._finalize_with_tracking(
+            twitter_post_id,
+            deal["produto_id"],
+            tweet_base
+        )
 
-    # -------------------------------------------------
-    # 📉 MENOR PREÇO HISTÓRICO
-    # -------------------------------------------------
+    # =================================================
+    # 📉 ALL TIME LOW
+    # =================================================
 
     def generate_all_time_low_tweet(self):
 
@@ -144,20 +247,74 @@ class TwitterContentService:
 
         p = products[0]
 
-        tweet = (
-            f"📉 MENOR PREÇO JÁ REGISTRADO!\n\n"
-            f"{p['titulo'][:70]}\n\n"
-            f"💰 Apenas R$ {p['preco_atual']:.2f}\n\n"
-            f"⚠️ Esse é o menor valor desde que começamos a monitorar.\n\n"
-            f"👉 {p['url_afiliada']}"
-        )[:280]
+        titulo = self._smart_truncate_title(p["titulo"])
 
-        self._register_post(
+        tweet_base = (
+            f"{self._emoji(EMOJIS_QUEDA)} MENOR PREÇO JÁ REGISTRADO!\n\n"
+            f"{titulo}\n\n"
+            f"{self._emoji(EMOJIS_PRECO)} Apenas R$ {p['preco_atual']:.2f}\n\n"
+            "⚠️ Esse é o menor valor desde que começamos a monitorar."
+        )
+
+        twitter_post_id = self._register_post(
             produto_id=p["produto_id"],
             categoria_slug=p.get("categoria_slug"),
             subcategoria_slug=p.get("subcategoria_slug"),
             tipo_post="all_time_low",
-            tweet_text=tweet
+            tweet_text=tweet_base,
+            copy_type="all_time_low"
         )
 
-        return tweet
+        return self._finalize_with_tracking(
+            twitter_post_id,
+            p["produto_id"],
+            tweet_base
+        )
+
+    # =================================================
+    # 🔥 HISTORICAL ROTATING (DINÂMICO)
+    # =================================================
+
+    def generate_rotating_historical_tweet(self):
+
+        next_category = self._get_next_category()
+
+        deal = self.deal_service.get_rotating_strong_deal(
+            categoria_slug=next_category,
+            exclude_recent_days=7
+        )
+
+        if not deal:
+            return None
+
+        titulo = self._smart_truncate_title(deal["titulo"])
+        preco = f"R$ {deal['preco_atual']:.2f}".replace(".", ",")
+        desconto = f"{deal['percentual_abaixo_media']:.0f}%"
+
+        hashtags = self._generate_hashtags(
+            deal.get("categoria"),
+            deal.get("subcategoria")
+        )
+
+        tweet_base = (
+            f"{self._emoji(EMOJIS_HEADLINE)} {desconto} MAIS BARATO que a média!\n\n"
+            f"{titulo}\n\n"
+            f"{self._emoji(EMOJIS_PRECO)} {preco}\n\n"
+            f"{self._emoji(EMOJIS_QUEDA)} Menor preço já registrado.\n\n"
+            f"{hashtags}"
+        )
+
+        twitter_post_id = self._register_post(
+            produto_id=deal["produto_id"],
+            categoria_slug=deal["categoria_slug"],
+            subcategoria_slug=None,
+            tipo_post="historical_strong",
+            tweet_text=tweet_base,
+            copy_type="historical"
+        )
+
+        return self._finalize_with_tracking(
+            twitter_post_id,
+            deal["produto_id"],
+            tweet_base
+        )

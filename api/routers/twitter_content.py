@@ -18,6 +18,15 @@ def generate_price_drop(db: Session = Depends(get_db)):
 
 @router.get("/all-time-low")
 def generate_all_time_low(db: Session = Depends(get_db)):
-    deal_service = DealService(db)
-    twitter_service = TwitterContentService(deal_service)
+    twitter_service = TwitterContentService(db)
     return {"tweet": twitter_service.generate_all_time_low_tweet()}
+
+
+@router.get("/historical-rotating")
+def generate_historical_rotating(db: Session = Depends(get_db)):
+
+    twitter_service = TwitterContentService(db)
+    tweet = twitter_service.generate_rotating_historical_tweet()
+
+    return {"tweet": tweet}
+
