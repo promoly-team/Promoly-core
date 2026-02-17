@@ -252,9 +252,10 @@ class TwitterContentService:
         tweet_base = (
             f"{self._emoji(EMOJIS_QUEDA)} MENOR PREÇO JÁ REGISTRADO!\n\n"
             f"{titulo}\n\n"
-            f"{self._emoji(EMOJIS_PRECO)} Apenas R$ {p['preco_atual']:.2f}\n\n"
+            f"{self._emoji(EMOJIS_PRECO)} Apenas R$ {p['current_price']:.2f}\n\n"
             "⚠️ Esse é o menor valor desde que começamos a monitorar."
         )
+
 
         twitter_post_id = self._register_post(
             produto_id=p["produto_id"],
@@ -274,9 +275,24 @@ class TwitterContentService:
     # =================================================
     # 🔥 HISTORICAL ROTATING (DINÂMICO)
     # =================================================
+
     def generate_rotating_historical_tweet(self):
 
-        next_category = self._get_next_category()
+        last = self.db.execute(text("""
+            SELECT categoria_slug
+            FROM twitter_posts
+            WHERE categoria_slug IS NOT NULL
+            ORDER BY created_at DESC
+            LIMIT 1
+        """)).scalar()
+
+        next_category = (
+            CATEGORY_ROTATION[0]
+            if not last or last not in CATEGORY_ROTATION
+            else CATEGORY_ROTATION[
+                (CATEGORY_ROTATION.index(last) + 1) % len(CATEGORY_ROTATION)
+            ]
+        )
 
         deal = self.deal_service.get_rotating_strong_deal(
             categoria_slug=next_category,
@@ -286,52 +302,30 @@ class TwitterContentService:
         if not deal:
             return None
 
-        # 🔎 agora garantimos que estamos usando métricas reais
-        metrics = self.deal_service.get_price_metrics(deal["produto_id"])
+        titulo = self._smart_truncate_title(deal["titulo"])
 
-        if not metrics:
+        # ✅ CORREÇÃO AQUI
+        preco = f"R$ {deal['current_price']:.2f}".replace(".", ",")
+
+        percentual = deal["price_diff_percent"]
+
+        # 🔥 Só posta se realmente estiver abaixo da média
+        if percentual >= 0:
             return None
 
-        titulo = self._smart_truncate_title(deal["titulo"])
-        preco = f"R$ {metrics['current_price']:.2f}".replace(".", ",")
-        percentual = metrics["price_diff_percent"]
+        desconto = f"{abs(percentual):.0f}%"
 
-        hashtags = self._generate_hashtags(
-            deal.get("categoria_slug"),
-            deal.get("subcategoria_slug")
+        tweet_base = (
+            f"{self._emoji(EMOJIS_HEADLINE)} {desconto} MAIS BARATO que a média!\n\n"
+            f"{titulo}\n\n"
+            f"{self._emoji(EMOJIS_PRECO)} {preco}\n\n"
+            f"{self._emoji(EMOJIS_QUEDA)} Menor preço já registrado."
         )
-
-        # 🔥 ABAIXO DA MÉDIA (promoção real)
-        if percentual < 0:
-
-            desconto = f"{abs(percentual):.0f}%"
-
-            tweet_base = (
-                f"{self._emoji(EMOJIS_HEADLINE)} {desconto} MAIS BARATO que a média!\n\n"
-                f"{titulo}\n\n"
-                f"{self._emoji(EMOJIS_PRECO)} {preco}\n\n"
-                f"{self._emoji(EMOJIS_QUEDA)} Menor preço já registrado.\n\n"
-                f"{hashtags}"
-            )
-
-        # ⚠️ ACIMA DA MÉDIA (não é oportunidade)
-        else:
-
-            acrescimo = f"{percentual:.0f}%"
-
-            tweet_base = (
-                f"{self._emoji(EMOJIS_ALERTA)} Momento desfavorável\n\n"
-                f"{titulo}\n\n"
-                f"{self._emoji(EMOJIS_PRECO)} {preco}\n\n"
-                f"🔺 {acrescimo} acima da média histórica.\n\n"
-                "Espere uma queda para economizar.\n\n"
-                f"{hashtags}"
-            )
 
         twitter_post_id = self._register_post(
             produto_id=deal["produto_id"],
             categoria_slug=deal["categoria_slug"],
-            subcategoria_slug=deal.get("subcategoria_slug"),
+            subcategoria_slug=None,
             tipo_post="historical_strong",
             tweet_text=tweet_base,
             copy_type="historical"
