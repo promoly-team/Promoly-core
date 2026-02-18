@@ -57,6 +57,23 @@ def list_products_for_sitemap(db: Session = Depends(get_db)):
     service = ProductService(db)
     return service.list_products_for_sitemap()
 
+@router.get("/with-metrics")
+def get_products_with_metrics(
+    category: str | None = None,
+    below_average: bool = False,
+    limit: int = 100,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+    service = ProductService(db)
+
+    return service.list_products_with_metrics(
+        category=category,
+        below_average=below_average,
+        limit=limit,
+        offset=offset,
+    )
+
 
 @router.get("/{product_id}", response_model=ProductWithSimilarsOut)
 def get_product(product_id: int, db: Session = Depends(get_db)):

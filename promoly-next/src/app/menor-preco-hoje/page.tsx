@@ -6,6 +6,7 @@ import type { PriceStatus } from "@/utils/priceMetrics";
 import type { ProductCardData } from "@/types";
 import type { Metadata } from "next";
 
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "https://promoly-core.vercel.app";
@@ -161,6 +162,12 @@ export default async function MenorPrecoHojePage() {
 
   const today = new Date().toLocaleDateString("pt-BR");
 
+  const heroHistory = heroProduct.history.map((h) => ({
+    preco: h.preco,
+    data: new Date(h.created_at).getTime(),
+  }));
+
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-14">
@@ -174,97 +181,185 @@ export default async function MenorPrecoHojePage() {
           </p>
         </header>
 
-        {/* ================= HERO GLOBAL ================= */}
+{/* ================= HERO GLOBAL ================= */}
 
-        <section className="bg-white rounded-2xl p-10 shadow mb-20 border">
+<section className="bg-white rounded-2xl p-10 shadow border mb-20">
 
-          <h2 className="text-2xl font-bold mb-6">
-            🏆 Maior Queda do Dia
-          </h2>
+  <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
+    🏆 Maior Queda do Dia
+  </h2>
 
-          <div className="grid md:grid-cols-2 gap-12">
+  <div className="grid md:grid-cols-2 gap-12">
 
-            <div>
-              <img
-                src={heroProduct.imagem_url ?? "/placeholder.png"}
-                alt={heroProduct.titulo}
-                className="w-full rounded-xl"
-              />
-            </div>
+    {/* IMAGEM */}
+    <div>
+      <img
+        src={heroProduct.imagem_url ?? "/placeholder.png"}
+        alt={heroProduct.titulo}
+        className="w-full rounded-xl"
+      />
+    </div>
 
-            <div>
-              <h3 className="text-xl font-semibold mb-4">
-                {heroProduct.titulo}
-              </h3>
+    {/* CONTEÚDO */}
+    <div>
 
-              {/* PREÇO ATUAL */}
-              <p className="text-4xl font-bold text-gray-900 mb-6">
-                R$ {heroProduct.currentPrice.toFixed(2)}
-              </p>
+      <h3 className="text-lg font-semibold mb-4">
+        {heroProduct.titulo}
+      </h3>
 
-              <div className="grid grid-cols-2 gap-8 mb-6">
+      {/* PREÇO ATUAL */}
+      <p className="text-4xl font-bold text-gray-900 mb-8">
+        {heroProduct.currentPrice.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        })}
+      </p>
 
-                {/* MÉDIA HISTÓRICA */}
-                <div>
-                  <span className="text-xs text-muted uppercase block mb-1">
-                    Média histórica
-                  </span>
-                  <p className="font-semibold">
-                    R$ {heroProduct.avgPrice.toFixed(2)}
-                  </p>
-                  <p className="text-success font-bold">
-                    {heroProduct.priceDiffPercent.toFixed(1)}%
-                    {" "}
-                    ({heroProduct.diffVsAverageValue.toFixed(2)})
-                  </p>
-                </div>
+      {/* BLOCO MÉTRICAS */}
+      <div className="grid grid-cols-2 gap-10 mb-10">
 
-                {/* ÚLTIMO PREÇO */}
-                {heroProduct.lastPrice && (
-                  <div>
-                    <span className="text-xs text-muted uppercase block mb-1">
-                      Último preço
-                    </span>
-                    <p className="font-semibold">
-                      R$ {heroProduct.lastPrice.toFixed(2)}
-                    </p>
-                    <p
-                      className={`font-bold ${
-                        heroProduct.variationVsLast > 0
-                          ? "text-danger"
-                          : "text-success"
-                      }`}
-                    >
-                      {heroProduct.variationVsLast > 0 ? "+" : ""}
-                      {heroProduct.variationVsLast.toFixed(1)}%
-                      {" "}
-                      ({heroProduct.diffVsLastValue > 0 ? "+" : ""}
-                      {heroProduct.diffVsLastValue.toFixed(2)})
-                    </p>
-                  </div>
-                )}
+        {/* MÉDIA HISTÓRICA */}
+        <div>
+          <p className="text-xs text-muted uppercase mb-1">
+            Média histórica
+          </p>
+          <p className="font-semibold text-lg">
+            {heroProduct.avgPrice.toLocaleString("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            })}
+          </p>
+          <p className="text-success font-bold">
+            {heroProduct.priceDiffPercent.toFixed(1)}% (
+            {(
+              heroProduct.currentPrice - heroProduct.avgPrice
+            ).toLocaleString("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            })}
+            )
+          </p>
+        </div>
 
-              </div>
-
-              {heroProduct.variationVsLast > 0 &&
-                heroProduct.priceDiffPercent < 0 && (
-                  <div className="bg-accent/20 border border-accent rounded-lg p-4 text-sm mb-6">
-                    📈 Apesar da alta recente, o preço ainda está abaixo da média histórica.
-                  </div>
-                )}
-
-              <ProductHistory
-                data={heroProduct.history.map((h) => ({
-                  preco: h.preco,
-                  data: new Date(h.created_at).getTime(),
-                }))}
-                lowerDomain={heroProduct.lowerDomain}
-                upperDomain={heroProduct.upperDomain}
-              />
-            </div>
-
+        {/* ÚLTIMO PREÇO */}
+        {heroProduct.lastPrice && (
+          <div>
+            <p className="text-xs text-muted uppercase mb-1">
+              Último preço
+            </p>
+            <p className="font-semibold text-lg">
+              {heroProduct.lastPrice.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
+            </p>
+            <p
+              className={`font-bold ${
+                heroProduct.variationVsLast &&
+                heroProduct.variationVsLast > 0
+                  ? "text-danger"
+                  : "text-success"
+              }`}
+            >
+              {heroProduct.variationVsLast &&
+              heroProduct.variationVsLast > 0
+                ? "+"
+                : ""}
+              {heroProduct.variationVsLast?.toFixed(1)}% (
+              {(
+                heroProduct.currentPrice -
+                (heroProduct.lastPrice ?? 0)
+              ).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
+              )
+            </p>
           </div>
-        </section>
+        )}
+
+      </div>
+
+      {/* HISTÓRICO TEXTO */}
+      <h4 className="text-xl font-bold mb-2">
+        Histórico de preço
+      </h4>
+
+      {heroProduct.variationVsLast !== null && (
+        <p
+          className={`text-sm mb-6 font-medium ${
+            heroProduct.variationVsLast > 0
+              ? "text-danger"
+              : "text-success"
+          }`}
+        >
+          {heroProduct.variationVsLast > 0 ? "⬆" : "⬇"}{" "}
+          {Math.abs(heroProduct.variationVsLast).toFixed(1)}% (
+          {Math.abs(
+            heroProduct.currentPrice -
+              (heroProduct.lastPrice ?? 0)
+          ).toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}
+          ) comparado ao último registro
+        </p>
+      )}
+
+      {/* GRÁFICO */}
+      <ProductHistory
+        data={heroHistory}
+        lowerDomain={heroProduct.lowerDomain}
+        upperDomain={heroProduct.upperDomain}
+
+      />
+
+      {/* BOTÕES */}
+      <div className="flex gap-4 mt-8">
+
+        <a
+          href={`/produto/${heroProduct.slug}-${heroProduct.produto_id}`}
+          className="
+            flex-1
+            bg-surface-subtle
+            hover:bg-gray-200
+            text-gray-800
+            py-3
+            rounded-xl
+            text-center
+            transition
+          "
+        >
+          Detalhes
+        </a>
+
+        {heroProduct.url_afiliada && (
+          <a
+            href={heroProduct.url_afiliada}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            className="
+              flex-1
+              bg-primary
+              hover:bg-primary-hover
+              text-white
+              py-3
+              rounded-xl
+              text-center
+              transition
+            "
+          >
+            Comprar
+          </a>
+        )}
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
 
         {/* ================= CATEGORIAS ================= */}
 
@@ -342,6 +437,52 @@ export default async function MenorPrecoHojePage() {
                       lowerDomain={topProduct.lowerDomain}
                       upperDomain={topProduct.upperDomain}
                     />
+
+                    <div className="flex gap-4 mt-6">
+
+                      <a
+                        href={`/produto/${topProduct.slug}-${topProduct.produto_id}`}
+                        className="
+                          flex-1
+                          bg-surface-subtle
+                          hover:bg-gray-200
+                          text-gray-800
+                          text-sm
+                          font-medium
+                          py-3
+                          rounded-xl
+                          transition
+                          text-center
+                        "
+                      >
+                        Detalhes
+                      </a>
+
+                      {topProduct.url_afiliada && (
+                        <a
+                          href={topProduct.url_afiliada}
+                          target="_blank"
+                          rel="noopener noreferrer sponsored"
+                          className="
+                            flex-1
+                            bg-primary
+                            hover:bg-primary-hover
+                            text-white
+                            text-sm
+                            font-semibold
+                            py-3
+                            rounded-xl
+                            transition
+                            text-center
+                          "
+                        >
+                          Comprar
+                        </a>
+                      )}
+
+                    </div>
+
+
                   </div>
 
                 </div>

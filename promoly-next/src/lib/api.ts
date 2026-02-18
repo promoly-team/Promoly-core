@@ -206,3 +206,30 @@ export async function fetchAllCategories(): Promise<{
     revalidate: 3600,
   });
 }
+
+
+export async function fetchProductsWithMetrics(params?: {
+  category?: string;
+  below_average?: boolean;
+  limit?: number;
+  offset?: number;
+}) {
+
+  const query = new URLSearchParams();
+
+  if (params?.category) {
+    query.append("category", params.category);
+  }
+
+  if (params?.below_average) {
+    query.append("below_average", "true");
+  }
+
+  query.append("limit", String(params?.limit ?? 100));
+  query.append("offset", String(params?.offset ?? 0));
+
+  return apiGet<any[]>(
+    `/products/with-metrics?${query.toString()}`,
+    { revalidate: 300 }
+  );
+}
