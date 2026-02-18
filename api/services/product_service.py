@@ -98,7 +98,12 @@ class ProductService:
                 p.url_afiliada,
                 p.updated_at,
                 u.preco AS preco_atual,
-                a.preco AS preco_anterior
+                a.preco AS preco_anterior,
+
+                c.id   AS categoria_id,
+                c.slug AS categoria_slug,
+                c.nome AS categoria_nome
+
             FROM produtos_publicos p
             JOIN produto_categoria pc ON pc.produto_id = p.id
             JOIN categorias c ON c.id = pc.categoria_id
@@ -138,6 +143,8 @@ class ProductService:
             LIMIT :limit OFFSET :offset
         """
 
+        print(query)
+
         rows = self.db.execute(text(query), params).mappings().all()
 
         # -------------------------------------------------
@@ -174,7 +181,13 @@ class ProductService:
                     "preco_anterior": preco_anterior,
                     "desconto_pct": desconto,
                     "url_afiliada": r["url_afiliada"],
-                    "_updated_at": r["updated_at"],  # auxiliar para ordenação
+
+                    # 🔥 ADICIONAR ISSO
+                    "categoria_id": r["categoria_id"],
+                    "categoria_slug": r["categoria_slug"],
+                    "categoria_nome": r["categoria_nome"],
+
+                    "_updated_at": r["updated_at"],
                 }
             )
 
@@ -330,3 +343,103 @@ class ProductService:
         )
 
         return result.mappings().all()
+    
+
+
+    def list_products_with_metrics(
+        self,
+        category: str | None = None,
+        below_average: bool = False,
+        limit: int = 100,
+        offset: int = 0,
+    ):
+        query = """  
+        
+                WITH historico AS (
+            SELECT
+                produto_id,
+                preco,
+                created_at,
+                ROW_NUMBER() OVER (
+                    PARTITION BY produto_id
+                    ORDER BY created_at DESC
+                ) AS rn
+            FROM produto_preco_historico
+        ),
+
+        metricas AS (
+            SELECT
+                produto_id,
+                AVG(preco) AS avg_price,
+                MIN(preco) AS min_price,
+                MAX(preco) AS max_price
+            FROM produto_preco_historico
+            GROUP BY produto_id
+        )
+
+        SELECT
+            p.id AS produto_id,
+            p.slug,
+            p.titulo,
+            p.imagem_url,
+            p.url_afiliada,
+            p.updated_at,
+
+            c.id   AS categoria_id,
+            c.slug AS categoria_slug,
+            c.nome AS categoria_nome,
+
+            u.preco AS current_price,
+            a.preco AS previous_price,
+
+            m.avg_price,
+            m.min_price,
+            m.max_price,
+
+            ROUND(
+                (((u.preco - m.avg_price) / m.avg_price) * 100)::numeric,
+                2
+            ) AS diff_percent,
+
+
+            CASE
+                WHEN a.preco IS NOT NULL THEN
+                    ROUND(
+                        (((u.preco - a.preco) / a.preco) * 100)::numeric,
+                        2
+                    )
+                ELSE NULL
+            END AS variation_vs_last
+
+        FROM produtos_publicos p
+        JOIN produto_categoria pc ON pc.produto_id = p.id
+        JOIN categorias c ON c.id = pc.categoria_id
+        JOIN historico u ON u.produto_id = p.id AND u.rn = 1
+        LEFT JOIN historico a ON a.produto_id = p.id AND a.rn = 2
+        JOIN metricas m ON m.produto_id = p.id
+  """
+
+        conditions = []
+        params = {
+            "limit": limit,
+            "offset": offset
+        }
+
+        if category:
+            conditions.append("c.slug = :category")
+            params["category"] = category
+
+        if below_average:
+            conditions.append("((u.preco - m.avg_price) / m.avg_price) < 0")
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+
+        query += """
+            ORDER BY diff_percent ASC
+            LIMIT :limit OFFSET :offset
+        """
+
+        rows = self.db.execute(text(query), params).mappings().all()
+
+        return [dict(r) for r in rows]
