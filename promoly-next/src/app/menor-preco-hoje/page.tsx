@@ -152,13 +152,24 @@ export default async function MenorPrecoHojePage() {
     (a, b) => a.priceDiffPercent - b.priceDiffPercent
   )[0];
 
-  const grouped: Record<string, EnrichedProduct[]> =
-    enriched.reduce((acc, product) => {
-      const cat = product.categoria_nome || "Outros";
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(product);
-      return acc;
-    }, {} as Record<string, EnrichedProduct[]>);
+  const grouped: Record<
+    string,
+    { slug: string; items: EnrichedProduct[] }
+  > = enriched.reduce((acc, product) => {
+    const nome = product.categoria_nome || "Outros";
+    const slug = product.categoria_slug || "outros";
+
+    if (!acc[nome]) {
+      acc[nome] = { slug, items: [] };
+    }
+
+    acc[nome].items.push(product);
+    return acc;
+  }, {} as Record<
+    string,
+    { slug: string; items: EnrichedProduct[] }
+  >);
+
 
   const today = new Date().toLocaleDateString("pt-BR");
 
@@ -315,7 +326,7 @@ export default async function MenorPrecoHojePage() {
       />
 
       {/* BOTÕES */}
-      <div className="flex gap-4 mt-8">
+      <div className="flex gap-4 mt-8 justify-start">
 
         <a
           href={`/produto/${heroProduct.slug}-${heroProduct.produto_id}`}
@@ -363,7 +374,9 @@ export default async function MenorPrecoHojePage() {
 
         {/* ================= CATEGORIAS ================= */}
 
-        {Object.entries(grouped).map(([categoria, items]) => {
+        {Object.entries(grouped).map(([categoria, group]) => {
+          
+          const { slug, items } = group;
 
           const sorted = [...items].sort(
             (a, b) => a.priceDiffPercent - b.priceDiffPercent
@@ -496,6 +509,21 @@ export default async function MenorPrecoHojePage() {
                   />
                 ))}
               </div>
+
+          <div className="mt-8 text-left">
+            <a
+              href={`/categoria/${slug}/menor-preco`}
+              className="
+                inline-block
+                text-primary
+                font-semibold
+                hover:underline
+                transition
+              "
+            >
+              Ver mais em {categoria} →
+            </a>
+          </div>
 
             </section>
           );

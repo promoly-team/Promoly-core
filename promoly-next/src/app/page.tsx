@@ -210,7 +210,7 @@ export default async function HomePage() {
             </p>
 
             <Link
-              href="/ofertas"
+              href="/menor-preco-hoje"
               className="inline-block bg-success hover:opacity-90 text-white font-semibold px-8 py-3 rounded-xl shadow-medium transition"
             >
               🔥 Ver melhores ofertas
