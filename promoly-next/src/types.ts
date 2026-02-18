@@ -4,11 +4,16 @@
 
 export type BaseProduct = {
   produto_id: number;
-  slug: string;            // 🔥 NÃO é mais null
+  slug: string;
   titulo: string;
   imagem_url: string | null;
   url_afiliada: string | null;
+
+  categoria_id?: number | null;
+  categoria_slug?: string | null;
+  categoria_nome?: string | null;
 };
+
 
 
 /* ======================================================

@@ -1,6 +1,24 @@
+export type PriceStatus =
+  | "below"
+  | "above"
+  | "equal"
+  | "no-data";
+
+export type PriceMetrics = {
+  maxPrice: number;
+  minPrice: number;
+  avgPrice: number;
+  currentPrice: number;
+  priceDiffPercent: number;
+  priceStatus: PriceStatus;
+  lowerDomain: number;
+  upperDomain: number;
+};
+
+
 export function calculatePriceMetrics(
   priceHistory: { preco: number }[]
-) {
+): PriceMetrics {
   if (priceHistory.length === 0) {
     return {
       maxPrice: 0,
@@ -32,7 +50,7 @@ export function calculatePriceMetrics(
       ? ((currentPrice - avgPrice) / avgPrice) * 100
       : 0;
 
-  let priceStatus: "below" | "above" | "equal";
+  let priceStatus: PriceStatus;
 
   if (Math.abs(priceDiffPercent) < 0.5) {
     priceStatus = "equal";

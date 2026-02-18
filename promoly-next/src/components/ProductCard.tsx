@@ -41,16 +41,11 @@ export default function ProductCard({ product, priority = false }: Props) {
       {/* BADGE DESCONTO */}
       {isDeal && product.desconto_pct != null && (
         <span className="absolute top-4 left-4 bg-success text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
-          -{product.desconto_pct}%
+          -{product.desconto_pct}% de queda
         </span>
       )}
 
-      {/* BADGE OPORTUNIDADE */}
-      {showOpportunity && (
-        <span className="absolute top-4 right-4 bg-accent text-black text-xs font-semibold px-3 py-1 rounded-full shadow">
-          🔥 Oportunidade
-        </span>
-      )}
+
 
       {/* IMAGEM */}
       <Link
@@ -158,6 +153,12 @@ export default function ProductCard({ product, priority = false }: Props) {
               Comprar
             </a>
           )}
+                {/* BADGE OPORTUNIDADE */}
+      {showOpportunity && (
+        <span className="absolute bottom-0 right-4 bg-accent text-black text-xs font-semibold px-3 py-1 rounded-full shadow">
+          🔥 Oportunidade
+        </span>
+      )}
         </div>
       </div>
     </article>
