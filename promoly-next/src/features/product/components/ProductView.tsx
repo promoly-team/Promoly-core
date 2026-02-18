@@ -42,17 +42,65 @@ export default function ProductView({
       <JsonLd data={breadcrumbSchema} />
 
       <div className="max-w-7xl mx-auto px-6 py-14 grid lg:grid-cols-[2fr_1fr] gap-14">
+        {/* ================= COLUNA PRINCIPAL ================= */}
         <section className="space-y-12">
           {/* PRODUTO */}
-          <div className="bg-white rounded-3xl shadow-soft border p-8">
+          <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
             <ProductDetails product={produto} />
           </div>
 
-          {/* ANÁLISE INTELIGENTE (modularizada) */}
-          <ProductPriceAnalysis analytics={analytics} decision={decision} />
+          {/* ANÁLISE INTELIGENTE */}
+          <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-10">
+            <ProductPriceAnalysis analytics={analytics} decision={decision} />
+          </div>
 
-          {/* HISTÓRICO (continua client component) */}
-          <div className="bg-white rounded-3xl shadow-soft border p-8">
+          {/* INDICADORES (ESTILO ANTIGO RESTAURADO) */}
+          <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+              📊 Indicadores de preço
+            </h2>
+
+            <div className="grid sm:grid-cols-3 gap-6">
+              {/* MENOR PREÇO */}
+              <div className="bg-success-light rounded-2xl p-6 border border-success">
+                <p className="text-sm text-success font-medium mb-2">
+                  Menor preço histórico
+                </p>
+                <p className="text-2xl font-bold text-success">
+                  {analytics.metrics.minPrice.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </p>
+              </div>
+
+              {/* MAIOR PREÇO */}
+              <div className="bg-red-50 rounded-2xl p-6 border border-danger">
+                <p className="text-sm text-danger font-medium mb-2">
+                  Maior preço histórico
+                </p>
+                <p className="text-2xl font-bold text-danger">
+                  {analytics.metrics.maxPrice.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </p>
+              </div>
+
+              {/* STATUS */}
+              <div className={`rounded-2xl p-6 border ${decision.bg}`}>
+                <p className={`text-sm font-medium mb-2 ${decision.color}`}>
+                  Comparação com a média
+                </p>
+                <p className={`text-xl font-bold ${decision.color}`}>
+                  {decision.title}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* HISTÓRICO */}
+          <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
             <ProductHistory
               data={priceHistory}
               lowerDomain={analytics.metrics.lowerDomain}
@@ -61,6 +109,7 @@ export default function ProductView({
           </div>
         </section>
 
+        {/* ================= LATERAL ================= */}
         <aside>
           <div className="sticky top-28">
             <SimilarProducts products={productData.similares} />

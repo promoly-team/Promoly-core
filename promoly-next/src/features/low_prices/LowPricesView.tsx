@@ -1,6 +1,6 @@
-import Highlight from "./components/HeroHighlight/index";
-import CategorySection from "./components/CategorySections/index";
-import FAQSection from "./components/FAQSection/index";
+import Highlight from "./components/HeroHighlight";
+import CategorySection from "./components/CategorySections";
+import FAQSection from "./components/FAQSection";
 
 import { buildLowestPriceSchemas } from "./utils/lowestPriceSchema";
 
@@ -36,28 +36,66 @@ export default function LowPriceView({
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-14">
         {/* ================= HEADER ================= */}
-        <header className="mb-16">
+        <header className="mb-20">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             🔥 Radar de Oportunidades – Produtos abaixo da média histórica
           </h1>
-          <p className="text-gray-500">Atualizado em {today}</p>
+          <p className="text-gray-500 text-lg">Atualizado em {today}</p>
         </header>
 
         {/* ================= HERO GLOBAL ================= */}
-        <Highlight product={heroProduct} />
+        <section className="mb-24">
+          <div className="bg-white rounded-2xl shadow border border-gray-200 p-10">
+            <Highlight product={heroProduct} />
+          </div>
+        </section>
+
+        {/* ================= EXPLICAÇÃO SEO ================= */}
+        <section className="max-w-3xl mx-auto mb-24">
+          <div className="bg-white rounded-2xl shadow-soft border border-gray-200 p-10 text-center">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <span className="text-2xl bg-primary/10 rounded-lg p-2">💡</span>
+              <h2 className="text-2xl md:text-3xl font-bold">
+                Como identificamos o menor preço?
+              </h2>
+            </div>
+
+            <p className="text-gray-700 text-lg mb-4">
+              Monitoramos automaticamente o histórico de{" "}
+              <span className="font-semibold text-primary">
+                milhares de produtos
+              </span>
+              . Só aparecem aqui quando estão{" "}
+              <span className="font-semibold text-success">
+                abaixo da média histórica
+              </span>
+              .
+            </p>
+
+            <p className="text-gray-600 mb-2">
+              Aqui você vê quedas reais, não promoções artificiais.
+            </p>
+
+            <p className="text-gray-500 text-sm">
+              Atualização várias vezes ao dia para garantir oportunidades reais.
+            </p>
+          </div>
+        </section>
 
         {/* ================= CATEGORIAS ================= */}
-        {Object.entries(grouped).map(([categoria, group]) => (
-          <CategorySection
-            key={categoria}
-            categoria={categoria}
-            group={group}
-          />
-        ))}
+        <div className="space-y-28">
+          {Object.entries(grouped).map(([categoria, group]) => (
+            <div key={categoria}>
+              <CategorySection categoria={categoria} group={group} />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ================= FAQ ================= */}
-      <FAQSection />
+      <div className="mt-28">
+        <FAQSection />
+      </div>
 
       {/* ================= SCHEMAS ================= */}
       <script
