@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import ProductCard from "@/components/ProductCard";
-import ProductHistory from "@/components/product/ProductHistory";
+import ProductHistory from "@/features/product/components/ProductHistory";
 import { fetchPrices } from "@/lib/api";
 import { fetchProductsWithMetrics } from "@/lib/api";
 import Image from "next/image";
