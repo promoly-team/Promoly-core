@@ -8,7 +8,6 @@ type Props = {
 };
 
 export default function ProductDetails({ product }: Props) {
-
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
@@ -17,10 +16,8 @@ export default function ProductDetails({ product }: Props) {
 
   return (
     <div className="grid md:grid-cols-2 gap-10 items-start">
-
       {/* IMAGEM PRINCIPAL (CRÍTICA PARA DISCOVER) */}
       <div className="bg-gray-50 rounded-3xl p-8 flex items-center justify-center">
-
         <Image
           src={product.imagem_url ?? "/placeholder.png"}
           alt={`Imagem do produto ${product.titulo}`}
@@ -29,12 +26,10 @@ export default function ProductDetails({ product }: Props) {
           priority
           className="object-contain w-full h-auto max-h-[500px]"
         />
-
       </div>
 
       {/* INFORMAÇÕES */}
       <div className="flex flex-col gap-5">
-
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
           {product.titulo}
         </h1>
@@ -49,19 +44,29 @@ export default function ProductDetails({ product }: Props) {
         )}
 
         {product.descricao && (
-          <p className="text-gray-700 leading-relaxed">
-            {product.descricao}
-          </p>
+          <p className="text-gray-700 leading-relaxed">{product.descricao}</p>
         )}
 
         <div className="flex gap-4 mt-6 flex-wrap">
-
           {product.url_afiliada && (
             <a
               href={product.url_afiliada}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl transition shadow-md hover:shadow-lg"
+              className="
+        bg-primary 
+        hover:bg-primary-hover 
+        text-white 
+        font-semibold 
+        px-8 
+        py-3 
+        rounded-xl2 
+        transition-all 
+        duration-300 
+        shadow-soft 
+        hover:shadow-medium 
+        hover:-translate-y-0.5
+      "
             >
               Comprar pelo menor preço
             </a>
@@ -69,13 +74,21 @@ export default function ProductDetails({ product }: Props) {
 
           <button
             onClick={handleCopyLink}
-            className="bg-gray-100 text-gray-800 hover:bg-gray-200 px-6 py-3 rounded-xl transition"
+            className="
+      bg-surface-subtle 
+      text-gray-800 
+      hover:bg-gray-200 
+      px-6 
+      py-3 
+      rounded-xl2 
+      transition-all 
+      duration-300 
+      shadow-soft
+    "
           >
             Copiar link
           </button>
-
         </div>
-
       </div>
     </div>
   );

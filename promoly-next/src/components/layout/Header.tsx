@@ -4,23 +4,21 @@ import Link from "next/link";
 import { useState } from "react";
 import { CATEGORIES } from "@/constants/categories";
 
-export default function Navbar() {
+export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const mainCategories = CATEGORIES.filter(cat =>
-    ["eletronicos", "casa", "pet"].includes(cat.slug)
+  const mainCategories = CATEGORIES.filter((cat) =>
+    ["eletronicos", "casa", "pet"].includes(cat.slug),
   );
 
-  const otherCategories = CATEGORIES.filter(cat =>
-    !["eletronicos", "casa", "pet"].includes(cat.slug)
+  const otherCategories = CATEGORIES.filter(
+    (cat) => !["eletronicos", "casa", "pet"].includes(cat.slug),
   );
 
   return (
     <header className="bg-surface border-b border-gray-200 sticky top-0 z-50 shadow-soft">
-
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
         {/* LOGO */}
         <Link
           href="/"
@@ -32,8 +30,7 @@ export default function Navbar() {
 
         {/* DESKTOP MENU */}
         <nav className="hidden md:flex items-center gap-8 relative">
-
-          {mainCategories.map(cat => (
+          {mainCategories.map((cat) => (
             <Link
               key={cat.slug}
               href={`/categoria/${cat.slug}`}
@@ -45,14 +42,14 @@ export default function Navbar() {
 
           {/* DROPDOWN */}
           <div className="relative group">
-
             <button className="text-gray-900 hover:text-success transition font-semibold">
               Mais ▾
             </button>
 
             <div className="absolute left-0 top-full h-3 w-full"></div>
 
-            <div className="
+            <div
+              className="
                 absolute left-0 top-full
                 w-52
                 bg-white
@@ -66,7 +63,7 @@ export default function Navbar() {
                 gap-2
               "
             >
-              {otherCategories.map(cat => (
+              {otherCategories.map((cat) => (
                 <Link
                   key={cat.slug}
                   href={`/categoria/${cat.slug}`}
@@ -76,9 +73,7 @@ export default function Navbar() {
                 </Link>
               ))}
             </div>
-
           </div>
-
         </nav>
 
         {/* MOBILE BUTTON */}
@@ -94,8 +89,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 shadow-soft">
           <div className="flex flex-col px-4 py-4 gap-4 text-sm">
-
-            {mainCategories.map(cat => (
+            {mainCategories.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/categoria/${cat.slug}`}
@@ -115,7 +109,7 @@ export default function Navbar() {
 
             {moreOpen && (
               <div className="flex flex-col gap-2 pl-4 border-l border-gray-300">
-                {otherCategories.map(cat => (
+                {otherCategories.map((cat) => (
                   <Link
                     key={cat.slug}
                     href={`/categoria/${cat.slug}`}
@@ -130,11 +124,9 @@ export default function Navbar() {
                 ))}
               </div>
             )}
-
           </div>
         </div>
       )}
-
     </header>
   );
 }

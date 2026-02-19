@@ -9,6 +9,11 @@ from api.schemas.category_sitemap import CategorySitemapOut
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
+@router.get("/below-average")
+def get_categories_sidebar(db: Session = Depends(get_db)):
+    service = CategoryService(db)
+    return service.get_categories_with_below_average_count()
+
 
 @router.get(
     "/slug/{slug}/products",
@@ -44,3 +49,5 @@ def get_category_total(
 def list_categories_for_sitemap(db: Session = Depends(get_db)):
     service = CategoryService(db)
     return service.list_categories_for_sitemap()
+
+

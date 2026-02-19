@@ -1,14 +1,91 @@
-import time
 import random
+import time
 from decimal import Decimal
 
+from sqlalchemy import text
+
 from database.db import get_connection
+from database.repositories.produto_preco_repository import \
+    ProdutoPrecoRepository
 from database.repositories.produto_repository import ProdutoRepository
-from database.repositories.produto_preco_repository import ProdutoPrecoRepository
-from scrapper_mlb.product_page.service.update_service import collect_product_by_url
+from scrapper_mlb.product_page.service.update_service import \
+    collect_product_by_url
 
 
-PRIORITY_IDS = []  # ex: [2647, 8190]
+from sqlalchemy import text
+from database.db import get_connection
+
+
+
+def get_priority_products(limit=200):
+    query = text("""
+                    WITH stats AS (
+                    SELECT 
+                        p.id,
+                        COUNT(pph.id) AS total_precos,
+                        MAX(pph.created_at) AS ultimo_preco,
+
+                        -- Volatilidade normalizada (coeficiente de variação)
+                        STDDEV(pph.preco) / NULLIF(AVG(pph.preco), 0) AS volatilidade_relativa,
+
+                        COUNT(DISTINCT pph.preco) AS alteracoes,
+                        COALESCE(p.vendas, 0) AS vendas,
+                        COUNT(c.id) AS total_clicks
+
+                    FROM produtos p
+                    LEFT JOIN produto_preco_historico pph 
+                        ON pph.produto_id = p.id
+                    LEFT JOIN clicks c
+                        ON c.produto_id = p.id
+                    GROUP BY p.id
+                )
+
+                SELECT
+                    id,
+                    (
+                        -- 1️⃣ Maturidade
+                        (10 - LEAST(total_precos, 10)) * 6
+
+                        +
+
+                        -- 2️⃣ Tempo desde última atualização
+                        EXTRACT(EPOCH FROM (
+                            NOW() - COALESCE(ultimo_preco, NOW() - INTERVAL '30 days')
+                        )) / 3600 * 0.7
+
+                        +
+
+                        -- 3️⃣ Volatilidade relativa (normalizada)
+                        COALESCE(volatilidade_relativa, 0) * 10
+
+                        +
+
+                        -- 4️⃣ Frequência de alteração
+                        alteracoes * 4
+
+                        +
+
+                        -- 5️⃣ Popularidade
+                        LN(total_clicks + 1) * 5
+
+                        +
+
+                        -- 6️⃣ Vendas
+                        LN(vendas + 1) * 6
+
+                    ) AS prioridade_score
+
+                FROM stats
+                ORDER BY prioridade_score DESC
+                LIMIT :limit;
+
+    """)
+
+    with get_connection() as conn:
+        result = conn.execute(query, {"limit": limit})
+        return [row[0] for row in result]
+
+
 
 
 BATCH_SIZE = 400
@@ -26,10 +103,28 @@ def process_batch():
     base_conn = get_connection()
     produto_repo_base = ProdutoRepository(conn=base_conn)
 
+    priority_ids = get_priority_products(limit=200)
+
     # 🔥 PRIORIDADE
-    if PRIORITY_IDS:
-        print(f"\n⭐ Atualizando PRIORIDADE: {PRIORITY_IDS}\n")
-        produtos_db = produto_repo_base.get_by_ids(PRIORITY_IDS)
+    if priority_ids:
+        total_priority = len(priority_ids)
+
+        preview = priority_ids[:10]
+        preview_str = ", ".join(map(str, preview))
+
+        print("\n" + "=" * 60)
+        print("🚀 FILA DE PRIORIDADE ATIVADA")
+        print(f"📊 Total de produtos prioritários: {total_priority}")
+
+        if total_priority > 10:
+            print(f"🔎 Preview (10 primeiros): {preview_str} ...")
+        else:
+            print(f"🔎 IDs: {preview_str}")
+
+        print("=" * 60 + "\n")
+
+        produtos_db = produto_repo_base.get_by_ids(priority_ids)
+
     else:
         produtos_db = produto_repo_base.get_batch_for_update(
             limit=BATCH_SIZE,
