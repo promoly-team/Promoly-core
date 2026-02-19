@@ -1,10 +1,9 @@
 import Footer from "@/components/layout/Footer";
-import Navbar from "@/components/layout/Navbar";
+import Header from "@/components/layout/Header";
 import StructuredData from "@/components/StructuredData";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import "./globals.css";
-
 
 const GOOGLE_TAG = "YFOTAGIpLnjCazAebuC9kywR7MxbP3Nt6aGosOGaDWU";
 
@@ -36,7 +35,7 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      "max-image-preview": "large",   // 🔥 CRÍTICO PARA DISCOVER
+      "max-image-preview": "large", // 🔥 CRÍTICO PARA DISCOVER
       "max-snippet": -1,
       "max-video-preview": -1,
     },
@@ -52,7 +51,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body>
         <StructuredData />
-        <Navbar />
+        <Header />
         {children}
         <Footer />
         <Analytics />

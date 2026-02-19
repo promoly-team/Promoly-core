@@ -4,9 +4,7 @@ import type { Offer, Product, ProductCardData } from "@/types";
    CONFIG
 ================================================== */
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:8080"; // fallback seguro
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"; // fallback seguro
 
 if (!API_URL) {
   console.warn("⚠️ API_URL não definida, usando fallback.");
@@ -25,7 +23,7 @@ async function apiGet<T>(
   options?: RequestInit & {
     revalidate?: number;
     noStore?: boolean;
-  }
+  },
 ): Promise<T> {
   const { revalidate, noStore, ...fetchOptions } = options || {};
 
@@ -70,10 +68,9 @@ export async function fetchProducts(params?: {
   query.append("limit", String(limit));
   query.append("offset", String(offset));
 
-  return apiGet<ProductCardData[]>(
-    `/products?${query.toString()}`,
-    { revalidate: 30 }
-  );
+  return apiGet<ProductCardData[]>(`/products?${query.toString()}`, {
+    revalidate: 30,
+  });
 }
 
 /* ==================================================
@@ -90,9 +87,7 @@ export async function fetchOffers(limit = 20): Promise<Offer[]> {
    PRODUCT DETAILS (BY ID - MAIS ROBUSTO)
 ================================================== */
 
-export async function fetchProductById(
-  id: number
-): Promise<{
+export async function fetchProductById(id: number): Promise<{
   produto: Product;
   similares: Product[];
 }> {
@@ -105,9 +100,7 @@ export async function fetchProductById(
    PRODUCT DETAILS (BY SLUG - SEO)
 ================================================== */
 
-export async function fetchProductBySlug(
-  slug: string
-): Promise<{
+export async function fetchProductBySlug(slug: string): Promise<{
   produto: Product;
   similares: Product[];
 }> {
@@ -121,7 +114,7 @@ export async function fetchProductBySlug(
 ================================================== */
 
 export async function fetchPrices(
-  productId: number
+  productId: number,
 ): Promise<{ preco: number; created_at: string }[]> {
   return apiGet(`/prices/${productId}`, {
     noStore: true,
@@ -139,14 +132,9 @@ export async function fetchCategoryProducts(
     offset?: number;
     search?: string;
     order?: string;
-  }
+  },
 ): Promise<ProductCardData[]> {
-  const {
-    limit = 12,
-    offset = 0,
-    search,
-    order = "desconto",
-  } = params || {};
+  const { limit = 12, offset = 0, search, order = "desconto" } = params || {};
 
   const query = new URLSearchParams();
 
@@ -158,7 +146,7 @@ export async function fetchCategoryProducts(
 
   return apiGet<ProductCardData[]>(
     `/categories/slug/${slug}/products?${query.toString()}`,
-    { revalidate: 30 }
+    { revalidate: 30 },
   );
 }
 
@@ -168,7 +156,7 @@ export async function fetchCategoryProducts(
 
 export async function fetchCategoryTotal(
   slug: string,
-  search?: string
+  search?: string,
 ): Promise<{ total: number }> {
   const query = new URLSearchParams();
 
@@ -176,20 +164,21 @@ export async function fetchCategoryTotal(
 
   return apiGet<{ total: number }>(
     `/categories/slug/${slug}/total?${query.toString()}`,
-    { revalidate: 30 }
+    { revalidate: 30 },
   );
 }
-
 
 /* ==================================================
    ALL PRODUCTS (SITEMAP)
 ================================================== */
 
-export async function fetchAllProducts(): Promise<{
-  produto_id: number;
-  slug: string;
-  updated_at?: string;
-}[]> {
+export async function fetchAllProducts(): Promise<
+  {
+    produto_id: number;
+    slug: string;
+    updated_at?: string;
+  }[]
+> {
   return apiGet(`/products/sitemap`, {
     revalidate: 3600, // 1h
   });
@@ -199,14 +188,15 @@ export async function fetchAllProducts(): Promise<{
    ALL CATEGORIES (SITEMAP)
 ================================================== */
 
-export async function fetchAllCategories(): Promise<{
-  slug: string;
-}[]> {
+export async function fetchAllCategories(): Promise<
+  {
+    slug: string;
+  }[]
+> {
   return apiGet(`/categories/sitemap`, {
     revalidate: 3600,
   });
 }
-
 
 export async function fetchProductsWithMetrics(params?: {
   category?: string;
@@ -214,7 +204,6 @@ export async function fetchProductsWithMetrics(params?: {
   limit?: number;
   offset?: number;
 }) {
-
   const query = new URLSearchParams();
 
   if (params?.category) {
@@ -228,8 +217,38 @@ export async function fetchProductsWithMetrics(params?: {
   query.append("limit", String(params?.limit ?? 100));
   query.append("offset", String(params?.offset ?? 0));
 
-  return apiGet<any[]>(
-    `/products/with-metrics?${query.toString()}`,
-    { revalidate: 300 }
+  return apiGet<any[]>(`/products/with-metrics?${query.toString()}`, {
+    revalidate: 300,
+  });
+}
+
+/* ==================================================
+   PRICE HISTORY (BATCH - EVITA N+1)
+================================================== */
+
+export async function fetchPricesBatch(
+  productIds: number[],
+): Promise<Record<number, { preco: number; created_at: string }[]>> {
+  if (!productIds.length) return {};
+
+  const idsParam = productIds.join(",");
+
+  return apiGet<Record<number, { preco: number; created_at: string }[]>>(
+    `/prices?ids=${idsParam}`,
+    {
+      noStore: true,
+    },
   );
+}
+
+export async function fetchTopCategoriesBelowAverage() {
+  return apiGet<
+    {
+      nome: string;
+      slug: string;
+      count: number;
+    }[]
+  >("/categories/below-average", {
+    revalidate: 300,
+  });
 }
