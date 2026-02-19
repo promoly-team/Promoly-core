@@ -1,34 +1,31 @@
 import CategoryHeroHighlight from "./components/CategoryHeroHighlight";
 import CategoryLowestGrid from "./components/CategoryLowestGrid";
-import { normalizeCategoryProduct } from "./utils/normalizeCategoryProduct";
 import { buildCategoryLowestSchemas } from "./utils/categoryLowestSchemas";
 
 type Props = {
   slug: string;
-  products: any[];
+  enriched: any[];
+  heroProduct: any;
   baseUrl: string;
 };
 
 export default function CategoryLowestPriceView({
   slug,
-  products,
+  enriched,
+  heroProduct,
   baseUrl,
 }: Props) {
-  const sorted = [...products].sort((a, b) => a.diff_percent - b.diff_percent);
-
-  const heroRaw = sorted[0];
-  const hero = normalizeCategoryProduct(heroRaw);
-
   const categoriaNome = slug.charAt(0).toUpperCase() + slug.slice(1);
 
   const { breadcrumbSchema, itemListSchema } = buildCategoryLowestSchemas({
     baseUrl,
     slug,
     categoriaNome,
-    products: sorted,
+    products: enriched,
   });
 
   const today = new Date().toLocaleDateString("pt-BR");
+  console.log(enriched[0]);
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -42,9 +39,11 @@ export default function CategoryLowestPriceView({
           </p>
         </header>
 
-        <CategoryHeroHighlight product={hero} />
+        {/* HERO vindo da page (igual à principal) */}
+        <CategoryHeroHighlight product={heroProduct} />
 
-        <CategoryLowestGrid products={sorted} />
+        {/* GRID usando enriched já tratado */}
+        <CategoryLowestGrid products={enriched} />
       </div>
 
       {/* SCHEMAS */}

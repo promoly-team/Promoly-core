@@ -19,11 +19,11 @@ export default function CategoryLowestGrid({ products }: Props) {
               titulo: p.titulo,
               imagem_url: p.imagem_url,
               url_afiliada: p.url_afiliada,
-              preco_atual: p.current_price,
-              preco_anterior: p.previous_price,
-              desconto_pct: Math.abs(p.diff_percent),
-              isBelowAverage: p.diff_percent < 0,
-              priceDiffPercent: p.diff_percent,
+              preco_atual: p.preco_atual,
+              preco_anterior: p.preco_anterior,
+              desconto_pct: p.desconto_pct,
+              isBelowAverage: p.price_diff_percent < 0,
+              priceDiffPercent: p.price_diff_percent,
             }}
           />
         ))}

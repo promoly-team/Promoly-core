@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import { fetchProductsWithMetrics } from "@/lib/api";
+import { fetchProducts } from "@/lib/api";
+import { enrichProducts } from "@/features/low_prices/utils/enrichProducts";
 import CategoryLowestPriceView from "@/features/category_low_prices/CategoryLowPricesView";
 
 const BASE_URL =
@@ -44,20 +45,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CategoriaMenorPrecoPage({ params }: Props) {
   const { slug } = await params;
 
-  const products = await fetchProductsWithMetrics({
+  // 🔥 Igual à página principal
+  const products = await fetchProducts({
     category: slug,
-    below_average: true,
+    order: "desconto",
     limit: 100,
   });
 
-  if (!products?.length) {
+  const enriched = await enrichProducts(products);
+
+  if (!enriched?.length) {
     notFound();
   }
+
+  // 🎯 Hero igual à lógica da página principal
+  const heroProduct = [...enriched].sort(
+    (a, b) => a.priceDiffPercent - b.priceDiffPercent,
+  )[0];
 
   return (
     <CategoryLowestPriceView
       slug={slug}
-      products={products}
+      enriched={enriched}
+      heroProduct={heroProduct}
       baseUrl={BASE_URL}
     />
   );

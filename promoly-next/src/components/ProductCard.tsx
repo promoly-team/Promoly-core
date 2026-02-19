@@ -2,7 +2,19 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import type { ProductCardData } from "@/types";
+import type { ProductCardData, Deal } from "@/types";
+
+/* ======================================================
+   TYPE GUARD
+====================================================== */
+
+function isDealProduct(product: ProductCardData): product is Deal {
+  return "preco_atual" in product && product.preco_atual !== null;
+}
+
+/* ======================================================
+   COMPONENT
+====================================================== */
 
 type ExtendedProduct = ProductCardData & {
   isBelowAverage?: boolean;
@@ -15,12 +27,12 @@ type Props = {
 };
 
 export default function ProductCard({ product, priority = false }: Props) {
-  const isDeal = "preco_atual" in product;
+  const isDeal = isDealProduct(product);
+
   const productUrl = `/produto/${product.slug}-${product.produto_id}`;
 
   const showOpportunity =
-    product.isBelowAverage ||
-    (isDeal && (product.desconto_pct ?? 0) >= 15);
+    product.isBelowAverage || (isDeal && (product.desconto_pct ?? 0) >= 15);
 
   return (
     <article
@@ -44,8 +56,6 @@ export default function ProductCard({ product, priority = false }: Props) {
           -{product.desconto_pct}% de queda
         </span>
       )}
-
-
 
       {/* IMAGEM */}
       <Link
@@ -85,32 +95,31 @@ export default function ProductCard({ product, priority = false }: Props) {
             <>
               {product.preco_anterior != null && (
                 <span className="text-sm text-muted line-through">
-                  R$ {product.preco_anterior.toFixed(2)}
+                  R$ {Number(product.preco_anterior).toFixed(2)}
                 </span>
               )}
 
               {product.preco_atual != null && (
                 <span className="text-2xl font-bold text-success">
-                  R$ {product.preco_atual.toFixed(2)}
+                  R$ {Number(product.preco_atual).toFixed(2)}
                 </span>
               )}
             </>
           ) : (
             <span className="text-2xl font-bold text-primary">
               {"preco" in product && product.preco != null
-                ? `R$ ${product.preco.toFixed(2)}`
+                ? `R$ ${Number(product.preco).toFixed(2)}`
                 : "Preço indisponível"}
             </span>
           )}
         </div>
 
         {/* ABAIXO DA MÉDIA */}
-        {product.isBelowAverage &&
-          product.priceDiffPercent != null && (
-            <div className="text-base text-success font-semibold">
-              ⬇ {Math.abs(product.priceDiffPercent).toFixed(1)}% abaixo da média
-            </div>
-          )}
+        {product.isBelowAverage && product.priceDiffPercent != null && (
+          <div className="text-base text-success font-semibold">
+            ⬇ {Math.abs(product.priceDiffPercent).toFixed(1)}% abaixo da média
+          </div>
+        )}
 
         {/* BOTÕES */}
         <div className="flex gap-3 mt-4">
@@ -153,13 +162,14 @@ export default function ProductCard({ product, priority = false }: Props) {
               Comprar
             </a>
           )}
-                {/* BADGE OPORTUNIDADE */}
-      {showOpportunity && (
-        <span className="absolute bottom-0 right-4 bg-accent text-black text-xs font-semibold px-3 py-1 rounded-full shadow">
-          🔥 Oportunidade
-        </span>
-      )}
         </div>
+
+        {/* BADGE OPORTUNIDADE */}
+        {showOpportunity && (
+          <span className="absolute bottom-0 right-4 bg-accent text-black text-xs font-semibold px-3 py-1 rounded-full shadow">
+            🔥 Oportunidade
+          </span>
+        )}
       </div>
     </article>
   );
