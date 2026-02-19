@@ -240,3 +240,15 @@ export async function fetchPricesBatch(
     },
   );
 }
+
+export async function fetchTopCategoriesBelowAverage() {
+  return apiGet<
+    {
+      nome: string;
+      slug: string;
+      count: number;
+    }[]
+  >("/categories/below-average", {
+    revalidate: 300,
+  });
+}

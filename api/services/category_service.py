@@ -174,3 +174,77 @@ class CategoryService:
         )
 
         return result.mappings().all()
+
+
+
+    # =====================================================
+    # CATEGORIES WITH BELOW AVERAGE COUNT
+    # =====================================================
+
+    def get_categories_with_below_average_count(self):
+        result = self.db.execute(
+            text("""
+                WITH precos_ordenados AS (
+                    SELECT
+                        produto_id,
+                        preco,
+                        created_at,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY produto_id
+                            ORDER BY created_at DESC
+                        ) AS rn
+                    FROM produto_preco_historico
+                ),
+
+                preco_atual AS (
+                    SELECT produto_id, preco
+                    FROM precos_ordenados
+                    WHERE rn = 1
+                ),
+
+                media_precos AS (
+                    SELECT
+                        produto_id,
+                        AVG(preco) AS preco_medio
+                    FROM produto_preco_historico
+                    GROUP BY produto_id
+                ),
+
+                produtos_abaixo_media AS (
+                    SELECT
+                        p.id,
+                        pc.categoria_id
+                    FROM produtos p
+
+                    JOIN preco_atual pa
+                        ON pa.produto_id = p.id
+
+                    JOIN media_precos mp
+                        ON mp.produto_id = p.id
+
+                    JOIN links_afiliados la
+                        ON la.produto_id = p.id
+                        AND la.status = 'ok'
+                        AND la.url_afiliada IS NOT NULL
+                        AND la.url_afiliada != ''
+
+                    JOIN produto_categoria pc
+                        ON pc.produto_id = p.id
+
+                    WHERE pa.preco < mp.preco_medio
+                )
+
+                SELECT
+                    c.nome,
+                    c.slug,
+                    COUNT(*) AS count
+                FROM produtos_abaixo_media pam
+                JOIN categorias c
+                    ON c.id = pam.categoria_id
+                GROUP BY c.id
+                HAVING COUNT(*) > 0
+                ORDER BY count DESC
+            """)
+        )
+
+        return result.mappings().all()
