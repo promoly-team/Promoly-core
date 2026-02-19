@@ -15,5 +15,3 @@ with get_connection() as conn:
     ids = [row[0] for row in result]
 
 print(ids)
-
-ids = ids
