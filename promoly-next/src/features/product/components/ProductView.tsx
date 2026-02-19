@@ -14,7 +14,6 @@ type Props = {
   slug: string;
   baseUrl: string;
 };
-
 export default function ProductView({
   productData,
   priceHistory,
@@ -36,33 +35,30 @@ export default function ProductView({
 
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      {/* JSON-LD */}
       <JsonLd data={productSchema} />
       <JsonLd data={faqSchema} />
       <JsonLd data={breadcrumbSchema} />
 
       <div className="max-w-7xl mx-auto px-6 py-14 grid lg:grid-cols-[2fr_1fr] gap-14">
-        {/* ================= COLUNA PRINCIPAL ================= */}
         <section className="space-y-12">
           {/* PRODUTO */}
           <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
             <ProductDetails product={produto} />
           </div>
 
-          {/* ANÁLISE INTELIGENTE */}
-          <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-10">
+          {/* ANÁLISE */}
+          <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
             <ProductPriceAnalysis analytics={analytics} decision={decision} />
           </div>
 
-          {/* INDICADORES (ESTILO ANTIGO RESTAURADO) */}
+          {/* INDICADORES */}
           <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-8">
             <h2 className="text-2xl font-bold mb-6 text-gray-900">
               📊 Indicadores de preço
             </h2>
 
             <div className="grid sm:grid-cols-3 gap-6">
-              {/* MENOR PREÇO */}
-              <div className="bg-success-light rounded-2xl p-6 border border-success">
+              <div className="bg-success/10 rounded-2xl p-6 border border-success/30">
                 <p className="text-sm text-success font-medium mb-2">
                   Menor preço histórico
                 </p>
@@ -74,8 +70,7 @@ export default function ProductView({
                 </p>
               </div>
 
-              {/* MAIOR PREÇO */}
-              <div className="bg-red-50 rounded-2xl p-6 border border-danger">
+              <div className="bg-danger/10 rounded-2xl p-6 border border-danger/30">
                 <p className="text-sm text-danger font-medium mb-2">
                   Maior preço histórico
                 </p>
@@ -87,7 +82,6 @@ export default function ProductView({
                 </p>
               </div>
 
-              {/* STATUS */}
               <div className={`rounded-2xl p-6 border ${decision.bg}`}>
                 <p className={`text-sm font-medium mb-2 ${decision.color}`}>
                   Comparação com a média
@@ -109,7 +103,6 @@ export default function ProductView({
           </div>
         </section>
 
-        {/* ================= LATERAL ================= */}
         <aside>
           <div className="sticky top-28">
             <SimilarProducts products={productData.similares} />
