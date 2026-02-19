@@ -14,10 +14,6 @@ export default async function ProductPage({ params }: Props) {
 
   const id = Number(slug.split("-").pop());
 
-  if (isNaN(id)) {
-    notFound();
-  }
-
   if (isNaN(id)) notFound();
 
   const [productData, prices] = await Promise.all([
