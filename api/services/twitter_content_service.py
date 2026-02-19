@@ -3,7 +3,6 @@ import random
 from sqlalchemy import text
 from api.services.deal_service import DealService
 
-
 CATEGORY_ROTATION = [
     "eletronicos",
     "casa",
@@ -16,6 +15,7 @@ CATEGORY_ROTATION = [
     "iluminacao",
 ]
 
+
 EMOJIS_HEADLINE = ["💸", "🔥", "🚨", "💥", "⚡"]
 EMOJIS_PRECO = ["💰", "💵", "💲"]
 EMOJIS_QUEDA = ["📉", "⬇️", "🔻"]
@@ -23,7 +23,31 @@ EMOJIS_ALERTA = ["⚠️", "🚨", "🔔"]
 EMOJIS_URGENCIA = ["⏳", "⌛", "🔥"]
 
 
+EDUCATIONAL_TWEETS = [
+
+    "🧠 Sabia que muitas lojas aumentam o preço antes de aplicar “desconto”?\n\nPor isso olhar só a porcentagem engana.\nHistórico é o que importa.",
+
+    "📊 Nem toda promoção é oportunidade.\n\nSe o preço já esteve menor antes, talvez valha esperar.\nMonitoramento muda o jogo.",
+
+    "💡 Desconto alto não significa menor preço.\n\nO que importa é:\nQuanto já custou antes?\n\nÉ isso que a gente monitora.",
+
+    "📉 Produto caiu 40% hoje.\n\nMas já caiu 60% mês passado.\n\nPromoção boa é contexto, não impulso.",
+
+    "🔎 Antes de comprar qualquer coisa:\n\n1️⃣ Veja o histórico\n2️⃣ Compare média\n3️⃣ Analise volatilidade\n\nQuem monitora paga menos.",
+
+    "⚠️ Muitas ofertas são só marketing.\n\nPreço sobe.\nDepois 'cai'.\n\nSem histórico, você nunca sabe.",
+
+    "💸 Comprar no impulso custa caro.\nComprar com dados custa menos.\n\nMonitoramento é vantagem.",
+
+    "📊 O mercado oscila.\n\nQuem entende o padrão paga menos.\nQuem compra no hype paga mais.",
+
+    "🔥 Promoção boa não é a que parece maior.\nÉ a que está realmente no fundo do histórico.",
+
+    "🧠 Informação é desconto invisível.\n\nQuem tem dado compra melhor."
+]
+
 class TwitterContentService:
+
 
     def __init__(self, db):
         self.db = db
@@ -134,15 +158,11 @@ class TwitterContentService:
     # 🔗 FINALIZA COM TRACKING
     # =================================================
 
-    def _finalize_with_tracking(self, twitter_post_id, produto_id, tweet_base):
+    def _finalize_with_tracking(self, twitter_post_id, produto_id, tweet_base, affiliate_url):
 
-        tracking_link = (
-            f"https://promoly-core.vercel.app/redirect/"
-            f"{produto_id}?tp={twitter_post_id}"
-        )
+        product_url = f"https://promoly-core.vercel.app/produto/{produto_id}"
 
-        tweet_final = f"{tweet_base}\n\n👉 {tracking_link}"
-        tweet_final = tweet_final[:280]
+        tweet_final = tweet_base[:280]
 
         self.db.execute(
             text("""
@@ -155,7 +175,12 @@ class TwitterContentService:
 
         self.db.commit()
 
-        return tweet_final
+        return {
+            "tweet_text": tweet_final,
+            "product_url": product_url,
+            "affiliate_url": affiliate_url
+        }
+
 
     # =================================================
     # 🔄 ROTAÇÃO DE CATEGORIA
@@ -205,15 +230,20 @@ class TwitterContentService:
 
         deal = deals[0]
 
-        economia = deal["preco_anterior"] - deal["preco_atual"]
+        preco_anterior = deal["preco_anterior"]
+        preco_atual = deal["preco_atual"]
+        economia = preco_anterior - preco_atual
+        desconto_pct = deal["desconto_pct"]
+
         titulo = self._smart_truncate_title(deal["titulo"])
 
         tweet_base = (
-            f"{self._emoji(EMOJIS_ALERTA)} {deal['desconto_pct']:.0f}% DE QUEDA REAL!\n\n"
+            f"{self._emoji(EMOJIS_ALERTA)} MENOR PREÇO JÁ REGISTRADO\n\n"
             f"{titulo}\n\n"
-            f"De R$ {deal['preco_anterior']:.2f} → "
-            f"R$ {deal['preco_atual']:.2f} {self._emoji(EMOJIS_PRECO)}\n"
-            f"Economia: R$ {economia:.2f}"
+            f"De R$ {preco_anterior:.0f} → R$ {preco_atual:.0f}\n\n"
+            f"{self._emoji(EMOJIS_QUEDA)} -{desconto_pct:.0f}% no histórico\n"
+            f"{self._emoji(EMOJIS_PRECO)} Economia real: R$ {economia:.0f}\n\n"
+            "Se subir, não volta nesse valor."
         )
 
         twitter_post_id = self._register_post(
@@ -222,14 +252,16 @@ class TwitterContentService:
             subcategoria_slug=deal.get("subcategoria_slug"),
             tipo_post="price_drop",
             tweet_text=tweet_base,
-            copy_type="price_drop"
+            copy_type="price_drop_v2"
         )
 
         return self._finalize_with_tracking(
             twitter_post_id,
             deal["produto_id"],
-            tweet_base
+            tweet_base,
+            deal.get("affiliate_url")
         )
+
 
     # =================================================
     # 📉 ALL TIME LOW
@@ -248,14 +280,15 @@ class TwitterContentService:
         p = products[0]
 
         titulo = self._smart_truncate_title(p["titulo"])
+        preco = p["current_price"]
 
         tweet_base = (
-            f"{self._emoji(EMOJIS_QUEDA)} MENOR PREÇO JÁ REGISTRADO!\n\n"
+            f"{self._emoji(EMOJIS_ALERTA)} MENOR PREÇO JÁ REGISTRADO\n\n"
             f"{titulo}\n\n"
-            f"{self._emoji(EMOJIS_PRECO)} Apenas R$ {p['current_price']:.2f}\n\n"
-            "⚠️ Esse é o menor valor desde que começamos a monitorar."
+            f"💰 Apenas R$ {preco:.0f}\n\n"
+            "📉 Esse é o menor valor desde que começamos a monitorar.\n\n"
+            "Se subir, não volta nesse valor."
         )
-
 
         twitter_post_id = self._register_post(
             produto_id=p["produto_id"],
@@ -263,14 +296,16 @@ class TwitterContentService:
             subcategoria_slug=p.get("subcategoria_slug"),
             tipo_post="all_time_low",
             tweet_text=tweet_base,
-            copy_type="all_time_low"
+            copy_type="all_time_low_v2"
         )
 
         return self._finalize_with_tracking(
             twitter_post_id,
             p["produto_id"],
-            tweet_base
+            tweet_base,
+            p.get("affiliate_url")
         )
+
 
     # =================================================
     # 🔥 HISTORICAL ROTATING (DINÂMICO)
@@ -336,3 +371,14 @@ class TwitterContentService:
             deal["produto_id"],
             tweet_base
         )
+
+
+    def generate_educational_tweet(self):
+
+        text = random.choice(EDUCATIONAL_TWEETS)
+
+        return {
+            "tweet_text": text,
+            "product_url": "",
+            "affiliate_url": ""
+        }

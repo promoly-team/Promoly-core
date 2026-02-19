@@ -7,9 +7,8 @@ const faqItems = [
     title: "Como saber se é uma queda real?",
     content: (
       <>
-        O produto só aparece aqui quando o preço atual está{" "}
-        <strong>significativamente abaixo da média histórica</strong> que
-        monitoramos. Não é promoção artificial — são dados reais de mercado.
+        Não mostramos promoções artificiais. O produto só aparece aqui quando o preço atual está{" "}
+        <strong>significativamente abaixo da média histórica</strong> que monitoramos continuamente. Isso significa que você vê apenas dados reais de mercado, com quedas de preço autênticas comparadas ao histórico do produto.
       </>
     ),
   },
@@ -19,9 +18,7 @@ const faqItems = [
     title: "Com que frequência os preços são atualizados?",
     content: (
       <>
-        Os preços são monitorados <strong>várias vezes ao dia</strong>,
-        garantindo que você veja as oportunidades em tempo real. Os dados estão
-        sempre frescos.
+        Para garantir que você não perca nenhuma oportunidade, monitoramos os preços <strong>várias vezes ao dia</strong>. Nossos dados estão sempre frescos e refletem as mudanças de preço em tempo real, permitindo que você identifique quedas assim que acontecem.
       </>
     ),
   },
@@ -31,10 +28,7 @@ const faqItems = [
     title: "Como funciona a média histórica?",
     content: (
       <>
-        Calculamos a média com base em{" "}
-        <strong>todos os registros anteriores</strong> do produto. Quanto mais
-        dados, mais precisa é a comparação. Mínimo 2 registros para aparecer
-        aqui.
+        Calculamos a média analisando <strong>todos os registros anteriores</strong> de cada produto. Quanto mais dados históricos temos, mais precisa é a comparação. Isso garante que a "média" seja realmente representativa do preço normal do produto.
       </>
     ),
   },
@@ -44,9 +38,7 @@ const faqItems = [
     title: "Por que alguns produtos não aparecem?",
     content: (
       <>
-        Filtramos apenas produtos com{" "}
-        <strong>queda real de pelo menos 2%</strong> em relação à média
-        histórica. Isso garante que você vê apenas oportunidades genuínas.
+        Mantemos um padrão alto de qualidade. Filtramos apenas produtos com <strong>queda real de pelo menos 2%</strong> em relação à média histórica. Isso garante que você vê apenas oportunidades genuínas de economia, não oscilações mínimas.
       </>
     ),
   },
@@ -54,7 +46,7 @@ const faqItems = [
 
 export default function FAQGrid() {
   return (
-    <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
       {faqItems.map((item, index) => (
         <FAQCard key={index} {...item} />
       ))}

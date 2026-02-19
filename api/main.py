@@ -6,6 +6,9 @@ from api.core.logging_config import get_logger, setup_logging
 from api.core.settings import settings
 from api.middlewarre.request_id import request_id_middleware
 from api.routers.redirect_router import router as redirect_router
+from apscheduler.schedulers.background import BackgroundScheduler
+from api.services.twiiter_daily_post import generate_daily_tweets_job
+from api.deps import get_db
 
 # ======================================================
 # Logger
@@ -96,6 +99,36 @@ async def global_exception_handler(request: Request, exc: Exception):
             code="INTERNAL_SERVER_ERROR",
         ).model_dump(),
     )
+
+
+#==============================
+# TWITTER JOB
+#==============================
+
+scheduler = BackgroundScheduler()
+
+
+def scheduled_job():
+    db = next(get_db())
+    generate_daily_tweets_job(db)
+    db.close()
+
+
+def start_scheduler():
+    scheduler.add_job(
+        scheduled_job,
+        trigger="cron",
+        hour=11,
+        minute=0
+    )
+    scheduler.start()
+
+
+@app.on_event("startup")
+def startup_event():
+    logger.info("🕗 Iniciando scheduler de tweets diários...")
+    start_scheduler()
+
 
 # ======================================================
 # Register Routers

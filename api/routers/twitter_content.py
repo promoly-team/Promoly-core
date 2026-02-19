@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from api.services.twiiter_daily_post import generate_daily_tweets_job
 
 from api.deps import get_db
 from api.services.deal_service import DealService
@@ -29,4 +30,11 @@ def generate_historical_rotating(db: Session = Depends(get_db)):
     tweet = twitter_service.generate_rotating_historical_tweet()
 
     return {"tweet": tweet}
+
+@router.get("/generate-daily")
+def generate_daily(db: Session = Depends(get_db)):
+
+    result = generate_daily_tweets_job(db)
+    return result
+
 
