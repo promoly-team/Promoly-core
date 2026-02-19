@@ -4,7 +4,7 @@ from scrapper_mlb.parser import find_product_nodes
 from scrapper_mlb.services.product_builder import build_product
 from scrapper_mlb.services.url_builder import build_search_url
 
-
+#///////////
 
 def collect_products(url: str):
     html = fetch_html(url)
