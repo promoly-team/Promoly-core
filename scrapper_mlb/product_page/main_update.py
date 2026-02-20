@@ -16,75 +16,59 @@ from sqlalchemy import text
 from database.db import get_connection
 
 
-
 def get_priority_products(limit=200):
     query = text("""
-                    WITH stats AS (
-                    SELECT 
-                        p.id,
-                        COUNT(pph.id) AS total_precos,
-                        MAX(pph.created_at) AS ultimo_preco,
+        WITH stats AS (
+            SELECT 
+                p.id,
+                COUNT(pph.id) AS total_precos,
+                MAX(pph.created_at) AS ultimo_preco,
 
-                        -- Volatilidade normalizada (coeficiente de variação)
-                        STDDEV(pph.preco) / NULLIF(AVG(pph.preco), 0) AS volatilidade_relativa,
+                -- Volatilidade normalizada (coeficiente de variação)
+                STDDEV(pph.preco) / NULLIF(AVG(pph.preco), 0) AS volatilidade_relativa,
 
-                        COUNT(DISTINCT pph.preco) AS alteracoes,
-                        COALESCE(p.vendas, 0) AS vendas,
-                        COUNT(c.id) AS total_clicks
+                COUNT(DISTINCT pph.preco) AS alteracoes,
+                COALESCE(p.vendas, 0) AS vendas,
+                COUNT(c.id) AS total_clicks
 
-                    FROM produtos p
-                    LEFT JOIN produto_preco_historico pph 
-                        ON pph.produto_id = p.id
-                    LEFT JOIN clicks c
-                        ON c.produto_id = p.id
-                    GROUP BY p.id
-                )
+            FROM produtos p
+            LEFT JOIN produto_preco_historico pph 
+                ON pph.produto_id = p.id
+            LEFT JOIN clicks c
+                ON c.produto_id = p.id
 
-                SELECT
-                    id,
-                    (
-                        -- 1️⃣ Maturidade
-                        (10 - LEAST(total_precos, 10)) * 6
+            -- 🔥 FILTRO CRÍTICO
+            WHERE p.status = 'ativo'
 
-                        +
+            GROUP BY p.id
+        )
 
-                        -- 2️⃣ Tempo desde última atualização
-                        EXTRACT(EPOCH FROM (
-                            NOW() - COALESCE(ultimo_preco, NOW() - INTERVAL '30 days')
-                        )) / 3600 * 0.7
+        SELECT
+            id,
+            (
+                (10 - LEAST(total_precos, 10)) * 6
+                +
+                EXTRACT(EPOCH FROM (
+                    NOW() - COALESCE(ultimo_preco, NOW() - INTERVAL '30 days')
+                )) / 3600 * 0.7
+                +
+                COALESCE(volatilidade_relativa, 0) * 10
+                +
+                alteracoes * 4
+                +
+                LN(total_clicks + 1) * 5
+                +
+                LN(vendas + 1) * 6
+            ) AS prioridade_score
 
-                        +
-
-                        -- 3️⃣ Volatilidade relativa (normalizada)
-                        COALESCE(volatilidade_relativa, 0) * 10
-
-                        +
-
-                        -- 4️⃣ Frequência de alteração
-                        alteracoes * 4
-
-                        +
-
-                        -- 5️⃣ Popularidade
-                        LN(total_clicks + 1) * 5
-
-                        +
-
-                        -- 6️⃣ Vendas
-                        LN(vendas + 1) * 6
-
-                    ) AS prioridade_score
-
-                FROM stats
-                ORDER BY prioridade_score DESC
-                LIMIT :limit;
-
+        FROM stats
+        ORDER BY prioridade_score DESC
+        LIMIT :limit;
     """)
 
     with get_connection() as conn:
         result = conn.execute(query, {"limit": limit})
         return [row[0] for row in result]
-
 
 
 
@@ -152,6 +136,11 @@ def process_batch():
             produto_id = produto["id"]
             url = produto["link_original"]
 
+            # 🔥 Blindagem extra
+            if produto.get("status") == "removido":
+                print(f"⏭️ ID={produto_id} já está removido. Pulando.")
+                continue
+
             print(f"\n🔍 ID={produto_id}")
 
             page_data = collect_product_by_url(
@@ -161,10 +150,11 @@ def process_batch():
             )
 
             if not page_data:
+                # 🔒 Pode ser bloqueio do site
                 block_streak += 1
                 block_count += 1
 
-                print(f"⚠️ Falha (streak={block_streak})")
+                print(f"⚠️ Falha ao coletar (possível bloqueio) (streak={block_streak})")
 
                 if block_streak >= BLOCK_STREAK_LIMIT:
                     print(
@@ -173,6 +163,19 @@ def process_batch():
                     )
                     time.sleep(GLOBAL_COOLDOWN_SECONDS)
                     block_streak = 0
+
+                continue
+
+
+            # 🔥 Se chegou aqui, houve resposta válida
+            block_streak = 0
+
+            # ❌ Sem preço = produto inválido/removido
+            if page_data.preco is None:
+                print("🗑 Produto sem preço. Removendo do banco...")
+
+                produto_repo.mark_as_removed(produto_id)
+                conn.commit()
 
                 continue
 
@@ -187,16 +190,16 @@ def process_batch():
             if page_data.preco is not None:
                 ultimo = preco_repo.get_last_price(produto_id)
 
+                preco_repo.insert(produto_id, page_data.preco)
+
                 if ultimo is None:
-                    preco_repo.insert(produto_id, page_data.preco)
                     print("💰 Primeiro preço registrado")
 
                 elif Decimal(str(ultimo)) != Decimal(str(page_data.preco)):
-                    preco_repo.insert(produto_id, page_data.preco)
                     print(f"💰 Preço alterado: {ultimo} → {page_data.preco}")
 
                 else:
-                    print("⏭️ Preço inalterado")
+                    print(f"📝 Preço repetido registrado: {page_data.preco}")
 
             conn.commit()
             total += 1
