@@ -60,23 +60,22 @@ export default function ProductCard({ product, priority = false }: Props) {
       {/* IMAGEM */}
       <Link
         href={productUrl}
-        className="bg-surface-subtle rounded-xl p-6 flex items-center justify-center overflow-hidden"
+        className="bg-surface-subtle rounded-xl p-4 sm:p-6 flex items-center justify-center overflow-hidden"
       >
-        <div className="relative w-full h-48">
-          <Image
-            src={product.imagem_url ?? "/placeholder.png"}
-            alt={product.titulo}
-            fill
-            priority={priority}
-            loading={priority ? "eager" : "lazy"}
-            className="object-contain group-hover:scale-105 transition-transform duration-300"
-            sizes="
-              (max-width: 640px) 100vw,
-              (max-width: 1024px) 50vw,
-              300px
-            "
-          />
-        </div>
+        <Image
+          src={product.imagem_url ?? "/placeholder.png"}
+          alt={product.titulo}
+          width={500}
+          height={500}
+          priority={priority}
+          loading={priority ? "eager" : "lazy"}
+          className="w-full h-auto object-contain aspect-[4/5] sm:aspect-[3/4] group-hover:scale-105 transition-transform duration-300"
+          sizes="
+      (max-width: 640px) 50vw,
+      (max-width: 1024px) 33vw,
+      300px
+    "
+        />
       </Link>
 
       {/* CONTEÚDO */}

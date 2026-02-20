@@ -29,20 +29,16 @@ export default function ProductHistory({
   lowerDomain,
   upperDomain,
 }: Props) {
-
   const lastPrice = data[data.length - 1]?.preco ?? 0;
   const previousPrice =
-    data.length > 1
-      ? data[data.length - 2]?.preco
-      : lastPrice;
+    data.length > 1 ? data[data.length - 2]?.preco : lastPrice;
 
   let trend: "alta" | "queda" | "estabilidade" = "estabilidade";
   let variationPercent = 0;
   let variationValue = 0;
 
   if (previousPrice && lastPrice) {
-    variationPercent =
-      ((lastPrice - previousPrice) / previousPrice) * 100;
+    variationPercent = ((lastPrice - previousPrice) / previousPrice) * 100;
 
     variationValue = lastPrice - previousPrice;
 
@@ -54,30 +50,27 @@ export default function ProductHistory({
     trend === "queda"
       ? "text-success"
       : trend === "alta"
-      ? "text-danger"
-      : "text-gray-600";
+        ? "text-danger"
+        : "text-gray-600";
 
   const chartColor =
-    trend === "queda"
-      ? "#22c177"
-      : trend === "alta"
-      ? "#dc2626"
-      : "#6b7280";
+    trend === "queda" ? "#22c177" : trend === "alta" ? "#dc2626" : "#6b7280";
 
   return (
     <motion.div
-      className="mt-16"
+      className="mt-8 sm:mt-16"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       viewport={{ once: true }}
     >
-
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">
+      <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
         Histórico de preço
       </h2>
 
-      <p className={`text-lg font-semibold mb-6 ${trendColor}`}>
+      <p
+        className={`text-sm sm:text-lg font-semibold mb-4 sm:mb-6 ${trendColor}`}
+      >
         {trend === "queda" && "⬇ "}
         {trend === "alta" && "⬆ "}
         {trend === "estabilidade" && "➖ "}
@@ -85,84 +78,83 @@ export default function ProductHistory({
         {trend === "estabilidade"
           ? "Sem variação relevante"
           : `${Math.abs(variationPercent).toFixed(1)}% 
-             (${variationValue > 0 ? "+" : ""}${variationValue.toLocaleString("pt-BR", {
-               style: "currency",
-               currency: "BRL",
-             })}) comparado ao último registro`}
+         (${variationValue > 0 ? "+" : ""}${variationValue.toLocaleString(
+           "pt-BR",
+           {
+             style: "currency",
+             currency: "BRL",
+           },
+         )}) vs último registro`}
       </p>
 
-      <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-soft">
+      <div className="bg-white border border-gray-200 rounded-2xl p-3 sm:p-6 lg:p-8 shadow-soft">
+        <div className="w-full h-48 sm:h-64 lg:h-80 xl:h-[420px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
 
-        <ResponsiveContainer width="100%" height={320}>
-          <LineChart data={data}>
+              <XAxis
+                dataKey="data"
+                tickFormatter={(timestamp: number) =>
+                  new Date(timestamp).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  })
+                }
+                tick={{ fontSize: 10 }}
+                minTickGap={25}
+              />
+              <YAxis
+                width={80}
+                domain={[lowerDomain, upperDomain]}
+                tickFormatter={(value: number) =>
+                  value.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                    maximumFractionDigits: 0,
+                  })
+                }
+                tick={{ fontSize: 12 }}
+              />
 
-            <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
+              <Tooltip
+                formatter={(value: number | undefined) =>
+                  value != null
+                    ? value.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })
+                    : ""
+                }
+                labelFormatter={(label) => {
+                  const date =
+                    typeof label === "number" ? label : Number(label);
 
-            <XAxis
-              dataKey="data"
-              tickFormatter={(timestamp: number) =>
-                new Date(timestamp).toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                })
-              }
-            />
+                  if (isNaN(date)) return "";
+                  return new Date(date).toLocaleDateString("pt-BR");
+                }}
+              />
 
-            <YAxis
-              width={80}
-              domain={[lowerDomain, upperDomain]}
-              tickFormatter={(value: number) =>
-                value.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                  maximumFractionDigits: 0,
-                })
-              }
-            />
+              <Area
+                type="stepAfter"
+                dataKey="preco"
+                stroke="none"
+                fill={chartColor}
+                fillOpacity={0.08}
+              />
 
-            <Tooltip
-              formatter={(value: number | undefined) =>
-                value != null
-                  ? value.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })
-                  : ""
-              }
-              labelFormatter={(label) => {
-                const date =
-                  typeof label === "number"
-                    ? label
-                    : Number(label);
-
-                if (isNaN(date)) return "";
-
-                return new Date(date).toLocaleDateString("pt-BR");
-              }}
-            />
-
-            <Area
-              type="stepAfter"
-              dataKey="preco"
-              stroke="none"
-              fill={chartColor}
-              fillOpacity={0.1}
-            />
-
-            <Line
-              type="stepAfter"
-              dataKey="preco"
-              stroke={chartColor}
-              strokeWidth={3}
-              dot={{ r: 4, fill: chartColor }}
-              activeDot={{ r: 6 }}
-            />
-
-          </LineChart>
-        </ResponsiveContainer>
-
+              <Line
+                type="stepAfter"
+                dataKey="preco"
+                stroke={chartColor}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-
     </motion.div>
   );
 }
