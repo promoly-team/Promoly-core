@@ -34,10 +34,10 @@ export default function LowPriceView({
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-6 py-14">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-14">
         {/* ================= HEADER ================= */}
         <header className="mb-20">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold leading-tight mb-3">
             🔥 Radar de Oportunidades – Produtos abaixo da média histórica
           </h1>
           <p className="text-gray-500 text-lg">Atualizado em {today}</p>
@@ -45,7 +45,7 @@ export default function LowPriceView({
 
         {/* ================= HERO GLOBAL ================= */}
         <section className="mb-24">
-          <div className="bg-white rounded-2xl shadow border border-gray-200 p-10">
+          <div className="bg-white rounded-2xl shadow border border-gray-200 p-4 sm:p-10">
             <Highlight product={heroProduct} />
           </div>
         </section>

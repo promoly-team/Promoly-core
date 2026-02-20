@@ -247,7 +247,7 @@ export default async function HomePage() {
               Ofertas em destaque
             </h2>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 lg:gap-8">
               {ranked.map((p) => (
                 <ProductCard key={`${p.produto_id}-grid`} product={p} />
               ))}

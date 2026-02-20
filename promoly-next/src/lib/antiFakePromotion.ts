@@ -4,7 +4,7 @@ export type PromotionInput = {
   avgPrice?: number | null;
   lastPrice?: number | null;
   discountPercent?: number | null;
-  priceHistory?: number[]; // 🔥 NOVO (opcional)
+  priceHistory?: number[] | null;
 };
 
 export type PromotionAnalysis = {
@@ -16,14 +16,13 @@ export type PromotionAnalysis = {
 };
 
 export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
-  const {
-    currentPrice,
-    previousPrice = null,
-    avgPrice = null,
-    lastPrice = null,
-    discountPercent = 0,
-    priceHistory = [],
-  } = data;
+  // 🔒 Normalização segura de todos os valores numéricos
+  const currentPrice = Number(data.currentPrice) || 0;
+  const previousPrice = data.previousPrice ?? null;
+  const avgPrice = data.avgPrice ?? null;
+  const lastPrice = data.lastPrice ?? null;
+  const safeDiscountPercent = data.discountPercent ?? 0;
+  const priceHistory = data.priceHistory ?? [];
 
   let score = 0;
   let maxPossibleScore = 0;
@@ -33,7 +32,7 @@ export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
      🔹 1. Média histórica
   ===================================================== */
 
-  if (avgPrice && avgPrice > 0) {
+  if (avgPrice !== null && avgPrice > 0) {
     maxPossibleScore += 30;
 
     const diff = ((currentPrice - avgPrice) / avgPrice) * 100;
@@ -49,12 +48,12 @@ export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
      🔹 2. Consistência do desconto
   ===================================================== */
 
-  if (previousPrice && previousPrice > 0) {
+  if (previousPrice !== null && previousPrice > 0) {
     maxPossibleScore += 20;
 
     const realDiscount = ((previousPrice - currentPrice) / previousPrice) * 100;
 
-    if (Math.abs(realDiscount - discountPercent) <= 5) {
+    if (Math.abs(realDiscount - safeDiscountPercent) <= 5) {
       score += 20;
     } else {
       flags.push("Desconto informado pode estar inflado");
@@ -65,7 +64,7 @@ export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
      🔹 3. Pico artificial simples
   ===================================================== */
 
-  if (avgPrice && lastPrice) {
+  if (avgPrice !== null && lastPrice !== null) {
     maxPossibleScore += 20;
 
     if (lastPrice > avgPrice * 1.3 && currentPrice <= avgPrice) {
@@ -81,16 +80,16 @@ export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
 
   maxPossibleScore += 15;
 
-  if (discountPercent >= 40) score += 15;
-  else if (discountPercent >= 25) score += 10;
-  else if (discountPercent >= 15) score += 5;
+  if (safeDiscountPercent >= 40) score += 15;
+  else if (safeDiscountPercent >= 25) score += 10;
+  else if (safeDiscountPercent >= 15) score += 5;
   else flags.push("Desconto pouco relevante");
 
   /* =====================================================
      🔹 5. Tendência vs último preço
   ===================================================== */
 
-  if (lastPrice && lastPrice > 0) {
+  if (lastPrice !== null && lastPrice > 0) {
     maxPossibleScore += 15;
 
     const variation = ((currentPrice - lastPrice) / lastPrice) * 100;
@@ -100,7 +99,7 @@ export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
   }
 
   /* =====================================================
-     🔥 6. DETECÇÃO DE OSCILAÇÃO ARTIFICIAL (NOVO)
+     🔥 6. Oscilação artificial
   ===================================================== */
 
   let oscillationPenalty = 0;
@@ -112,19 +111,16 @@ export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
       const diff1 = priceHistory[i - 1] - priceHistory[i - 2];
       const diff2 = priceHistory[i] - priceHistory[i - 1];
 
-      // Mudança de direção
       if (diff1 * diff2 < 0) {
         const variation =
           Math.abs(priceHistory[i] - priceHistory[i - 1]) / priceHistory[i - 1];
 
-        if (variation > 0.2) {
-          reversals++;
-        }
+        if (variation > 0.2) reversals++;
       }
     }
 
     if (reversals >= 2) {
-      oscillationPenalty = 30; // 🔥 Penalização forte
+      oscillationPenalty = 30;
       flags.push("Padrão de oscilação artificial detectado");
     }
   }
@@ -136,7 +132,6 @@ export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
   let normalizedScore =
     maxPossibleScore > 0 ? Math.round((score / maxPossibleScore) * 100) : 0;
 
-  // Aplicar penalização após normalização
   normalizedScore = Math.max(0, normalizedScore - oscillationPenalty);
 
   /* =====================================================
@@ -148,7 +143,6 @@ export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
   if (normalizedScore >= 75) level = "strong";
   else if (normalizedScore >= 55) level = "moderate";
   else if (normalizedScore >= 35) level = "weak";
-  else level = "fake";
 
   /* =====================================================
      🔹 Confiança
@@ -156,12 +150,8 @@ export function evaluatePromotion(data: PromotionInput): PromotionAnalysis {
 
   let confidence: PromotionAnalysis["confidence"] = "low";
 
-  const historySize = priceHistory.length;
-
-  // 🔥 Confiança baseada na quantidade de registros
-  if (historySize >= 30) confidence = "high";
-  else if (historySize >= 10) confidence = "medium";
-  else confidence = "low";
+  if (priceHistory.length >= 30) confidence = "high";
+  else if (priceHistory.length >= 10) confidence = "medium";
 
   return {
     score: normalizedScore,
