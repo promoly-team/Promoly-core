@@ -243,3 +243,15 @@ class ProdutoRepository:
         )
 
         return result.mappings().first()
+
+    # 🗑 marcar produto como removido pelo worker
+    def mark_as_removed(self, produto_id: int):
+        self.conn.execute(
+            text("""
+                UPDATE produtos
+                SET status = 'removido',
+                    updated_at = NOW()
+                WHERE id = :produto_id
+            """),
+            {"produto_id": produto_id},
+        )
