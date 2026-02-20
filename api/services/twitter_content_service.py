@@ -158,7 +158,7 @@ class TwitterContentService:
     # 🔗 FINALIZA COM TRACKING
     # =================================================
 
-    def _finalize_with_tracking(self, twitter_post_id, produto_id, tweet_base, affiliate_url):
+    def _finalize_with_tracking(self, twitter_post_id, produto_id, tweet_base, url_afiliada):
 
         product_url = f"https://promoly-core.vercel.app/produto/{produto_id}"
 
@@ -178,7 +178,7 @@ class TwitterContentService:
         return {
             "tweet_text": tweet_final,
             "product_url": product_url,
-            "affiliate_url": affiliate_url
+            "url_afiliada": url_afiliada
         }
 
 
@@ -259,7 +259,7 @@ class TwitterContentService:
             twitter_post_id,
             deal["produto_id"],
             tweet_base,
-            deal.get("affiliate_url")
+            deal.get("url_afiliada")
         )
 
 
@@ -303,7 +303,7 @@ class TwitterContentService:
             twitter_post_id,
             p["produto_id"],
             tweet_base,
-            p.get("affiliate_url")
+            p.get("url_afiliada")
         )
 
 

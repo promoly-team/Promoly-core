@@ -8,7 +8,7 @@ database/*.sqlite
 data/*.promoly
 debug_html/*
 prod.dump
-
+schemas.sql
 *.csv
 *.sh
 

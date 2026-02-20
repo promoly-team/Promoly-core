@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     "histórico de preço",
     "promoções online",
     "ofertas hoje",
-    "descontos reais"
+    "descontos reais",
   ],
   authors: [{ name: "PromoLy" }],
   creator: "PromoLy",
@@ -31,8 +31,7 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     url: "https://promoly-core.vercel.app",
     siteName: "PromoLy",
-    title:
-      "PromoLy – Compare preços e encontre o menor valor",
+    title: "PromoLy – Compare preços e encontre o menor valor",
     description:
       "Acompanhe histórico de preços e descubra oportunidades reais antes de comprar.",
     images: [
@@ -47,10 +46,8 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title:
-      "PromoLy – Compare preços e encontre o menor valor",
-    description:
-      "Descubra quando um produto está realmente barato.",
+    title: "PromoLy – Compare preços e encontre o menor valor",
+    description: "Descubra quando um produto está realmente barato.",
     images: ["https://promoly-core.vercel.app/og-image.png"],
   },
 
@@ -71,14 +68,13 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function HomePage() {
-
   const products: ProductCardData[] = await fetchProducts({
     order: "desconto",
     limit: 20,
   });
 
   const unique = Array.from(
-    new Map(products.map((p) => [p.produto_id, p])).values()
+    new Map(products.map((p) => [p.produto_id, p])).values(),
   );
 
   const enhanced = unique.map((product) => {
@@ -92,17 +88,15 @@ export default async function HomePage() {
 
       const priceDiffPercent =
         metrics.avgPrice > 0
-          ? ((metrics.currentPrice - metrics.avgPrice) /
-              metrics.avgPrice) *
-            100
+          ? ((metrics.currentPrice - metrics.avgPrice) / metrics.avgPrice) * 100
           : 0;
 
       const trend =
         priceDiffPercent < -0.5
           ? "queda"
           : priceDiffPercent > 0.5
-          ? "alta"
-          : "estabilidade";
+            ? "alta"
+            : "estabilidade";
 
       const opportunityScore = calculateOpportunityScore({
         priceDiffPercent,
@@ -121,13 +115,11 @@ export default async function HomePage() {
   });
 
   const ranked = enhanced.sort(
-    (a: any, b: any) =>
-      (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0)
+    (a: any, b: any) => (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0),
   );
 
   const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://promoly-core.vercel.app";
+    process.env.NEXT_PUBLIC_API_URL || "https://promoly-core.vercel.app";
 
   const itemListSchema = {
     "@context": "https://schema.org",
@@ -152,7 +144,6 @@ export default async function HomePage() {
       },
     })),
   };
-
 
   const categories = [
     { label: "Eletrônicos", slug: "eletronicos" },
@@ -192,10 +183,8 @@ export default async function HomePage() {
         }}
       />
 
-
       <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
         <div className="max-w-7xl mx-auto px-6 py-16">
-
           {/* HERO */}
 
           <section className="text-center mb-20">
@@ -226,10 +215,7 @@ export default async function HomePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {ranked.slice(0, 3).map((p) => (
-                <ProductCard
-                  key={`${p.produto_id}-top`}
-                  product={p}
-                />
+                <ProductCard key={`${p.produto_id}-top`} product={p} />
               ))}
             </div>
           </section>
@@ -263,24 +249,20 @@ export default async function HomePage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
               {ranked.map((p) => (
-                <ProductCard
-                  key={`${p.produto_id}-grid`}
-                  product={p}
-                />
+                <ProductCard key={`${p.produto_id}-grid`} product={p} />
               ))}
             </div>
           </section>
-        <section className="mt-24 text-gray-600 max-w-3xl">
-          <h2 className="text-2xl font-bold mb-4">
-            Como encontrar o menor preço online?
-          </h2>
-          <p>
-            O PromoLy é um comparador de preços que analisa o histórico
-            de valores e identifica oportunidades reais. Antes de comprar,
-            verifique se o preço atual está abaixo da média histórica.
-          </p>
-        </section>
-
+          <section className="mt-24 text-gray-600 max-w-3xl">
+            <h2 className="text-2xl font-bold mb-4">
+              Como encontrar o menor preço online?
+            </h2>
+            <p>
+              O PromoLy é um comparador de preços que analisa o histórico de
+              valores e identifica oportunidades reais. Antes de comprar,
+              verifique se o preço atual está abaixo da média histórica.
+            </p>
+          </section>
         </div>
       </div>
     </>
