@@ -11,30 +11,37 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  if (!params?.slug) {
+  try {
+    if (!params?.slug) return {};
+
+    const slug = params.slug;
+    const id = Number(slug.split("-").pop());
+    if (isNaN(id)) return {};
+
+    const productData = await fetchProductById(id);
+    if (!productData?.produto) return {};
+
+    const produto = productData.produto;
+
+    const price =
+      produto.preco != null
+        ? produto.preco.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })
+        : null;
+
+    return {
+      title: produto.titulo,
+      description: price
+        ? `Veja histórico de preço e descubra se vale a pena comprar por ${price}.`
+        : "Veja histórico completo no Promoly.",
+    };
+  } catch (error) {
+    console.error("Erro em generateMetadata:", error);
     return {};
   }
-
-  const slug = params.slug;
-
-  const id = Number(slug.split("-").pop());
-
-  if (isNaN(id)) {
-    return {};
-  }
-
-  const productData = await fetchProductById(id);
-
-  if (!productData?.produto) {
-    return {};
-  }
-
-  const produto = productData.produto;
-
-  const price = produto.preco?.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+}
 
   return {
     title: produto.titulo,
