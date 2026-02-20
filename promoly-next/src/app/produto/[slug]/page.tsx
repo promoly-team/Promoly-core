@@ -62,11 +62,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const { slug } = params;
+  const slug = params?.slug;
+
+  if (!slug) {
+    notFound();
+  }
 
   const id = Number(slug.split("-").pop());
 
-  if (isNaN(id)) notFound();
+  if (isNaN(id)) {
+    notFound();
+  }
 
   const [productData, prices] = await Promise.all([
     fetchProductById(id),
