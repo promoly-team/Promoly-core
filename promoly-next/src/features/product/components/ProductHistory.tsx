@@ -63,7 +63,6 @@ export default function ProductHistory({
       <h2 className="text-xl sm:text-3xl font-bold text-[#9AEBA3] mb-3">
         Histórico de preço
       </h2>
-
       <p className={`text-sm sm:text-lg font-semibold mb-6 ${trendTextColor}`}>
         {trend === "queda" && "⬇ "}
         {trend === "alta" && "⬆ "}
@@ -80,15 +79,14 @@ export default function ProductHistory({
            },
          )}) vs último registro`}
       </p>
-
-      <div className="bg-[#0b154a] border border-[#45C4B0] rounded-2xl p-4 sm:p-8 shadow-lg">
-        <div className="w-full h-56 sm:h-72 lg:h-96 xl:h-[440px]">
+      <div className="bg-[#0b154a] border border-[#45C4B0] rounded-2xl p-3 sm:p-6 lg:p-8 shadow-lg">
+        <div className="w-full h-64 sm:h-80 lg:h-96 xl:h-[440px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="#45C4B0"
-                opacity={0.15}
+                opacity={0.12}
               />
 
               <XAxis
@@ -99,13 +97,17 @@ export default function ProductHistory({
                     month: "2-digit",
                   })
                 }
-                tick={{ fill: "#45C4B0", fontSize: 16, fontWeight: 700 }}
-                minTickGap={25}
+                tick={{
+                  fill: "#45C4B0",
+                  fontSize: 11, // menor no mobile
+                  fontWeight: 600,
+                }}
+                minTickGap={15}
                 stroke="#45C4B0"
               />
 
               <YAxis
-                width={90}
+                width={70} // menos espaço lateral
                 domain={[lowerDomain, upperDomain]}
                 tickFormatter={(value: number) =>
                   value.toLocaleString("pt-BR", {
@@ -114,7 +116,11 @@ export default function ProductHistory({
                     maximumFractionDigits: 0,
                   })
                 }
-                tick={{ fill: "#45C4B0", fontSize: 16, fontWeight: 700 }}
+                tick={{
+                  fill: "#45C4B0",
+                  fontSize: 11,
+                  fontWeight: 600,
+                }}
                 stroke="#45C4B0"
               />
 
@@ -124,6 +130,7 @@ export default function ProductHistory({
                   border: "1px solid #45C4B0",
                   borderRadius: "12px",
                   color: "#9AEBA3",
+                  fontSize: "12px", // menor no mobile
                 }}
                 formatter={(value: number | undefined) =>
                   value != null
@@ -146,21 +153,31 @@ export default function ProductHistory({
                 dataKey="preco"
                 stroke="none"
                 fill="#F5F138"
-                fillOpacity={0.08}
+                fillOpacity={0.06}
               />
 
               <Line
                 type="stepAfter"
                 dataKey="preco"
                 stroke="#F5F138"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 6, fill: "#F5F138" }}
+                strokeWidth={2.5}
+                dot={{
+                  r: 3.5, // tamanho base visível
+                  fill: "#F5F138",
+                  stroke: "#000D34", // cria contraste
+                  strokeWidth: 1.5,
+                }}
+                activeDot={{
+                  r: 6,
+                  fill: "#F5F138",
+                  stroke: "#000D34",
+                  strokeWidth: 2,
+                }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </div>{" "}
     </motion.div>
   );
 }
