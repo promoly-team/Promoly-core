@@ -7,6 +7,26 @@ type PricePoint = {
   created_at: string;
 };
 
+function getPreviousChangePrice(history: PricePoint[]): number | null {
+  if (!history || history.length < 2) return null;
+
+  const sorted = [...history].sort(
+    (a, b) =>
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  );
+
+  const lastPrice = sorted[sorted.length - 1].preco;
+
+  // percorre de trás pra frente ignorando repetições
+  for (let i = sorted.length - 2; i >= 0; i--) {
+    if (sorted[i].preco !== lastPrice) {
+      return sorted[i].preco;
+    }
+  }
+
+  return null; // nunca mudou
+}
+
 function hasThreeConsecutiveDrops(history: PricePoint[]) {
   if (!history || history.length < 2) return false;
 
@@ -52,11 +72,7 @@ export async function enrichProducts(products: ProductCardData[]) {
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
 
-    const lastPrice =
-      sortedHistory.length >= 2
-        ? sortedHistory[sortedHistory.length - 2].preco
-        : null;
-
+    const lastPrice = getPreviousChangePrice(history);
     const variationVsLast = lastPrice
       ? ((metrics.currentPrice - lastPrice) / lastPrice) * 100
       : 0;

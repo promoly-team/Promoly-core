@@ -25,28 +25,32 @@ export default function CategoryLowestPriceView({
   });
 
   const today = new Date().toLocaleDateString("pt-BR");
-  console.log(enriched[0]);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-6 py-14">
-        <header className="mb-16">
-          <h1 className="text-4xl font-bold mb-4">
-            🔥 Menor preço em {categoriaNome} hoje
+    <div className="bg-[#000D34] min-h-screen">
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        {/* ================= HEADER ================= */}
+        <header className="mb-20 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#9AEBA3] leading-tight mb-4">
+            🔥 Menor preço em{" "}
+            <span className="text-[#F5F138]">{categoriaNome}</span> hoje
           </h1>
-          <p className="text-gray-500">
+
+          <p className="text-[#45C4B0] text-lg font-semibold">
             Produtos abaixo da média histórica. Atualizado em {today}
           </p>
         </header>
 
-        {/* HERO vindo da page (igual à principal) */}
+        {/* ================= HERO ================= */}
         <CategoryHeroHighlight product={heroProduct} />
 
-        {/* GRID usando enriched já tratado */}
-        <CategoryLowestGrid products={enriched} />
+        {/* ================= GRID ================= */}
+        <div className="mt-20">
+          <CategoryLowestGrid products={enriched} />
+        </div>
       </div>
 
-      {/* SCHEMAS */}
+      {/* ================= SCHEMAS ================= */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

@@ -3,74 +3,80 @@ type Props = {
 };
 
 export default function CategoryProductMetrics({ product }: Props) {
+  const formatCurrency = (value: number) =>
+    value.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+
   return (
     <>
-      <h3 className="text-lg font-semibold mb-3">{product.titulo}</h3>
+      {/* TÍTULO */}
+      <h3 className="text-xl font-semibold text-[#9AEBA3] mb-4 leading-snug">
+        {product.titulo}
+      </h3>
 
-      <p className="text-3xl font-bold text-gray-900 mb-6">
-        {product.currentPrice.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        })}
+      {/* PREÇO ATUAL */}
+      <p className="text-4xl font-extrabold text-[#F5F138] mb-8">
+        {formatCurrency(product.currentPrice)}
       </p>
 
-      <div className="grid grid-cols-2 gap-6 mb-6">
+      {/* MÉTRICAS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
         {/* MÉDIA HISTÓRICA */}
-        <div>
-          <p className="text-xs text-muted uppercase mb-1">Média histórica</p>
-          <p className="font-semibold text-lg">
-            {product.avgPrice.toLocaleString("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            })}
+        <div className="bg-[#0a154a] border border-[#45C4B0] rounded-xl p-5">
+          <p className="text-xs text-[#45C4B0] uppercase mb-2 tracking-wide">
+            Média histórica
           </p>
-          <p className="text-success font-bold">
+
+          <p className="font-semibold text-lg text-[#9AEBA3]">
+            {formatCurrency(product.avgPrice)}
+          </p>
+
+          <p
+            className={`font-bold text-base ${
+              product.priceDiffPercent > 0 ? "text-red-400" : "text-[#F5F138]"
+            }`}
+          >
+            {product.priceDiffPercent > 0 ? "+" : ""}
             {product.priceDiffPercent.toFixed(1)}% (
-            {(product.currentPrice - product.avgPrice).toLocaleString("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            })}
-            )
+            {formatCurrency(product.currentPrice - product.avgPrice)})
           </p>
         </div>
 
         {/* ÚLTIMO PREÇO */}
         {product.lastPrice !== null && (
-          <div>
-            <p className="text-xs text-muted uppercase mb-1">Último preço</p>
-            <p className="font-semibold text-lg">
-              {product.lastPrice.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })}
+          <div className="bg-[#0a154a] border border-[#45C4B0] rounded-xl p-5">
+            <p className="text-xs text-[#45C4B0] uppercase mb-2 tracking-wide">
+              Último preço
             </p>
+
+            <p className="font-semibold text-lg text-[#9AEBA3]">
+              {formatCurrency(product.lastPrice)}
+            </p>
+
             <p
-              className={`font-bold ${
-                product.variationVsLast > 0 ? "text-danger" : "text-success"
+              className={`font-bold text-base ${
+                product.variationVsLast > 0 ? "text-red-400" : "text-[#F5F138]"
               }`}
             >
               {product.variationVsLast > 0 ? "+" : ""}
               {product.variationVsLast.toFixed(1)}% (
-              {(product.currentPrice - product.lastPrice).toLocaleString(
-                "pt-BR",
-                {
-                  style: "currency",
-                  currency: "BRL",
-                },
-              )}
-              )
+              {formatCurrency(product.currentPrice - product.lastPrice)})
             </p>
           </div>
         )}
       </div>
 
       {/* HISTÓRICO TEXTO */}
-      <h4 className="text-base font-bold mb-2">Histórico de preço</h4>
+      <h4 className="text-lg font-bold text-[#9AEBA3] mb-3">
+        Histórico de preço
+      </h4>
 
       {product.variationVsLast !== null && (
         <p
-          className={`text-sm mb-6 font-medium ${
-            product.variationVsLast > 0 ? "text-danger" : "text-success"
+          className={`text-base font-semibold ${
+            product.variationVsLast > 0 ? "text-red-400" : "text-[#F5F138]"
           }`}
         >
           {product.variationVsLast > 0 ? "⬆" : "⬇"}{" "}

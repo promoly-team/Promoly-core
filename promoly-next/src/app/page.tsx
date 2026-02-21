@@ -121,30 +121,6 @@ export default async function HomePage() {
   const BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://promoly-core.vercel.app";
 
-  const itemListSchema = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: ranked.slice(0, 10).map((product, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      item: {
-        "@type": "Product",
-        name: product.titulo,
-        url: `${BASE_URL}/produto/${product.slug}-${product.produto_id}`,
-        image: product.imagem_url,
-        offers:
-          "preco_atual" in product && product.preco_atual != null
-            ? {
-                "@type": "Offer",
-                priceCurrency: "BRL",
-                price: product.preco_atual.toFixed(2),
-                availability: "https://schema.org/InStock",
-              }
-            : undefined,
-      },
-    })),
-  };
-
   const categories = [
     { label: "Eletrônicos", slug: "eletronicos" },
     { label: "Casa", slug: "casa" },
@@ -156,51 +132,25 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* 🔥 STRUCTURED DATA */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: "PromoLy",
-            url: BASE_URL,
-            description:
-              "Compare preços e acompanhe histórico real antes de comprar.",
-            potentialAction: {
-              "@type": "SearchAction",
-              target: `${BASE_URL}/ofertas?q={search_term_string}`,
-              "query-input": "required name=search_term_string",
-            },
-          }),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(itemListSchema),
-        }}
-      />
-
-      <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
+      <div className="bg-[#000D34] min-h-screen">
         <div className="max-w-7xl mx-auto px-6 py-16">
           {/* HERO */}
 
           <section className="text-center mb-20">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-[#9AEBA3] mb-6">
               Compare preços e encontre o{" "}
-              <span className="text-primary">menor valor</span> antes de comprar
+              <span className="text-[#F5F138]">menor valor</span> antes de
+              comprar
             </h1>
 
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg mb-8">
+            <p className="text-[#45C4B0] max-w-2xl mx-auto text-lg mb-8">
               Acompanhe o histórico real de preços e descubra quando um produto
               está abaixo da média histórica.
             </p>
 
             <Link
               href="/menor-preco-hoje"
-              className="inline-block bg-success hover:opacity-90 text-white font-semibold px-8 py-3 rounded-xl shadow-medium transition"
+              className="inline-block bg-[#45C4B0] hover:bg-[#9AEBA3] text-[#000D34] font-semibold px-8 py-3 rounded-xl shadow-medium transition"
             >
               🔥 Ver melhores ofertas
             </Link>
@@ -209,11 +159,11 @@ export default async function HomePage() {
           {/* TOP OPORTUNIDADES */}
 
           <section className="mb-24">
-            <h2 className="text-3xl font-bold text-gray-900 mb-10">
+            <h2 className="text-3xl font-bold text-[#9AEBA3] mb-10">
               🔥 Top oportunidades de hoje
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-8">
               {ranked.slice(0, 3).map((p) => (
                 <ProductCard key={`${p.produto_id}-top`} product={p} />
               ))}
@@ -223,7 +173,7 @@ export default async function HomePage() {
           {/* CATEGORIAS */}
 
           <section className="mb-24">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">
+            <h2 className="text-2xl font-bold text-[#9AEBA3] mb-8">
               Navegue por categorias
             </h2>
 
@@ -232,7 +182,7 @@ export default async function HomePage() {
                 <Link
                   key={cat.slug}
                   href={`/categoria/${cat.slug}`}
-                  className="px-6 py-2.5 bg-surface border border-gray-200 rounded-full text-sm font-medium text-gray-800 hover:bg-primary hover:text-white transition shadow-soft"
+                  className="px-6 py-2.5 bg-[#DAFDBA] text-[#000D34] rounded-full text-sm font-semibold hover:bg-[#45C4B0] transition shadow-soft"
                 >
                   {cat.label}
                 </Link>
@@ -243,18 +193,21 @@ export default async function HomePage() {
           {/* GRID */}
 
           <section>
-            <h2 className="text-3xl font-bold text-gray-900 mb-10">
+            <h2 className="text-3xl font-bold text-[#9AEBA3] mb-10">
               Ofertas em destaque
             </h2>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 lg:gap-8">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
               {ranked.map((p) => (
                 <ProductCard key={`${p.produto_id}-grid`} product={p} />
               ))}
             </div>
           </section>
-          <section className="mt-24 text-gray-600 max-w-3xl">
-            <h2 className="text-2xl font-bold mb-4">
+
+          {/* SEO TEXT */}
+
+          <section className="mt-24 text-[#45C4B0] max-w-3xl">
+            <h2 className="text-2xl font-bold mb-4 text-[#9AEBA3]">
               Como encontrar o menor preço online?
             </h2>
             <p>

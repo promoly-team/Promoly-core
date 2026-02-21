@@ -35,36 +35,37 @@ export default function ProductView({
   });
 
   return (
-    <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
+    <div className="bg-[#000D34] min-h-screen">
       <JsonLd data={productSchema} />
       <JsonLd data={faqSchema} />
       <JsonLd data={breadcrumbSchema} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-14 grid lg:grid-cols-[2fr_1fr] gap-8 lg:gap-14">
+      <div className="max-w-7xl mx-auto px-6 py-16 grid lg:grid-cols-[2fr_1fr] gap-12">
         {/* ================= CONTEÚDO PRINCIPAL ================= */}
-        <section className="space-y-8 sm:space-y-12">
-          {/* PRODUTO */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-soft border border-gray-200 p-4 sm:p-8">
+        <section className="space-y-14">
+          {/* ================= PRODUTO ================= */}
+          <div className="bg-[#0a154a] rounded-3xl border border-[#45C4B0] p-8 shadow-lg">
             <ProductDetails product={produto} />
           </div>
 
-          {/* ANÁLISE */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-soft border border-gray-200 p-4 sm:p-8">
+          {/* ================= ANÁLISE ================= */}
+          <div className="bg-[#0a154a] rounded-3xl border border-[#45C4B0] p-8 shadow-lg">
             <ProductPriceAnalysis analytics={analytics} decision={decision} />
           </div>
 
-          {/* INDICADORES */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-soft border border-gray-200 p-4 sm:p-8">
-            <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-900">
+          {/* ================= INDICADORES ================= */}
+          <div className="bg-[#0a154a] rounded-3xl border border-[#45C4B0] p-8 shadow-lg">
+            <h2 className="text-2xl font-bold mb-8 text-[#9AEBA3]">
               📊 Indicadores de preço
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-              <div className="bg-success/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-success/30">
-                <p className="text-xs sm:text-sm text-success font-medium mb-1 sm:mb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {/* MENOR PREÇO */}
+              <div className="bg-[#000D34] rounded-2xl p-6 border border-[#45C4B0]">
+                <p className="text-sm text-[#45C4B0] font-semibold mb-2">
                   Menor preço histórico
                 </p>
-                <p className="text-lg sm:text-2xl font-bold text-success">
+                <p className="text-2xl font-extrabold text-[#F5F138]">
                   {analytics.metrics.minPrice.toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
@@ -72,11 +73,12 @@ export default function ProductView({
                 </p>
               </div>
 
-              <div className="bg-danger/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-danger/30">
-                <p className="text-xs sm:text-sm text-danger font-medium mb-1 sm:mb-2">
+              {/* MAIOR PREÇO */}
+              <div className="bg-[#000D34] rounded-2xl p-6 border border-[#45C4B0]">
+                <p className="text-sm text-[#45C4B0] font-semibold mb-2">
                   Maior preço histórico
                 </p>
-                <p className="text-lg sm:text-2xl font-bold text-danger">
+                <p className="text-2xl font-extrabold text-[#9AEBA3]">
                   {analytics.metrics.maxPrice.toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
@@ -84,25 +86,20 @@ export default function ProductView({
                 </p>
               </div>
 
-              <div
-                className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 border ${decision.bg}`}
-              >
-                <p
-                  className={`text-xs sm:text-sm font-medium mb-1 sm:mb-2 ${decision.color}`}
-                >
+              {/* DECISÃO */}
+              <div className="bg-[#000D34] rounded-2xl p-6 border border-[#45C4B0]">
+                <p className="text-sm text-[#45C4B0] font-semibold mb-2">
                   Comparação com a média
                 </p>
-                <p
-                  className={`text-base sm:text-xl font-bold ${decision.color}`}
-                >
+                <p className="text-xl font-bold text-[#F5F138]">
                   {decision.title}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* HISTÓRICO */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-soft border border-gray-200 p-4 sm:p-8">
+          {/* ================= HISTÓRICO ================= */}
+          <div className="bg-[#0a154a] rounded-3xl border border-[#45C4B0] p-8 shadow-lg">
             <ProductHistory
               data={priceHistory}
               lowerDomain={analytics.metrics.lowerDomain}
@@ -113,8 +110,10 @@ export default function ProductView({
 
         {/* ================= SIDEBAR ================= */}
         <aside className="mt-12 lg:mt-0">
-          <div className="lg:sticky lg:top-28">
-            <SimilarProducts products={productData.similares} />
+          <div className="lg:sticky lg:top-28 space-y-8">
+            <div className="bg-[#0a154a] rounded-3xl border border-[#45C4B0] p-6 shadow-lg">
+              <SimilarProducts products={productData.similares} />
+            </div>
           </div>
         </aside>
       </div>

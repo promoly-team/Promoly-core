@@ -5,15 +5,16 @@ type Props = {
 
 export default function CategoryMoreLink({ slug, categoria }: Props) {
   return (
-    <div className="mt-8 text-left">
+    <div className="mt-10">
       <a
         href={`/categoria/${slug}/menor-preco`}
         className="
           inline-block
-          text-primary
+          text-[#DAFDBA]
           font-semibold
-          hover:underline
+          text-lg
           transition
+          hover:text-[#F5F138]
         "
       >
         Ver mais em {categoria} →
