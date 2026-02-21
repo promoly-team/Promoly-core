@@ -183,7 +183,7 @@ export default function ProductCard({ product, priority = false }: Props) {
 
         {/* BADGE OPORTUNIDADE */}
         {showOpportunity && (
-          <span className="absolute bottom- right-4 bg-[#45C4B0] text-[#000D34] text-xs font-extrabold px-3 py-1 rounded-full shadow-md">
+          <span className="absolute bottom-0 right-4 bg-[#45C4B0] text-[#000D34] text-xs font-extrabold px-3 py-1 rounded-full shadow-md">
             🔥 Oportunidade
           </span>
         )}
