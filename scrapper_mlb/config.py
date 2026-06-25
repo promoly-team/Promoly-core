@@ -10,136 +10,86 @@ HEADERS = {
     "Connection": "keep-alive",
     "Upgrade-Insecure-Requests": "1",
 }
-
-
 CATEGORIES = {
-    # =========================
-    # ELETRÔNICOS
-    # =========================
-    "eletronicos": [
-        "fone bluetooth",
-        "smartwatch",
-        "power bank",
-        "carregador usb c",
-        "caixa de som bluetooth",
-        "lâmpada smart",
-        "tomada inteligente",
-        "câmera wi-fi",
-        "repetidor wifi",
-        "mini projetor",
-        "hub usb",
-        "adaptador usb c",
-    ],
+    "informatica": {
+        "computadores": {
+            "notebook": {
+                "query": "notebook",
+                "min_price": 1500,
+                "max_price": 15000,
+                "max_pages": 1,
+            },
+            "ultrabook": {
+                "query": "ultrabook",
+                "min_price": 2500,
+                "max_price": 12000,
+                "max_pages": 1,
+            },
+            "macbook": {
+                "query": "macbook",
+                "min_price": 6000,
+                "max_price": 25000,
+                "max_pages": 1,
+            },
+            "desktop": {
+                "query": "desktop",
+                "min_price": 1200,
+                "max_price": 20000,
+                "max_pages": 1,
+            },
+        },
 
-    # =========================
-    # CASA
-    # =========================
-    "casa": [
-        "organizador multiuso",
-        "organizador de gaveta",
-        "porta temperos",
-        "prateleira decorativa",
-        "lixeira automática",
-        "tapete antiderrapante",
-        "escorredor de louça",
-        "organizador de geladeira",
-        "cortina blackout",
-        "iluminação led decorativa",
-    ],
+        "componentes": {
+            "processador": {
+                "query": "processador",
+                "min_price": 300,
+                "max_price": 10000,
+                "max_pages": 1,
+            },
+            "placa_de_video": {
+                "query": "placa de video",
+                "min_price": 800,
+                "max_price": 20000,
+                "max_pages": 1,
+            },
+            "ssd": {
+                "query": "ssd",
+                "min_price": 100,
+                "max_price": 5000,
+                "max_pages": 1,
+            },
+        },
+    },
 
-    # =========================
-    # PET
-    # =========================
-    "pet": [
-        "comedouro automático",
-        "bebedouro pet",
-        "fonte de água para gatos",
-        "arranhador para gato",
-        "brinquedo interativo pet",
-        "cama para cachorro",
-        "tapete higiênico pet",
-        "escova removedora de pelos",
-        "transportadora pet",
-    ],
+    "eletronicos": {
+        "smartphones": {
+            "smartphone_android": {
+                "query": "smartphone android",
+                "min_price": 500,
+                "max_price": 12000,
+                "max_pages": 1,
+            },
+            "iphone": {
+                "query": "iphone",
+                "min_price": 2000,
+                "max_price": 15000,
+                "max_pages": 1,
+            },
+        },
 
-    # =========================
-    # INFORMÁTICA
-    # =========================
-    "informatica": [
-        "mouse sem fio",
-        "teclado bluetooth",
-        "teclado mecânico",
-        "monitor",
-        "suporte para notebook",
-        "cooler para notebook",
-        "webcam",
-        "hub usb",
-        "mochila para notebook",
-    ],
-
-    # =========================
-    # GAMES
-    # =========================
-    "games": [
-        "controle xbox",
-        "controle ps4",
-        "controle ps5",
-        "headset gamer",
-        "mouse gamer",
-        "teclado gamer",
-        "cadeira gamer",
-        "suporte para controle",
-    ],
-
-    # =========================
-    # ILUMINAÇÃO
-    # =========================
-    "iluminacao": [
-        "lâmpada led",
-        "fita led rgb",
-        "luminária de mesa",
-        "luminária de chão",
-        "abajur",
-        "plafon led",
-        "luz noturna",
-    ],
-
-    # =========================
-    # LIMPEZA & ORGANIZAÇÃO
-    # =========================
-    "limpeza": [
-        "aspirador portátil",
-        "mop giratório",
-        "organizador multiuso",
-        "escova elétrica limpeza",
-        "dispenser automático",
-        "caixa organizadora",
-        "pano de microfibra",
-    ],
-
-    # =========================
-    # FITNESS & SAÚDE
-    # =========================
-    "fitness": [
-        "halter",
-        "kit elástico exercício",
-        "colchonete",
-        "balança digital",
-        "massageador elétrico",
-        "pistola massageadora",
-        "smartwatch fitness",
-    ],
-
-    # =========================
-    # AUTOMOTIVO
-    # =========================
-    "automotivo": [
-        "suporte celular carro",
-        "carregador veicular",
-        "aspirador automotivo",
-        "câmera veicular",
-        "organizador de porta malas",
-        "capa de banco",
-        "inflador portátil",
-    ],
+        "tv_video": {
+            "smart_tv": {
+                "query": "smart tv",
+                "min_price": 1200,
+                "max_price": 20000,
+                "max_pages": 1,
+            },
+            "projetor": {
+                "query": "projetor",
+                "min_price": 800,
+                "max_price": 15000,
+                "max_pages": 1,
+            },
+        },
+    },
 }
