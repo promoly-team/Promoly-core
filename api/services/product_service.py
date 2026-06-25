@@ -143,8 +143,6 @@ class ProductService:
             LIMIT :limit OFFSET :offset
         """
 
-        print(query)
-
         rows = self.db.execute(text(query), params).mappings().all()
 
         # -------------------------------------------------

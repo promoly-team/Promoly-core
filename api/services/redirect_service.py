@@ -18,9 +18,9 @@ class RedirectService:
     def process_redirect(
         self,
         produto_id: int,
-        twitter_post_id: int | None,
-        ip: str | None,
-        user_agent: str | None,
+        twitter_post_id: int | None = None,
+        ip: str | None = None,
+        user_agent: str | None = None,
     ) -> str:
 
         produto = self.produto_repo.get_by_ids([produto_id])

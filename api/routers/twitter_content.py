@@ -5,9 +5,15 @@ from api.services.twiiter_daily_post import generate_daily_tweets_job
 from api.deps import get_db
 from api.services.deal_service import DealService
 from api.services.twitter_content_service import TwitterContentService
+from api.core.security import require_api_key
 
 
-router = APIRouter(prefix="/twitter", tags=["twitter"])
+# Rotas que disparam geração de posts/escrita: exigem API key.
+router = APIRouter(
+    prefix="/twitter",
+    tags=["twitter"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 @router.get("/price-drop")

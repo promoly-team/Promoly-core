@@ -29,9 +29,16 @@ def soup(ml_html):
 
 @pytest.fixture(scope="session")
 def first_item(soup):
-    item = soup.select_one("li.ui-search-layout__item")
-    assert item is not None, "Nenhum item encontrado na página"
-    return item
+    # Os primeiros li costumam ser anúncios patrocinados (sem link de
+    # produto). O scraper real os ignora, então pegamos o primeiro item
+    # com link de produto válido — espelhando o comportamento de produção.
+    from scrapper_mlb.services.extractors.link import extract_link
+
+    for item in soup.select("li.ui-search-layout__item"):
+        if extract_link(item):
+            return item
+
+    pytest.fail("Nenhum item com link de produto encontrado na página")
 
 
 @pytest.fixture
