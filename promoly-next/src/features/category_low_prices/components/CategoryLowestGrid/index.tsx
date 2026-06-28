@@ -7,7 +7,7 @@ type Props = {
 export default function CategoryLowestGrid({ products }: Props) {
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-10">Todos abaixo da média</h2>
+      <h2 className="text-2xl font-bold mb-10 text-ink">Todos abaixo da média</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {products.map((p) => (

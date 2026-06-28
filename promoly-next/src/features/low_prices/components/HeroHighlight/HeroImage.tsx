@@ -6,7 +6,7 @@ type Props = {
 
 export default function HeroImage({ product }: Props) {
   return (
-    <div className="w-full flex justify-center">
+    <div className="w-full flex justify-center bg-white rounded-2xl p-6">
       <Image
         src={product.imagem_url ?? "/placeholder.png"}
         alt={product.titulo}

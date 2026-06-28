@@ -7,15 +7,15 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://promoly-core.vercel.app";
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  if (!params?.slug) {
+  const { slug } = await params;
+
+  if (!slug) {
     return {};
   }
-
-  const slug = params.slug;
 
   const id = Number(slug.split("-").pop());
 
@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const { slug } = params;
+  const { slug } = await params;
 
   const id = Number(slug.split("-").pop());
 

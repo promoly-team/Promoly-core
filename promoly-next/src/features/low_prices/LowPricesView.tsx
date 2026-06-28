@@ -33,34 +33,32 @@ export default function LowPriceView({
   );
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-base min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-14">
         {/* ================= HEADER ================= */}
-        <header className="mb-20">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold leading-tight mb-3">
+        <header className="mb-12 sm:mb-16">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold leading-tight mb-3 text-ink">
             🔥 Radar de Oportunidades – Produtos abaixo da média histórica
           </h1>
-          <p className="text-gray-500 text-lg">Atualizado em {today}</p>
+          <p className="text-ink-muted text-lg">Atualizado em {today}</p>
         </header>
 
         {/* ================= HERO GLOBAL ================= */}
-        <section className="mb-24">
-          <div className="bg-white rounded-2xl shadow border border-gray-200 p-4 sm:p-10">
-            <Highlight product={heroProduct} />
-          </div>
+        <section className="mb-16 sm:mb-20">
+          <Highlight product={heroProduct} />
         </section>
 
         {/* ================= EXPLICAÇÃO SEO ================= */}
-        <section className="max-w-3xl mx-auto mb-24">
-          <div className="bg-white rounded-2xl shadow-soft border border-gray-200 p-10 text-center">
+        <section className="max-w-3xl mx-auto mb-16 sm:mb-24">
+          <div className="bg-panel rounded-2xl shadow-elevated border border-line p-8 sm:p-10 text-center">
             <div className="flex items-center justify-center gap-3 mb-6">
               <span className="text-2xl bg-primary/10 rounded-lg p-2">💡</span>
-              <h2 className="text-2xl md:text-3xl font-bold">
+              <h2 className="text-2xl md:text-3xl font-bold text-ink">
                 Como identificamos o menor preço?
               </h2>
             </div>
 
-            <p className="text-gray-700 text-lg mb-4">
+            <p className="text-ink-muted text-lg mb-4">
               Monitoramos automaticamente o histórico de{" "}
               <span className="font-semibold text-primary">
                 milhares de produtos
@@ -72,11 +70,11 @@ export default function LowPriceView({
               .
             </p>
 
-            <p className="text-gray-600 mb-2">
+            <p className="text-ink-muted mb-2">
               Aqui você vê quedas reais, não promoções artificiais.
             </p>
 
-            <p className="text-gray-500 text-sm">
+            <p className="text-ink-faint text-sm">
               Atualização várias vezes ao dia para garantir oportunidades reais.
             </p>
           </div>

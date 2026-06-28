@@ -35,23 +35,25 @@ export default function ProductPriceAnalysis({ analytics, decision }: Props) {
   const diff = metrics.priceDiffPercent;
 
   return (
-    <div className="bg-white rounded-3xl shadow-soft border border-gray-200 p-10">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900">
+    <div>
+      <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-ink">
         💡 Análise inteligente de preço
       </h2>
 
-      <p className="text-4xl font-bold text-gray-900 mb-6">
+      <p className="text-3xl sm:text-4xl font-extrabold text-ink mb-6">
         {metrics.currentPrice.toLocaleString("pt-BR", {
           style: "currency",
           currency: "BRL",
         })}
       </p>
 
-      <div className="grid sm:grid-cols-2 gap-8 mb-8">
+      <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* MÉDIA HISTÓRICA */}
-        <div className="bg-surface-subtle rounded-2xl p-6 border border-gray-200">
-          <p className="text-xs uppercase text-muted mb-2">Média histórica</p>
-          <p className="font-semibold text-lg">
+        <div className="bg-panel-subtle rounded-2xl p-5 sm:p-6 border border-line">
+          <p className="text-xs uppercase tracking-wide text-ink-faint mb-2">
+            Média histórica
+          </p>
+          <p className="font-semibold text-lg text-ink">
             {metrics.avgPrice.toLocaleString("pt-BR", {
               style: "currency",
               currency: "BRL",
@@ -69,11 +71,11 @@ export default function ProductPriceAnalysis({ analytics, decision }: Props) {
 
         {/* ÚLTIMO PREÇO */}
         {lastPrice && (
-          <div className="bg-surface-subtle rounded-2xl p-6 border border-gray-200">
-            <p className="text-xs uppercase text-muted mb-2">
+          <div className="bg-panel-subtle rounded-2xl p-5 sm:p-6 border border-line">
+            <p className="text-xs uppercase tracking-wide text-ink-faint mb-2">
               Último preço registrado
             </p>
-            <p className="font-semibold text-lg">
+            <p className="font-semibold text-lg text-ink">
               {lastPrice.toLocaleString("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -96,15 +98,15 @@ export default function ProductPriceAnalysis({ analytics, decision }: Props) {
         )}
       </div>
 
-      <div className={`rounded-2xl p-6 border ${decision.bg}`}>
+      <div className={`rounded-2xl p-5 sm:p-6 border ${decision.bg}`}>
         <p className={`text-lg font-bold ${decision.color}`}>
           {decision.icon} {decision.title}
         </p>
 
-        <p className="text-sm mt-3 text-gray-700">{decision.description}</p>
+        <p className="text-sm mt-3 text-ink-muted">{decision.description}</p>
 
         {variationVsLast > 0 && diff < 0 && (
-          <p className="text-sm mt-3 font-medium text-gray-800">
+          <p className="text-sm mt-3 font-medium text-ink">
             📈 O preço subiu recentemente, mas ainda permanece abaixo da média
             histórica.
           </p>

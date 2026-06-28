@@ -9,12 +9,12 @@ type Props = {
 
 export default function HeroHighlight({ product }: Props) {
   return (
-    <section className="bg-white rounded-2xl p-10 shadow border mb-20">
-      <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
+    <section className="bg-panel rounded-2xl p-4 sm:p-10 shadow-elevated border border-line">
+      <h2 className="text-2xl font-bold mb-8 flex items-center gap-2 text-ink">
         🏆 Maior Queda do Dia
       </h2>
 
-      <div className="grid md:grid-cols-2 gap-12">
+      <div className="grid md:grid-cols-2 gap-8 md:gap-12">
         <HeroImage product={product} />
 
         <div>

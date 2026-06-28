@@ -25,16 +25,15 @@ export default function CategoryLowestPriceView({
   });
 
   const today = new Date().toLocaleDateString("pt-BR");
-  console.log(enriched[0]);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-6 py-14">
-        <header className="mb-16">
-          <h1 className="text-4xl font-bold mb-4">
+    <div className="bg-base min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+        <header className="mb-12 sm:mb-16">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-ink">
             🔥 Menor preço em {categoriaNome} hoje
           </h1>
-          <p className="text-gray-500">
+          <p className="text-ink-muted">
             Produtos abaixo da média histórica. Atualizado em {today}
           </p>
         </header>

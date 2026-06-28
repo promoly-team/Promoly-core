@@ -5,9 +5,9 @@ type Props = {
 export default function CategoryProductMetrics({ product }: Props) {
   return (
     <>
-      <h3 className="text-lg font-semibold mb-3">{product.titulo}</h3>
+      <h3 className="text-lg font-semibold mb-3 text-ink">{product.titulo}</h3>
 
-      <p className="text-3xl font-bold text-gray-900 mb-6">
+      <p className="text-3xl font-extrabold text-success mb-6">
         {product.currentPrice.toLocaleString("pt-BR", {
           style: "currency",
           currency: "BRL",
@@ -17,8 +17,8 @@ export default function CategoryProductMetrics({ product }: Props) {
       <div className="grid grid-cols-2 gap-6 mb-6">
         {/* MÉDIA HISTÓRICA */}
         <div>
-          <p className="text-xs text-muted uppercase mb-1">Média histórica</p>
-          <p className="font-semibold text-lg">
+          <p className="text-xs text-ink-faint uppercase mb-1">Média histórica</p>
+          <p className="font-semibold text-lg text-ink">
             {product.avgPrice.toLocaleString("pt-BR", {
               style: "currency",
               currency: "BRL",
@@ -37,8 +37,8 @@ export default function CategoryProductMetrics({ product }: Props) {
         {/* ÚLTIMO PREÇO */}
         {product.lastPrice !== null && (
           <div>
-            <p className="text-xs text-muted uppercase mb-1">Último preço</p>
-            <p className="font-semibold text-lg">
+            <p className="text-xs text-ink-faint uppercase mb-1">Último preço</p>
+            <p className="font-semibold text-lg text-ink">
               {product.lastPrice.toLocaleString("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -65,7 +65,7 @@ export default function CategoryProductMetrics({ product }: Props) {
       </div>
 
       {/* HISTÓRICO TEXTO */}
-      <h4 className="text-base font-bold mb-2">Histórico de preço</h4>
+      <h4 className="text-base font-bold mb-2 text-ink">Histórico de preço</h4>
 
       {product.variationVsLast !== null && (
         <p
