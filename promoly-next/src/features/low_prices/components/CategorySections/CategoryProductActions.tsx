@@ -9,9 +9,10 @@ export default function CategoryProductActions({ product }: Props) {
         href={`/produto/${product.slug}-${product.produto_id}`}
         className="
           flex-1
-          bg-surface-subtle
-          hover:bg-gray-200
-          text-gray-800
+          bg-panel-subtle
+          hover:bg-line
+          text-ink-muted hover:text-ink
+          border border-line
           py-3
           rounded-xl
           text-center

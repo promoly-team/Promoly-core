@@ -126,7 +126,7 @@ export default async function CategoryPage(props: {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-base min-h-screen">
 
       {/* 🔥 STRUCTURED DATA */}
       <script
@@ -147,11 +147,11 @@ export default async function CategoryPage(props: {
 
         {/* HEADER */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 capitalize">
+          <h1 className="text-3xl font-bold text-ink capitalize">
             {slug}
           </h1>
 
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-ink-muted mt-1">
             {total} produtos encontrados
           </p>
         </div>
@@ -161,7 +161,7 @@ export default async function CategoryPage(props: {
 
         {/* GRID */}
         {products.length === 0 ? (
-          <p className="text-gray-500 mt-6">
+          <p className="text-ink-muted mt-6">
             Nenhum produto encontrado
           </p>
         ) : (
@@ -195,8 +195,8 @@ export default async function CategoryPage(props: {
                   }}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
                     isActive
-                      ? "bg-[#2563eb] text-white"
-                      : "bg-white text-gray-800 border border-gray-300 hover:bg-[#22c177] hover:text-white"
+                      ? "bg-primary text-white"
+                      : "bg-panel text-ink-muted border border-line hover:bg-success hover:text-[#052e16] hover:border-success"
                   }`}
                 >
                   {pageNumber}

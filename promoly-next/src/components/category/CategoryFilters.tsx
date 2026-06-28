@@ -42,15 +42,15 @@ export default function CategoryFilters() {
         className="
           w-full sm:w-64
           px-4 py-3
-          bg-white
-          border border-gray-200
+          bg-panel
+          border border-line
           rounded-xl
-          shadow-sm
-          text-[#2563eb]
-          placeholder:text-blue-400
+          text-ink
+          placeholder:text-ink-faint
           focus:outline-none
           focus:ring-2
-          focus:ring-[#2563eb]
+          focus:ring-primary
+          focus:border-primary
           transition
         "
       />
@@ -63,14 +63,14 @@ export default function CategoryFilters() {
         }
         className="
           px-4 py-3
-          bg-white
-          border border-gray-200
+          bg-panel
+          border border-line
           rounded-xl
-          shadow-sm
-          text-[#2563eb]
+          text-ink
           focus:outline-none
           focus:ring-2
-          focus:ring-[#2563eb]
+          focus:ring-primary
+          focus:border-primary
           transition
         "
       >

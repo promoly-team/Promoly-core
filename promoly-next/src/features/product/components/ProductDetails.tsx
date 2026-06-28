@@ -17,7 +17,7 @@ export default function ProductDetails({ product }: Props) {
   return (
     <div className="grid md:grid-cols-2 gap-8 items-start">
       {/* IMAGEM */}
-      <div className="bg-surface-subtle rounded-3xl p-6 flex items-center justify-center">
+      <div className="bg-white rounded-3xl p-6 flex items-center justify-center">
         <Image
           src={product.imagem_url ?? "/placeholder.png"}
           alt={`Imagem do produto ${product.titulo}`}
@@ -30,12 +30,12 @@ export default function ProductDetails({ product }: Props) {
 
       {/* INFORMAÇÕES */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 leading-snug">
+        <h1 className="text-2xl font-bold text-ink leading-snug">
           {product.titulo}
         </h1>
 
         {product.preco !== null && (
-          <div className="text-3xl font-bold text-primary">
+          <div className="text-3xl font-extrabold text-success">
             {product.preco.toLocaleString("pt-BR", {
               style: "currency",
               currency: "BRL",
@@ -44,7 +44,7 @@ export default function ProductDetails({ product }: Props) {
         )}
 
         {product.descricao && (
-          <p className="text-gray-700 text-sm leading-relaxed">
+          <p className="text-ink-muted text-sm leading-relaxed">
             {product.descricao}
           </p>
         )}
@@ -64,7 +64,6 @@ export default function ProductDetails({ product }: Props) {
                 py-2.5
                 rounded-xl2
                 transition
-                shadow-soft
               "
             >
               Comprar pelo menor preço
@@ -74,14 +73,14 @@ export default function ProductDetails({ product }: Props) {
           <button
             onClick={handleCopyLink}
             className="
-              bg-surface-subtle
-              text-gray-800
-              hover:bg-gray-200
+              bg-panel-subtle
+              text-ink-muted
+              hover:text-ink hover:bg-line
               px-5
               py-2.5
               rounded-xl2
               transition
-              shadow-soft
+              border border-line
             "
           >
             Copiar link

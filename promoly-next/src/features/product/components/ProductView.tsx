@@ -35,27 +35,27 @@ export default function ProductView({
   });
 
   return (
-    <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
+    <div className="bg-base min-h-screen">
       <JsonLd data={productSchema} />
       <JsonLd data={faqSchema} />
       <JsonLd data={breadcrumbSchema} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-14 grid lg:grid-cols-[2fr_1fr] gap-8 lg:gap-14">
         {/* ================= CONTEÚDO PRINCIPAL ================= */}
-        <section className="space-y-8 sm:space-y-12">
+        <section className="space-y-6 sm:space-y-8">
           {/* PRODUTO */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-soft border border-gray-200 p-4 sm:p-8">
+          <div className="bg-panel rounded-2xl sm:rounded-3xl shadow-elevated border border-line p-4 sm:p-8">
             <ProductDetails product={produto} />
           </div>
 
           {/* ANÁLISE */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-soft border border-gray-200 p-4 sm:p-8">
+          <div className="bg-panel rounded-2xl sm:rounded-3xl shadow-elevated border border-line p-4 sm:p-8">
             <ProductPriceAnalysis analytics={analytics} decision={decision} />
           </div>
 
           {/* INDICADORES */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-soft border border-gray-200 p-4 sm:p-8">
-            <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-900">
+          <div className="bg-panel rounded-2xl sm:rounded-3xl shadow-elevated border border-line p-4 sm:p-8">
+            <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-ink">
               📊 Indicadores de preço
             </h2>
 
@@ -102,7 +102,7 @@ export default function ProductView({
           </div>
 
           {/* HISTÓRICO */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-soft border border-gray-200 p-4 sm:p-8">
+          <div className="bg-panel rounded-2xl sm:rounded-3xl shadow-elevated border border-line p-4 sm:p-8">
             <ProductHistory
               data={priceHistory}
               lowerDomain={analytics.metrics.lowerDomain}
