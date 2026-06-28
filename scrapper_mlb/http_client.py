@@ -4,6 +4,7 @@ from pathlib import Path
 
 import requests
 
+from scrapper_mlb.block_detection import is_blocked
 from scrapper_mlb.config import HEADERS
 
 
@@ -54,21 +55,6 @@ backoff = BackoffController()
 # 🔥 Sessão persistente
 session = requests.Session()
 session.headers.update(HEADERS)
-
-
-def is_blocked(html: str) -> bool:
-    html_lower = html.lower()
-
-    block_markers = [
-        "captcha",
-        "verify you are human",
-        "access denied",
-        "unusual traffic",
-        "suspicious_traffic",
-        "account-verification",
-    ]
-
-    return any(marker in html_lower for marker in block_markers)
 
 
 def fetch_html(url: str) -> str:
