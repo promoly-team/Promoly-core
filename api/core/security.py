@@ -68,3 +68,10 @@ def rate_limit_redirect(request: Request) -> None:
             )
 
         bucket.append(now)
+
+        # Remove IPs ociosos pra _hits não crescer indefinidamente: qualquer
+        # bucket cujo hit mais recente já saiu da janela não volta a ser podado
+        # (a poda acima só roda pro IP da requisição atual), então limpa aqui.
+        cutoff = now - window
+        for stale_ip in [k for k, b in _hits.items() if not b or b[-1] <= cutoff]:
+            del _hits[stale_ip]

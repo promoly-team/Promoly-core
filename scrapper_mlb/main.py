@@ -67,6 +67,7 @@ def main():
                         link_repo = LinkAfiliadoRepository(conn=conn)
                         preco_repo = ProdutoPrecoRepository(conn=conn)
 
+                        batch_total = 0
                         for p in produtos:
 
                             produto_db = produto_repo.get_by_external_id(
@@ -89,10 +90,9 @@ def main():
                                     "link_original": p.link,
                                     "status": "novo",
                                     "card_hash": p.card_hash,
-                                    "source_term": termo_slug,  # 🔥 opcional (se criar coluna)
                                 })
 
-                            status = "ativo" if p.preco else "fora_de_estoque"
+                            status = "ativo" if p.preco is not None else "fora_de_estoque"
                             produto_repo.update_status(produto_id, status)
 
                             produto_repo.link_categoria(produto_id, categoria["id"])
@@ -103,14 +103,16 @@ def main():
                                 url_original=p.link,
                             )
 
-                            if p.preco:
+                            if p.preco is not None:
                                 ultimo = preco_repo.get_last_price(produto_id)
                                 if ultimo is None or float(ultimo) != float(p.preco):
                                     preco_repo.insert(produto_id, p.preco)
 
-                            total += 1
+                            batch_total += 1
 
                         conn.commit()  # 🔥 Commit por termo (muito mais rápido)
+                        # Só soma ao total depois que o commit confirmou o lote.
+                        total += batch_total
 
                     except Exception as e:
                         conn.rollback()

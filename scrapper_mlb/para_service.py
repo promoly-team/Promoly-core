@@ -6,7 +6,6 @@ from database.repositories.produto_preco_repository import ProdutoPrecoRepositor
 from database.repositories.produto_repository import ProdutoRepository
 from scrapper_mlb.config import CATEGORIES
 from scrapper_mlb.services.product_service import collect_products_by_query
-from scrapper_mlb.pricing.service import resolve_price_range
 
 
 def chunk_list(lst, n):
@@ -31,7 +30,7 @@ def run_scraper_for_categories(category_slugs):
             plataforma = plataforma_repo.get_by_slug("mercado_livre")
 
         for categoria_slug in category_slugs:
-            queries = CATEGORIES[categoria_slug]
+            subcats = CATEGORIES[categoria_slug]
 
             with engine.connect() as conn_categoria:
                 categoria_repo = CategoriaRepository(conn=conn_categoria)
@@ -39,70 +38,83 @@ def run_scraper_for_categories(category_slugs):
 
             print(f"\n📦 Categoria: {categoria['nome']}")
 
-            for query in queries:
-                print(f"🔍 Buscando: {query}")
+            for subcat_slug, termos in subcats.items():
+                print(f"  📂 Subcategoria: {subcat_slug}")
 
-                min_price, max_price = resolve_price_range(categoria_slug, query)
-                price_filter = f"{min_price}-{max_price}"
+                for termo_slug, config in termos.items():
+                    query = config["query"]
+                    min_price = config["min_price"]
+                    max_price = config["max_price"]
+                    max_pages = config.get("max_pages", 1)
 
-                produtos = collect_products_by_query(
-                    query=query,
-                    max_pages=1,
-                    filters={"PriceRange": price_filter},
-                )
+                    print(f"    🔍 Buscando: {query}")
 
-                # 🔥 Uma única conexão por lote
-                with engine.connect() as conn:
-                    try:
-                        produto_repo = ProdutoRepository(conn=conn)
-                        link_repo = LinkAfiliadoRepository(conn=conn)
-                        preco_repo = ProdutoPrecoRepository(conn=conn)
+                    price_filter = f"{min_price}-{max_price}"
 
-                        for p in produtos:
-                            produto_db = produto_repo.get_by_external_id(
-                                external_id=p.id_produto,
-                                plataforma_id=plataforma["id"],
-                            )
+                    produtos = collect_products_by_query(
+                        query=query,
+                        max_pages=max_pages,
+                        filters={"PriceRange": price_filter},
+                    )
 
-                            if produto_db and produto_db["card_hash"] == p.card_hash:
-                                produto_id = produto_db["id"]
-                            else:
-                                produto_id = produto_repo.upsert({
-                                    "external_id": p.id_produto,
-                                    "plataforma_id": plataforma["id"],
-                                    "titulo": p.descricao,
-                                    "descricao": None,
-                                    "preco": p.preco,
-                                    "avaliacao": p.avaliacao,
-                                    "vendas": p.buyers,
-                                    "imagem_url": p.imagem_url,
-                                    "link_original": p.link,
-                                    "status": "novo",
-                                    "card_hash": p.card_hash,
-                                })
+                    if not produtos:
+                        continue
 
-                            status = "ativo" if p.preco is not None else "fora_de_estoque"
-                            produto_repo.update_status(produto_id, status)
-                            produto_repo.link_categoria(produto_id, categoria["id"])
+                    # 🔥 Uma única conexão por lote
+                    with engine.connect() as conn:
+                        try:
+                            produto_repo = ProdutoRepository(conn=conn)
+                            link_repo = LinkAfiliadoRepository(conn=conn)
+                            preco_repo = ProdutoPrecoRepository(conn=conn)
 
-                            link_repo.create_or_get(
-                                produto_id=produto_id,
-                                plataforma_id=plataforma["id"],
-                                url_original=p.link,
-                            )
+                            batch_total = 0
+                            for p in produtos:
+                                produto_db = produto_repo.get_by_external_id(
+                                    external_id=p.id_produto,
+                                    plataforma_id=plataforma["id"],
+                                )
 
-                            if p.preco is not None:
-                                ultimo = preco_repo.get_last_price(produto_id)
-                                if ultimo is None or float(ultimo) != float(p.preco):
-                                    preco_repo.insert(produto_id, p.preco)
+                                if produto_db and produto_db["card_hash"] == p.card_hash:
+                                    produto_id = produto_db["id"]
+                                else:
+                                    produto_id = produto_repo.upsert({
+                                        "external_id": p.id_produto,
+                                        "plataforma_id": plataforma["id"],
+                                        "titulo": p.descricao,
+                                        "descricao": None,
+                                        "preco": p.preco,
+                                        "avaliacao": p.avaliacao,
+                                        "vendas": p.buyers,
+                                        "imagem_url": p.imagem_url,
+                                        "link_original": p.link,
+                                        "status": "novo",
+                                        "card_hash": p.card_hash,
+                                    })
 
-                            total += 1
+                                status = "ativo" if p.preco is not None else "fora_de_estoque"
+                                produto_repo.update_status(produto_id, status)
+                                produto_repo.link_categoria(produto_id, categoria["id"])
 
-                        conn.commit()
+                                link_repo.create_or_get(
+                                    produto_id=produto_id,
+                                    plataforma_id=plataforma["id"],
+                                    url_original=p.link,
+                                )
 
-                    except Exception as e:
-                        conn.rollback()
-                        print("⚠️ Erro:", e)
+                                if p.preco is not None:
+                                    ultimo = preco_repo.get_last_price(produto_id)
+                                    if ultimo is None or float(ultimo) != float(p.preco):
+                                        preco_repo.insert(produto_id, p.preco)
+
+                                batch_total += 1
+
+                            conn.commit()
+                            # Só conta o lote depois do commit confirmar.
+                            total += batch_total
+
+                        except Exception as e:
+                            conn.rollback()
+                            print("⚠️ Erro:", e)
 
         print(f"✅ Processo finalizado {category_slugs} | Total: {total}")
 

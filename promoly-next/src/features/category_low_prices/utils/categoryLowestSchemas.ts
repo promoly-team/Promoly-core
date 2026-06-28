@@ -1,3 +1,5 @@
+import type { CategoryProduct } from "../types";
+
 export function buildCategoryLowestSchemas({
   baseUrl,
   slug,
@@ -7,7 +9,7 @@ export function buildCategoryLowestSchemas({
   baseUrl: string;
   slug: string;
   categoriaNome: string;
-  products: any[];
+  products: CategoryProduct[];
 }) {
   const breadcrumbSchema = {
     "@context": "https://schema.org",
