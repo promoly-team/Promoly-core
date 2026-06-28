@@ -1,4 +1,6 @@
-export function normalizeCategoryProduct(p: any) {
+import type { CategoryProduct } from "../types";
+
+export function normalizeCategoryProduct(p: CategoryProduct) {
   return {
     produto_id: p.produto_id,
     slug: p.slug,
@@ -16,7 +18,7 @@ export function normalizeCategoryProduct(p: any) {
 
     history: p.history ?? [],
     // 👇 domínio pro gráfico
-    lowerDomain: p.min_price * 0.9,
-    upperDomain: p.max_price * 1.1,
+    lowerDomain: (p.min_price ?? 0) * 0.9,
+    upperDomain: (p.max_price ?? 0) * 1.1,
   };
 }

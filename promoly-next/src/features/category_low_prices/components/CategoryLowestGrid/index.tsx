@@ -1,7 +1,8 @@
 import ProductCard from "@/components/ProductCard";
+import type { CategoryProduct } from "../../types";
 
 type Props = {
-  products: any[];
+  products: CategoryProduct[];
 };
 
 export default function CategoryLowestGrid({ products }: Props) {

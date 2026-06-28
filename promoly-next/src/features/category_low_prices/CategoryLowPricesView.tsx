@@ -1,11 +1,12 @@
 import CategoryHeroHighlight from "./components/CategoryHeroHighlight";
 import CategoryLowestGrid from "./components/CategoryLowestGrid";
 import { buildCategoryLowestSchemas } from "./utils/categoryLowestSchemas";
+import type { CategoryProduct } from "./types";
 
 type Props = {
   slug: string;
-  enriched: any[];
-  heroProduct: any;
+  enriched: CategoryProduct[];
+  heroProduct: CategoryProduct;
   baseUrl: string;
 };
 

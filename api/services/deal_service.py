@@ -45,7 +45,7 @@ class DealService:
                 AND p.id NOT IN (
                     SELECT produto_id
                     FROM twitter_posts
-                    WHERE created_at > NOW() - INTERVAL :days
+                    WHERE created_at > NOW() - make_interval(days => :days)
                 )
             """
 
@@ -123,7 +123,7 @@ class DealService:
         }
 
         if exclude_recent_days:
-            params["days"] = f"'{exclude_recent_days} days'"
+            params["days"] = exclude_recent_days
 
         result = self.db.execute(text(query), params)
 

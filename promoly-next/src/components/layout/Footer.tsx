@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300 mt-24">
@@ -21,25 +23,25 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a
+              <Link
                 href="/categoria/eletronicos"
                 className="hover:text-white transition"
               >
                 Eletrônicos
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="/categoria/games"
                 className="hover:text-white transition"
               >
                 Games
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/categoria/casa" className="hover:text-white transition">
+              <Link href="/categoria/casa" className="hover:text-white transition">
                 Casa
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

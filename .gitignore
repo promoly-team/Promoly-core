@@ -40,6 +40,9 @@ media/
 # Pytest / coverage
 .pytest_cache/
 cover/
+.coverage
+coverage.xml
+htmlcov/
 
 # Translations
 *.mo
@@ -230,3 +233,7 @@ docker.log
 # Arquivos de configuração locais
 Dockerfile.local
 docker-compose.local.yml
+# Artefatos do scraper e dados locais
+data/
+*_debug.html
+scraper_execution.log
