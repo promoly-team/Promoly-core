@@ -39,31 +39,40 @@ export default function ProductHistory({
 
   if (previousPrice && lastPrice) {
     variationPercent = ((lastPrice - previousPrice) / previousPrice) * 100;
+
     variationValue = lastPrice - previousPrice;
 
     if (variationPercent > 0.2) trend = "alta";
     else if (variationPercent < -0.2) trend = "queda";
   }
 
-  const trendTextColor =
+  const trendColor =
     trend === "queda"
-      ? "text-[#F5F138]"
+      ? "text-success"
       : trend === "alta"
-        ? "text-red-400"
-        : "text-[#45C4B0]";
+        ? "text-danger"
+        : "text-ink-muted";
+
+  const chartColor =
+    trend === "queda" ? "#22c55e" : trend === "alta" ? "#ef4444" : "#94a3b8";
+
+  const gradientId = `priceGradient-${trend}`;
 
   return (
     <motion.div
-      className="mt-10 sm:mt-16"
+      className="mt-8 sm:mt-16"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       viewport={{ once: true }}
     >
-      <h2 className="text-xl sm:text-3xl font-bold text-[#9AEBA3] mb-3">
+      <h2 className="text-lg sm:text-2xl font-bold text-ink mb-2 sm:mb-4">
         Histórico de preço
       </h2>
-      <p className={`text-sm sm:text-lg font-semibold mb-6 ${trendTextColor}`}>
+
+      <p
+        className={`text-sm sm:text-lg font-semibold mb-4 sm:mb-6 ${trendColor}`}
+      >
         {trend === "queda" && "⬇ "}
         {trend === "alta" && "⬆ "}
         {trend === "estabilidade" && "➖ "}
@@ -79,15 +88,19 @@ export default function ProductHistory({
            },
          )}) vs último registro`}
       </p>
-      <div className="bg-[#0b154a] border border-[#45C4B0] rounded-2xl p-3 sm:p-6 lg:p-8 shadow-lg">
-        <div className="w-full h-64 sm:h-80 lg:h-96 xl:h-[440px]">
+
+      <div className="bg-panel-subtle border border-line rounded-2xl p-3 sm:p-6 lg:p-8">
+        <div className="w-full h-48 sm:h-64 lg:h-80 xl:h-[420px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#45C4B0"
-                opacity={0.12}
-              />
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={chartColor} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={chartColor} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f2a3d" vertical={false} />
 
               <XAxis
                 dataKey="data"
@@ -97,17 +110,13 @@ export default function ProductHistory({
                     month: "2-digit",
                   })
                 }
-                tick={{
-                  fill: "#45C4B0",
-                  fontSize: 11, // menor no mobile
-                  fontWeight: 600,
-                }}
-                minTickGap={15}
-                stroke="#45C4B0"
+                tick={{ fontSize: 10, fill: "#94a3b8" }}
+                axisLine={{ stroke: "#1f2a3d" }}
+                tickLine={false}
+                minTickGap={25}
               />
-
               <YAxis
-                width={70} // menos espaço lateral
+                width={80}
                 domain={[lowerDomain, upperDomain]}
                 tickFormatter={(value: number) =>
                   value.toLocaleString("pt-BR", {
@@ -116,22 +125,22 @@ export default function ProductHistory({
                     maximumFractionDigits: 0,
                   })
                 }
-                tick={{
-                  fill: "#45C4B0",
-                  fontSize: 11,
-                  fontWeight: 600,
-                }}
-                stroke="#45C4B0"
+                tick={{ fontSize: 12, fill: "#94a3b8" }}
+                axisLine={false}
+                tickLine={false}
               />
 
               <Tooltip
+                cursor={{ stroke: chartColor, strokeWidth: 1, strokeDasharray: "4 4" }}
                 contentStyle={{
-                  backgroundColor: "#000D34",
-                  border: "1px solid #45C4B0",
-                  borderRadius: "12px",
-                  color: "#9AEBA3",
-                  fontSize: "12px", // menor no mobile
+                  background: "#161d2e",
+                  border: "1px solid #1f2a3d",
+                  borderRadius: "0.75rem",
+                  color: "#f1f5f9",
+                  boxShadow: "0 10px 40px rgba(0,0,0,0.45)",
                 }}
+                labelStyle={{ color: "#94a3b8", marginBottom: 4 }}
+                itemStyle={{ color: "#f1f5f9" }}
                 formatter={(value: number | undefined) =>
                   value != null
                     ? value.toLocaleString("pt-BR", {
@@ -143,6 +152,7 @@ export default function ProductHistory({
                 labelFormatter={(label) => {
                   const date =
                     typeof label === "number" ? label : Number(label);
+
                   if (isNaN(date)) return "";
                   return new Date(date).toLocaleDateString("pt-BR");
                 }}
@@ -152,32 +162,21 @@ export default function ProductHistory({
                 type="stepAfter"
                 dataKey="preco"
                 stroke="none"
-                fill="#F5F138"
-                fillOpacity={0.06}
+                fill={`url(#${gradientId})`}
               />
 
               <Line
                 type="stepAfter"
                 dataKey="preco"
-                stroke="#F5F138"
+                stroke={chartColor}
                 strokeWidth={2.5}
-                dot={{
-                  r: 3.5, // tamanho base visível
-                  fill: "#F5F138",
-                  stroke: "#000D34", // cria contraste
-                  strokeWidth: 1.5,
-                }}
-                activeDot={{
-                  r: 6,
-                  fill: "#F5F138",
-                  stroke: "#000D34",
-                  strokeWidth: 2,
-                }}
+                dot={false}
+                activeDot={{ r: 5, strokeWidth: 0 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>{" "}
+      </div>
     </motion.div>
   );
 }
