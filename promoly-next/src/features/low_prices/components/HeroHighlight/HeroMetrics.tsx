@@ -1,17 +1,19 @@
+import type { EnrichedProduct } from "@/types";
+
 type Props = {
-  product: any;
+  product: EnrichedProduct;
 };
 
 export default function HeroMetrics({ product }: Props) {
   if (!product) return null;
 
   const currentPrice =
-    typeof product.preco_atual === "number"
+    "preco_atual" in product && typeof product.preco_atual === "number"
       ? product.preco_atual
       : (product.currentPrice ?? 0);
 
   const previousPrice =
-    typeof product.preco_anterior === "number"
+    "preco_anterior" in product && typeof product.preco_anterior === "number"
       ? product.preco_anterior
       : (product.previousPrice ?? null);
 

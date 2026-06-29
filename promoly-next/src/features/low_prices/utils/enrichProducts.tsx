@@ -67,11 +67,6 @@ export async function enrichProducts(products: ProductCardData[]) {
 
     if (metrics.priceDiffPercent > -2) return null;
 
-    const sortedHistory = [...history].sort(
-      (a, b) =>
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-    );
-
     const lastPrice = getPreviousChangePrice(history);
     const variationVsLast = lastPrice
       ? ((metrics.currentPrice - lastPrice) / lastPrice) * 100

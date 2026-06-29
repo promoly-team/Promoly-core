@@ -1,6 +1,6 @@
 type EnrichedProduct = {
   titulo: string;
-  imagem_url?: string;
+  imagem_url?: string | null;
   currentPrice: number;
   slug: string;
   produto_id: number;

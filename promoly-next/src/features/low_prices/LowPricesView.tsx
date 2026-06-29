@@ -2,8 +2,7 @@ import Highlight from "./components/HeroHighlight";
 import CategorySection from "./components/CategorySections";
 import FAQSection from "./components/FAQSection";
 import { buildLowestPriceSchemas } from "./utils/lowestPriceSchema";
-
-type EnrichedProduct = any;
+import type { EnrichedProduct } from "@/types";
 
 type Props = {
   enriched: EnrichedProduct[];

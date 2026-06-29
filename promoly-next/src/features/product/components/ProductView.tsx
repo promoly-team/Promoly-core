@@ -7,9 +7,10 @@ import JsonLd from "./JsonLd";
 import { buildProductAnalytics } from "../utils/productAnalytics";
 import { getPurchaseDecision } from "../utils/productDecision";
 import { buildProductSchemas } from "../utils/productSchemas";
+import type { ProductDetailData } from "@/types";
 
 type Props = {
-  productData: any;
+  productData: ProductDetailData;
   priceHistory: { preco: number; data: number }[];
   slug: string;
   baseUrl: string;
