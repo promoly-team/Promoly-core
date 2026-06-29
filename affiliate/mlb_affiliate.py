@@ -7,11 +7,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
 from affiliate.utils.affiliate_link import extrair_link_afiliado
 
 
 LINK_BUILDER_URL = "https://www.mercadolivre.com.br/afiliados/linkbuilder#hub"
+
+# Tempo máximo de espera pelo link afiliado aparecer no resultado.
+RESULT_TIMEOUT = 15
 
 
 # =========================
@@ -74,17 +78,18 @@ def gerar_link_afiliado(driver, wait, produto_url: str) -> str | None:
         "arguments[0].scrollIntoView({block: 'center'});",
         botao_gerar
     )
-    time.sleep(0.5)
+    time.sleep(0.5)  # breve settle após scrollIntoView antes do click via JS
     driver.execute_script("arguments[0].click();", botao_gerar)
 
-    # espera curta
-    time.sleep(2)
+    # 🔍 espera o link afiliado realmente aparecer (em vez de sleep fixo)
+    try:
+        WebDriverWait(driver, RESULT_TIMEOUT).until(
+            lambda d: extrair_link_afiliado(d.page_source) is not None
+        )
+    except TimeoutException:
+        return None  # link não foi gerado a tempo
 
-    # 🔍 captura por regex (robusto)
-    html = driver.page_source
-    link = extrair_link_afiliado(html)
-
-    return link  # pode ser None se inválido
+    return extrair_link_afiliado(driver.page_source)
 
 
 # =========================

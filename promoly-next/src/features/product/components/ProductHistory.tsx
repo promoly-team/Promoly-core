@@ -39,38 +39,31 @@ export default function ProductHistory({
 
   if (previousPrice && lastPrice) {
     variationPercent = ((lastPrice - previousPrice) / previousPrice) * 100;
-
     variationValue = lastPrice - previousPrice;
 
     if (variationPercent > 0.2) trend = "alta";
     else if (variationPercent < -0.2) trend = "queda";
   }
 
-  const trendColor =
+  const trendTextColor =
     trend === "queda"
-      ? "text-success"
+      ? "text-[#F5F138]"
       : trend === "alta"
-        ? "text-danger"
-        : "text-gray-600";
-
-  const chartColor =
-    trend === "queda" ? "#22c177" : trend === "alta" ? "#dc2626" : "#6b7280";
+        ? "text-red-400"
+        : "text-[#45C4B0]";
 
   return (
     <motion.div
-      className="mt-8 sm:mt-16"
+      className="mt-10 sm:mt-16"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       viewport={{ once: true }}
     >
-      <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
+      <h2 className="text-xl sm:text-3xl font-bold text-[#9AEBA3] mb-3">
         Histórico de preço
       </h2>
-
-      <p
-        className={`text-sm sm:text-lg font-semibold mb-4 sm:mb-6 ${trendColor}`}
-      >
+      <p className={`text-sm sm:text-lg font-semibold mb-6 ${trendTextColor}`}>
         {trend === "queda" && "⬇ "}
         {trend === "alta" && "⬆ "}
         {trend === "estabilidade" && "➖ "}
@@ -86,12 +79,15 @@ export default function ProductHistory({
            },
          )}) vs último registro`}
       </p>
-
-      <div className="bg-white border border-gray-200 rounded-2xl p-3 sm:p-6 lg:p-8 shadow-soft">
-        <div className="w-full h-48 sm:h-64 lg:h-80 xl:h-[420px]">
+      <div className="bg-[#0b154a] border border-[#45C4B0] rounded-2xl p-3 sm:p-6 lg:p-8 shadow-lg">
+        <div className="w-full h-64 sm:h-80 lg:h-96 xl:h-[440px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#45C4B0"
+                opacity={0.12}
+              />
 
               <XAxis
                 dataKey="data"
@@ -101,11 +97,17 @@ export default function ProductHistory({
                     month: "2-digit",
                   })
                 }
-                tick={{ fontSize: 10 }}
-                minTickGap={25}
+                tick={{
+                  fill: "#45C4B0",
+                  fontSize: 11, // menor no mobile
+                  fontWeight: 600,
+                }}
+                minTickGap={15}
+                stroke="#45C4B0"
               />
+
               <YAxis
-                width={80}
+                width={70} // menos espaço lateral
                 domain={[lowerDomain, upperDomain]}
                 tickFormatter={(value: number) =>
                   value.toLocaleString("pt-BR", {
@@ -114,10 +116,22 @@ export default function ProductHistory({
                     maximumFractionDigits: 0,
                   })
                 }
-                tick={{ fontSize: 12 }}
+                tick={{
+                  fill: "#45C4B0",
+                  fontSize: 11,
+                  fontWeight: 600,
+                }}
+                stroke="#45C4B0"
               />
 
               <Tooltip
+                contentStyle={{
+                  backgroundColor: "#000D34",
+                  border: "1px solid #45C4B0",
+                  borderRadius: "12px",
+                  color: "#9AEBA3",
+                  fontSize: "12px", // menor no mobile
+                }}
                 formatter={(value: number | undefined) =>
                   value != null
                     ? value.toLocaleString("pt-BR", {
@@ -129,7 +143,6 @@ export default function ProductHistory({
                 labelFormatter={(label) => {
                   const date =
                     typeof label === "number" ? label : Number(label);
-
                   if (isNaN(date)) return "";
                   return new Date(date).toLocaleDateString("pt-BR");
                 }}
@@ -139,22 +152,32 @@ export default function ProductHistory({
                 type="stepAfter"
                 dataKey="preco"
                 stroke="none"
-                fill={chartColor}
-                fillOpacity={0.08}
+                fill="#F5F138"
+                fillOpacity={0.06}
               />
 
               <Line
                 type="stepAfter"
                 dataKey="preco"
-                stroke={chartColor}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 5 }}
+                stroke="#F5F138"
+                strokeWidth={2.5}
+                dot={{
+                  r: 3.5, // tamanho base visível
+                  fill: "#F5F138",
+                  stroke: "#000D34", // cria contraste
+                  strokeWidth: 1.5,
+                }}
+                activeDot={{
+                  r: 6,
+                  fill: "#F5F138",
+                  stroke: "#000D34",
+                  strokeWidth: 2,
+                }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </div>{" "}
     </motion.div>
   );
 }

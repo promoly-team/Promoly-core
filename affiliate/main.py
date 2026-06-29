@@ -17,6 +17,10 @@ SLEEP_SEM_TRABALHO = 30
 SLEEP_ENTRE_LINKS = 3
 WAIT_TIMEOUT = 40
 
+# Reinicia o driver a cada N links para evitar degradação/vazamento de
+# memória do Chrome/Selenium em sessões longas.
+RESTART_DRIVER_EVERY = 100
+
 
 
 # =========================
@@ -34,6 +38,18 @@ def handle_shutdown(signum, frame):
 
 signal.signal(signal.SIGINT, handle_shutdown)
 signal.signal(signal.SIGTERM, handle_shutdown)
+
+
+def restart_driver(driver):
+    """Encerra o driver atual e devolve um novo driver + wait."""
+    try:
+        driver.quit()
+    except Exception:
+        pass
+
+    novo_driver = create_driver()
+    novo_wait = WebDriverWait(novo_driver, WAIT_TIMEOUT)
+    return novo_driver, novo_wait
 
 
 # =========================
@@ -56,6 +72,7 @@ def main():
     try:
         driver = create_driver()
         wait = WebDriverWait(driver, WAIT_TIMEOUT)
+        links_processados = 0
 
         while not shutdown_requested:
             # 🔁 conexão NOVA para cada batch
@@ -114,6 +131,16 @@ def main():
                         conn.commit()
 
                     time.sleep(SLEEP_ENTRE_LINKS)
+
+                    # 🔄 Reinicia o driver periodicamente (evita degradação
+                    # de memória do Selenium em sessões longas).
+                    links_processados += 1
+                    if links_processados % RESTART_DRIVER_EVERY == 0:
+                        print(
+                            f"🔄 {links_processados} links processados — "
+                            "reiniciando driver..."
+                        )
+                        driver, wait = restart_driver(driver)
 
             finally:
                 conn.close()
