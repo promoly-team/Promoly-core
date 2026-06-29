@@ -1,6 +1,7 @@
 import { fetchProducts } from "@/lib/api";
 import { enrichProducts } from "@/features/low_prices/utils/enrichProducts";
 import LowPriceView from "@/features/low_prices/LowPricesView";
+import type { EnrichedProduct } from "@/types";
 
 export default async function MenorPrecoHojePage() {
   const products = await fetchProducts({
@@ -32,7 +33,7 @@ export default async function MenorPrecoHojePage() {
       acc[nome].items.push(product);
       return acc;
     },
-    {} as Record<string, { slug: string; items: any[] }>,
+    {} as Record<string, { slug: string; items: EnrichedProduct[] }>,
   );
 
   return (

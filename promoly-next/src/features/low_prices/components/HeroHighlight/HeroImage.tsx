@@ -1,7 +1,8 @@
 import Image from "next/image";
+import type { EnrichedProduct } from "@/types";
 
 type Props = {
-  product: any;
+  product: EnrichedProduct;
 };
 
 export default function HeroImage({ product }: Props) {

@@ -28,7 +28,7 @@ const faqItems = [
     title: "Como funciona a média histórica?",
     content: (
       <>
-        Calculamos a média analisando <strong>todos os registros anteriores</strong> de cada produto. Quanto mais dados históricos temos, mais precisa é a comparação. Isso garante que a "média" seja realmente representativa do preço normal do produto.
+        Calculamos a média analisando <strong>todos os registros anteriores</strong> de cada produto. Quanto mais dados históricos temos, mais precisa é a comparação. Isso garante que a &quot;média&quot; seja realmente representativa do preço normal do produto.
       </>
     ),
   },

@@ -115,11 +115,10 @@ export default async function HomePage() {
   });
 
   const ranked = enhanced.sort(
-    (a: any, b: any) => (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0),
+    (a, b) =>
+      ("opportunityScore" in b ? (b.opportunityScore ?? 0) : 0) -
+      ("opportunityScore" in a ? (a.opportunityScore ?? 0) : 0),
   );
-
-  const BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "https://promoly-core.vercel.app";
 
   const categories = [
     { label: "Eletrônicos", slug: "eletronicos" },

@@ -1,7 +1,8 @@
 import ProductHistory from "@/features/product/components/ProductHistory";
+import type { EnrichedProduct } from "@/types";
 
 type Props = {
-  product: any;
+  product: EnrichedProduct;
 };
 
 export default function HeroChart({ product }: Props) {
@@ -13,7 +14,7 @@ export default function HeroChart({ product }: Props) {
     );
   }
 
-  const historyData = product.history.map((h: any) => ({
+  const historyData = product.history.map((h) => ({
     preco: h.preco,
     data: new Date(h.created_at).getTime(),
   }));

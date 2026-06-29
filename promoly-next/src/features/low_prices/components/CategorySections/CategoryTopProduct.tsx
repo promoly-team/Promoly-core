@@ -2,9 +2,10 @@ import Image from "next/image";
 import CategoryProductMetrics from "./CategoryProductMetrics";
 import CategoryProductChart from "./CategoryProductChart";
 import CategoryProductActions from "./CategoryProductActions";
+import type { EnrichedProduct } from "@/types";
 
 type Props = {
-  product: any;
+  product: EnrichedProduct;
 };
 
 export default function CategoryTopProduct({ product }: Props) {

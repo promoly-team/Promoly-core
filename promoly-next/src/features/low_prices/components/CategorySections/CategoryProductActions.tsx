@@ -1,5 +1,7 @@
+import type { EnrichedProduct } from "@/types";
+
 type Props = {
-  product: any;
+  product: EnrichedProduct;
 };
 
 export default function CategoryProductActions({ product }: Props) {

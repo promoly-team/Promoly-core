@@ -2,9 +2,10 @@ import HeroImage from "./HeroImage";
 import HeroMetrics from "./HeroMetrics";
 import HeroChart from "./HeroChart";
 import HeroActions from "./HeroActions";
+import type { EnrichedProduct } from "@/types";
 
 type Props = {
-  product: any;
+  product: EnrichedProduct;
 };
 
 export default function HeroHighlight({ product }: Props) {
