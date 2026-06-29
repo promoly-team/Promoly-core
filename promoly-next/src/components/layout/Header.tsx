@@ -17,15 +17,17 @@ export default function Header() {
   );
 
   return (
-    <header className="bg-surface border-b border-gray-200 sticky top-0 z-50 shadow-soft">
+    <header className="bg-[#000D34] border-b border-[#0f1a4d] sticky top-0 z-50 shadow-soft">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* LOGO */}
         <Link
           href="/"
           className="flex items-center gap-2 text-2xl font-extrabold tracking-tight"
         >
-          <span className="text-primary">Promo</span>
-          <span className="text-success">ly</span>
+          <span className="text-[#9AEBA3]">Promo</span>
+          <span>
+            <span className="text-[#F5F138]">l</span>
+            <span className="text-[#9AEBA3]">y</span>
+          </span>
         </Link>
 
         {/* DESKTOP MENU */}
@@ -34,7 +36,7 @@ export default function Header() {
             <Link
               key={cat.slug}
               href={`/categoria/${cat.slug}`}
-              className="text-gray-900 hover:text-success transition font-semibold"
+              className="text-[#9AEBA3] hover:opacity-80 transition font-semibold"
             >
               {cat.label}
             </Link>
@@ -42,7 +44,7 @@ export default function Header() {
 
           {/* DROPDOWN */}
           <div className="relative group">
-            <button className="text-gray-900 hover:text-success transition font-semibold">
+            <button className="text-[#9AEBA3] hover:opacity-80 transition font-semibold">
               Mais ▾
             </button>
 
@@ -52,8 +54,8 @@ export default function Header() {
               className="
                 absolute left-0 top-full
                 w-52
-                bg-white
-                border border-gray-200
+                bg-[#000D34]
+                border border-[#0f1a4d]
                 rounded-xl
                 shadow-medium
                 p-4
@@ -67,7 +69,7 @@ export default function Header() {
                 <Link
                   key={cat.slug}
                   href={`/categoria/${cat.slug}`}
-                  className="text-gray-800 hover:text-primary text-sm transition font-medium"
+                  className="text-[#9AEBA3] hover:opacity-80 text-sm transition font-medium"
                 >
                   {cat.label}
                 </Link>
@@ -78,7 +80,7 @@ export default function Header() {
 
         {/* MOBILE BUTTON */}
         <button
-          className="md:hidden text-gray-900 text-2xl"
+          className="md:hidden text-[#9AEBA3] text-2xl"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           ☰
@@ -87,28 +89,28 @@ export default function Header() {
 
       {/* MOBILE MENU */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200 shadow-soft">
+        <div className="md:hidden bg-[#000D34] border-t border-[#0f1a4d] shadow-soft">
           <div className="flex flex-col px-4 py-4 gap-4 text-sm">
             {mainCategories.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/categoria/${cat.slug}`}
                 onClick={() => setMobileOpen(false)}
-                className="text-gray-900 font-medium hover:text-success transition"
+                className="text-[#9AEBA3] font-medium hover:opacity-80 transition"
               >
                 {cat.label}
               </Link>
             ))}
 
             <button
-              className="text-left text-gray-900 font-semibold"
+              className="text-left text-[#9AEBA3] font-semibold"
               onClick={() => setMoreOpen(!moreOpen)}
             >
               Mais categorias
             </button>
 
             {moreOpen && (
-              <div className="flex flex-col gap-2 pl-4 border-l border-gray-300">
+              <div className="flex flex-col gap-2 pl-4 border-l border-[#1b2a66]">
                 {otherCategories.map((cat) => (
                   <Link
                     key={cat.slug}
@@ -117,7 +119,7 @@ export default function Header() {
                       setMobileOpen(false);
                       setMoreOpen(false);
                     }}
-                    className="text-gray-700 hover:text-primary transition"
+                    className="text-[#9AEBA3] hover:opacity-80 transition"
                   >
                     {cat.label}
                   </Link>

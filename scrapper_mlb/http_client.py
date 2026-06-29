@@ -1,17 +1,33 @@
+import hashlib
+import os
 import random
+import threading
 import time
 from pathlib import Path
 
 import requests
 
-from scrapper_mlb.config import HEADERS
+from scrapper_mlb.config import HEADERS, build_headers
 
 
-DEBUG_PATH = Path("scrapper_mlb_debug.html")
+# Diretório de debug; cada URL gera um arquivo único para evitar corrida de
+# escrita entre as threads do ThreadPoolExecutor. Só grava se habilitado.
+DEBUG_DIR = Path("debug_html")
+DEBUG_ENABLED = os.getenv("SCRAPER_DEBUG_HTML", "").lower() in ("1", "true", "yes")
+_debug_lock = threading.Lock()
 
 MIN_HTML_SIZE = 50_000
 MAX_HTML_SIZE = 5_000_000
 MAX_RETRIES = 3
+
+
+def _save_debug(url: str, html: str) -> None:
+    if not DEBUG_ENABLED:
+        return
+    nome = hashlib.sha1(url.encode("utf-8")).hexdigest()[:12]
+    with _debug_lock:
+        DEBUG_DIR.mkdir(exist_ok=True)
+        (DEBUG_DIR / f"{nome}.html").write_text(html, encoding="utf-8")
 
 
 class BackoffController:
@@ -20,15 +36,19 @@ class BackoffController:
         self.max_delay = max_delay
         self.factor = factor
         self.current_delay = base_delay
+        self._lock = threading.Lock()
 
     def success(self):
-        self.current_delay = self.base_delay
+        with self._lock:
+            self.current_delay = self.base_delay
 
     def error(self):
-        self.current_delay = min(self.current_delay * self.factor, self.max_delay)
+        with self._lock:
+            self.current_delay = min(self.current_delay * self.factor, self.max_delay)
 
     def wait(self):
-        delay = random.uniform(self.current_delay * 0.8, self.current_delay * 1.2)
+        with self._lock:
+            delay = random.uniform(self.current_delay * 0.8, self.current_delay * 1.2)
         time.sleep(delay)
 
 
@@ -36,15 +56,19 @@ class RateLimiter:
     def __init__(self, min_interval: float):
         self.min_interval = min_interval
         self.last_request = 0.0
+        self._lock = threading.Lock()
 
     def wait(self):
-        now = time.time()
-        elapsed = now - self.last_request
+        # Serializa as threads: mantém o lock durante o sleep para que o
+        # intervalo mínimo seja respeitado globalmente, não por thread.
+        with self._lock:
+            now = time.time()
+            elapsed = now - self.last_request
 
-        if elapsed < self.min_interval:
-            time.sleep(self.min_interval - elapsed)
+            if elapsed < self.min_interval:
+                time.sleep(self.min_interval - elapsed)
 
-        self.last_request = time.time()
+            self.last_request = time.time()
 
 
 # 🔥 Use apenas uma instância
@@ -77,7 +101,8 @@ def fetch_html(url: str) -> str:
         rate_limiter.wait()
 
         try:
-            response = session.get(url, timeout=20)
+            # 🔄 User-Agent rotacionado por request (rotação de fingerprint)
+            response = session.get(url, timeout=20, headers=build_headers())
             status = response.status_code
             html = response.text
             size = len(html)
@@ -104,9 +129,8 @@ def fetch_html(url: str) -> str:
             if size > MAX_HTML_SIZE:
                 raise RuntimeError(f"HTML muito grande ({size})")
 
-            # 🔥 Salva debug
-            with open(DEBUG_PATH, "w", encoding="utf-8") as f:
-                f.write(html)
+            # 🔥 Salva debug (arquivo único por URL, sem corrida entre threads)
+            _save_debug(url, html)
 
             backoff.success()
             print("✅ HTML válido capturado")
