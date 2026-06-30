@@ -118,7 +118,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # TWITTER JOB
 #==============================
 
-scheduler = BackgroundScheduler()
+scheduler = BackgroundScheduler(timezone="America/Sao_Paulo")
 
 
 def scheduled_job():
