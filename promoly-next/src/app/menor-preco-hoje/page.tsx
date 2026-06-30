@@ -4,10 +4,12 @@ import LowPriceView from "@/features/low_prices/LowPricesView";
 import type { EnrichedProduct } from "@/types";
 
 export default async function MenorPrecoHojePage() {
+  // Degrada para lista vazia se a API estiver indisponível no build/prerender.
+  // O ISR repreenche quando a API voltar; até lá, renderiza o estado vazio.
   const products = await fetchProducts({
     order: "desconto",
     limit: 40,
-  });
+  }).catch(() => []);
 
   const enriched = await enrichProducts(products);
 
