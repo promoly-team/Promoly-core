@@ -1,13 +1,9 @@
 import os
 from dotenv import load_dotenv
 
-
-ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
-
-if ENVIRONMENT == "production":
-    load_dotenv(".env.prod")
-else:
-    load_dotenv(".env.dev")
+# Fonte única de configuração: .env (mesmo arquivo usado por database/db.py
+# e pelos posters do Instagram).
+load_dotenv()
 
 
 class Settings:

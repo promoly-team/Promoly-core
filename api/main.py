@@ -1,6 +1,9 @@
+import os
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from api.core.logging_config import get_logger, setup_logging
 from api.core.settings import settings
@@ -8,6 +11,8 @@ from api.middlewarre.request_id import request_id_middleware
 from api.routers.redirect_router import router as redirect_router
 from apscheduler.schedulers.background import BackgroundScheduler
 from api.services.twiiter_daily_post import generate_daily_tweets_job
+from posts.instagram.main import generate_today as generate_instagram_post
+from posts.instagram.main import publish_today as publish_instagram_post
 from api.deps import get_db
 
 # ======================================================
@@ -66,6 +71,14 @@ app.add_middleware(
 app.middleware("http")(request_id_middleware)
 
 # ======================================================
+# Static (assets do Instagram, baixados pela Graph API via URL pública)
+# ======================================================
+
+_INSTAGRAM_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "instagram")
+os.makedirs(_INSTAGRAM_DIR, exist_ok=True)
+app.mount("/instagram", StaticFiles(directory=_INSTAGRAM_DIR), name="instagram")
+
+# ======================================================
 # Global Exception Handlers
 # ======================================================
 
@@ -114,6 +127,21 @@ def scheduled_job():
     db.close()
 
 
+def instagram_job():
+    # Gera os assets do dia e publica no feed. Resiliente: falha de geração ou
+    # de publicação (ex.: vars IG ausentes) loga mas não derruba o scheduler.
+    try:
+        generate_instagram_post()
+    except Exception:
+        logger.exception("Falha ao gerar post do Instagram")
+        return
+
+    try:
+        publish_instagram_post()
+    except Exception:
+        logger.exception("Falha ao publicar post do Instagram")
+
+
 def start_scheduler():
     scheduler.add_job(
         scheduled_job,
@@ -121,12 +149,18 @@ def start_scheduler():
         hour=11,
         minute=0
     )
+    scheduler.add_job(
+        instagram_job,
+        trigger="cron",
+        hour=12,
+        minute=0
+    )
     scheduler.start()
 
 
 @app.on_event("startup")
 def startup_event():
-    logger.info("🕗 Iniciando scheduler de tweets diários...")
+    logger.info("🕗 Iniciando schedulers (tweets + instagram)...")
     start_scheduler()
 
 
