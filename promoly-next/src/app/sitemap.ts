@@ -4,9 +4,17 @@ import { fetchAllProducts, fetchAllCategories } from "@/lib/api";
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://promoly-core.vercel.app/";
 
+// Gera o sitemap em runtime (request-time), nunca em build.
+// Evita que a indisponibilidade da API durante o build quebre o deploy.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await fetchAllProducts();
-  const categories = await fetchAllCategories();
+  // Se a API estiver indisponível, degrada para um sitemap mínimo
+  // em vez de derrubar a renderização da rota.
+  const [products, categories] = await Promise.all([
+    fetchAllProducts().catch(() => []),
+    fetchAllCategories().catch(() => []),
+  ]);
 
   const now = new Date();
 

@@ -68,10 +68,12 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function HomePage() {
+  // Degrada para lista vazia se a API estiver indisponível no build/prerender.
+  // O ISR (revalidate) repreenche assim que a API voltar.
   const products: ProductCardData[] = await fetchProducts({
     order: "desconto",
     limit: 20,
-  });
+  }).catch(() => []);
 
   const unique = Array.from(
     new Map(products.map((p) => [p.produto_id, p])).values(),
