@@ -1,4 +1,5 @@
 import random
+import threading
 import time
 from pathlib import Path
 
@@ -20,15 +21,19 @@ class BackoffController:
         self.max_delay = max_delay
         self.factor = factor
         self.current_delay = base_delay
+        self._lock = threading.Lock()
 
     def success(self):
-        self.current_delay = self.base_delay
+        with self._lock:
+            self.current_delay = self.base_delay
 
     def error(self):
-        self.current_delay = min(self.current_delay * self.factor, self.max_delay)
+        with self._lock:
+            self.current_delay = min(self.current_delay * self.factor, self.max_delay)
 
     def wait(self):
-        delay = random.uniform(self.current_delay * 0.8, self.current_delay * 1.2)
+        with self._lock:
+            delay = random.uniform(self.current_delay * 0.8, self.current_delay * 1.2)
         time.sleep(delay)
 
 
@@ -36,15 +41,19 @@ class RateLimiter:
     def __init__(self, min_interval: float):
         self.min_interval = min_interval
         self.last_request = 0.0
+        self._lock = threading.Lock()
 
     def wait(self):
-        now = time.time()
-        elapsed = now - self.last_request
+        # Serializa as threads: mantém o lock durante o sleep para que o
+        # intervalo mínimo seja respeitado globalmente, não por thread.
+        with self._lock:
+            now = time.time()
+            elapsed = now - self.last_request
 
-        if elapsed < self.min_interval:
-            time.sleep(self.min_interval - elapsed)
+            if elapsed < self.min_interval:
+                time.sleep(self.min_interval - elapsed)
 
-        self.last_request = time.time()
+            self.last_request = time.time()
 
 
 # 🔥 Use apenas uma instância

@@ -1,8 +1,8 @@
 type ProductSchemaParams = {
   produto: {
     titulo: string;
-    imagem_url?: string;
-    descricao?: string;
+    imagem_url?: string | null;
+    descricao?: string | null;
     produto_id: string | number;
   };
   slug: string;
