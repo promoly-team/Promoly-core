@@ -2,12 +2,18 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from api.services.twiiter_daily_post import generate_daily_tweets_job
 
+from api.core.security import require_api_key
 from api.deps import get_db
 from api.services.deal_service import DealService
 from api.services.twitter_content_service import TwitterContentService
 
 
-router = APIRouter(prefix="/twitter", tags=["twitter"])
+# Rotas que disparam geração de posts e escrita no banco: exigem API key.
+router = APIRouter(
+    prefix="/twitter",
+    tags=["twitter"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 @router.get("/price-drop")

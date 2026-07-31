@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from api.core.security import rate_limit_redirect
 from api.services.redirect_service import RedirectService
 
 from api.deps import get_db
@@ -9,7 +9,10 @@ from api.deps import get_db
 router = APIRouter(tags=["redirect"])
 
 
-@router.get("/redirect/{produto_id}")
+@router.get(
+    "/redirect/{produto_id}",
+    dependencies=[Depends(rate_limit_redirect)],
+)
 def redirect_to_product(
     produto_id: int,
     request: Request,
