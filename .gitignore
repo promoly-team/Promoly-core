@@ -40,6 +40,13 @@ media/
 # Pytest / coverage
 .pytest_cache/
 cover/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Dados gerados localmente
+data/
 
 # Translations
 *.mo

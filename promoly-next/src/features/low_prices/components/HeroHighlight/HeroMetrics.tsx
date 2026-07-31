@@ -7,6 +7,7 @@ type Props = {
 export default function HeroMetrics({ product }: Props) {
   if (!product) return null;
 
+  // 🔹 Mapear campos do backend (português → padrão interno)
   const currentPrice =
     "preco_atual" in product && typeof product.preco_atual === "number"
       ? product.preco_atual
@@ -17,6 +18,7 @@ export default function HeroMetrics({ product }: Props) {
       ? product.preco_anterior
       : (product.previousPrice ?? null);
 
+  // 🔹 Média histórica (fallback)
   const avgPrice =
     typeof product.avgPrice === "number"
       ? product.avgPrice
@@ -25,9 +27,11 @@ export default function HeroMetrics({ product }: Props) {
   const lastPrice =
     typeof product.lastPrice === "number" ? product.lastPrice : null;
 
+  // 🔹 Diferença vs média
   const priceDiffPercent =
     avgPrice > 0 ? ((currentPrice - avgPrice) / avgPrice) * 100 : 0;
 
+  // 🔹 Variação vs último preço
   const variationVsLast =
     lastPrice && lastPrice > 0
       ? ((currentPrice - lastPrice) / lastPrice) * 100
@@ -41,30 +45,29 @@ export default function HeroMetrics({ product }: Props) {
 
   return (
     <>
-      {/* TÍTULO */}
-      <h3 className="text-lg sm:text-xl font-semibold text-[#9AEBA3] mb-3 leading-snug">
+      <h3 className="text-base sm:text-lg font-semibold mb-2 leading-snug text-ink">
         {product.titulo}
       </h3>
 
       {/* PREÇO ATUAL */}
-      <p className="text-3xl sm:text-5xl font-extrabold text-[#F5F138] mb-8">
+      <p className="text-2xl sm:text-4xl font-extrabold text-success mb-4 sm:mb-8">
         {formatCurrency(currentPrice)}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-10">
         {/* MÉDIA HISTÓRICA */}
-        <div className="bg-[#0a154a] border border-[#45C4B0] rounded-xl p-5">
-          <p className="text-xs text-[#45C4B0] uppercase mb-2 tracking-wide">
+        <div className="bg-panel-subtle border border-line rounded-lg p-3 sm:p-4">
+          <p className="text-[10px] sm:text-xs text-ink-faint uppercase mb-1">
             Média histórica
           </p>
 
-          <p className="font-semibold text-lg text-[#9AEBA3]">
+          <p className="font-semibold text-base sm:text-lg text-ink">
             {formatCurrency(avgPrice)}
           </p>
 
           <p
-            className={`font-bold text-base ${
-              priceDiffPercent > 0 ? "text-red-400" : "text-[#F5F138]"
+            className={`font-bold text-sm sm:text-base ${
+              priceDiffPercent > 0 ? "text-danger" : "text-success"
             }`}
           >
             {priceDiffPercent > 0 ? "+" : ""}
@@ -75,18 +78,18 @@ export default function HeroMetrics({ product }: Props) {
 
         {/* ÚLTIMO PREÇO */}
         {lastPrice && (
-          <div className="bg-[#0a154a] border border-[#45C4B0] rounded-xl p-5">
-            <p className="text-xs text-[#45C4B0] uppercase mb-2 tracking-wide">
+          <div className="bg-panel-subtle border border-line rounded-lg p-3 sm:p-4">
+            <p className="text-[10px] sm:text-xs text-ink-faint uppercase mb-1">
               Último preço
             </p>
 
-            <p className="font-semibold text-lg text-[#9AEBA3]">
+            <p className="font-semibold text-base sm:text-lg text-ink">
               {formatCurrency(lastPrice)}
             </p>
 
             <p
-              className={`font-bold text-base ${
-                variationVsLast > 0 ? "text-red-400" : "text-[#F5F138]"
+              className={`font-bold text-sm sm:text-base ${
+                variationVsLast > 0 ? "text-danger" : "text-success"
               }`}
             >
               {variationVsLast > 0 ? "+" : ""}

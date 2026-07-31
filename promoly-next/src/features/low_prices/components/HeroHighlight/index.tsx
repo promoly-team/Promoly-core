@@ -10,42 +10,19 @@ type Props = {
 
 export default function HeroHighlight({ product }: Props) {
   return (
-    <section
-      className="
-        bg-[#0a154a]
-        rounded-2xl
-        p-4 sm:p-8 lg:p-12
-        border border-[#45C4B0]
-        shadow-lg
-        mb-16 sm:mb-20
-      "
-    >
-      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#9AEBA3] mb-6 sm:mb-10 flex items-center gap-3">
-        <span className="text-[#F5F138] text-2xl sm:text-3xl">🏆</span>
-        Maior Queda do Dia
+    <section className="bg-panel rounded-2xl p-4 sm:p-10 shadow-elevated border border-line">
+      <h2 className="text-2xl font-bold mb-8 flex items-center gap-2 text-ink">
+        🏆 Maior Queda do Dia
       </h2>
 
-      {/* BLOCO SUPERIOR */}
-      <div
-        className="
-    flex flex-col
-    gap-6
-    lg:grid lg:grid-cols-2
-    lg:gap-12
-    items-center lg:items-start
-    mb-8 sm:mb-12 lg:mb-16
-  "
-      >
+      <div className="grid md:grid-cols-2 gap-8 md:gap-12">
         <HeroImage product={product} />
-        <div className="flex flex-col gap-6">
+
+        <div>
           <HeroMetrics product={product} />
+          <HeroChart product={product} />
           <HeroActions product={product} />
         </div>
-      </div>
-
-      {/* GRÁFICO FULL WIDTH */}
-      <div className="mt-6 sm:mt-8">
-        <HeroChart product={product} />
       </div>
     </section>
   );

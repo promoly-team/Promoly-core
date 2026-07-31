@@ -13,7 +13,7 @@ export function getPurchaseDecision(diff: number): PurchaseDecision {
       description:
         "O preço está muito abaixo da média histórica. Forte indicação de oportunidade.",
       color: "text-success",
-      bg: "bg-success-light border-success",
+      bg: "bg-success/10 border-success/40",
       icon: "🟢",
     };
   }
@@ -23,7 +23,7 @@ export function getPurchaseDecision(diff: number): PurchaseDecision {
       title: "Bom momento para comprar",
       description: "O preço está abaixo da média histórica.",
       color: "text-success",
-      bg: "bg-success-light border-success",
+      bg: "bg-success/10 border-success/40",
       icon: "🟢",
     };
   }
@@ -32,8 +32,8 @@ export function getPurchaseDecision(diff: number): PurchaseDecision {
     return {
       title: "Preço dentro da média",
       description: "O preço está alinhado com a média histórica.",
-      color: "text-gray-700",
-      bg: "bg-gray-100 border-gray-300",
+      color: "text-accent",
+      bg: "bg-accent/10 border-accent/40",
       icon: "🟡",
     };
   }
@@ -42,7 +42,7 @@ export function getPurchaseDecision(diff: number): PurchaseDecision {
     title: "Momento desfavorável para compra",
     description: "O preço está acima da média histórica.",
     color: "text-danger",
-    bg: "bg-red-50 border-danger",
+    bg: "bg-danger/10 border-danger/40",
     icon: "🔴",
   };
 }

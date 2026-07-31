@@ -1,36 +1,57 @@
+import os
 import time
-import re
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
+from affiliate.driver import create_driver
 from affiliate.utils.affiliate_link import extrair_link_afiliado
 
 
 LINK_BUILDER_URL = "https://www.mercadolivre.com.br/afiliados/linkbuilder#hub"
+
+# Tempo máximo de espera pelo link afiliado aparecer no resultado.
+RESULT_TIMEOUT = 15
+
+# =========================
+# Seletores configuráveis (desacoplados da UI PT-BR do linkbuilder)
+# =========================
+
+# ID do textarea onde a URL do produto é colada. Pode mudar conforme a UI
+# do Mercado Livre; configurável via env var.
+LINKBUILDER_TEXTAREA_ID = os.getenv("LINKBUILDER_TEXTAREA_ID", "url-0")
+
+# Textos do botão "Gerar". A UI é PT-BR por padrão, mas mantemos uma lista
+# de fallbacks multilíngues para resiliência. Aceita lista separada por
+# vírgula via env var (ex.: "Gerar,Generate,Generar").
+LINKBUILDER_GERAR_TEXTS = [
+    t.strip()
+    for t in os.getenv("LINKBUILDER_GERAR_TEXTS", "Gerar,Generate").split(",")
+    if t.strip()
+]
+
+
+def _xpath_botao_gerar(textos) -> str:
+    """
+    Constrói um XPath que casa um <span> cujo texto normalizado seja igual
+    a qualquer um dos textos fornecidos (fallback multilíngue).
+    """
+    condicoes = " or ".join(
+        f"normalize-space()='{texto}'" for texto in textos
+    )
+    return f"//span[{condicoes}]"
 
 
 # =========================
 # Driver
 # =========================
 
-def create_driver():
-    options = Options()
-
-    # PROFILE CLONADO (não usar o do snap diretamente)
-    options.add_argument(
-        "--user-data-dir=/home/leandro/selenium-chromium-profile"
-    )
-    options.add_argument("--profile-directory=Default")
-
-    options.add_argument("--start-maximized")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-
-    return webdriver.Chrome(options=options)
+# create_driver é reexportado de affiliate.driver (fonte única) para manter
+# compatibilidade com quem importa de affiliate.mlb_affiliate.
+__all__ = ["create_driver", "gerar_link_afiliado"]
 
 
 # =========================
@@ -41,7 +62,7 @@ def gerar_link_afiliado(driver, wait, produto_url: str) -> str | None:
     driver.get(LINK_BUILDER_URL)
 
     textarea_produto = wait.until(
-        EC.presence_of_element_located((By.ID, "url-0"))
+        EC.presence_of_element_located((By.ID, LINKBUILDER_TEXTAREA_ID))
     )
 
     # 🔥 remove tooltips do Andes UI (causa do click interceptado)
@@ -63,28 +84,42 @@ def gerar_link_afiliado(driver, wait, produto_url: str) -> str | None:
     textarea_produto.send_keys(Keys.ENTER)
     driver.find_element(By.TAG_NAME, "body").click()
 
-    # botão Gerar
-    botao_gerar = wait.until(
-        EC.presence_of_element_located(
-            (By.XPATH, "//span[normalize-space()='Gerar']")
+    # botão Gerar — tenta cada texto da lista de fallback (multilíngue).
+    # Constrói um único XPath cobrindo todos os textos configurados.
+    if not LINKBUILDER_GERAR_TEXTS:
+        raise ValueError(
+            "Nenhum texto configurado para o botão 'Gerar' "
+            "(LINKBUILDER_GERAR_TEXTS vazio)."
         )
-    )
+
+    xpath_gerar = _xpath_botao_gerar(LINKBUILDER_GERAR_TEXTS)
+    try:
+        botao_gerar = wait.until(
+            EC.presence_of_element_located((By.XPATH, xpath_gerar))
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            "Botão 'Gerar' não encontrado no linkbuilder. "
+            f"Textos tentados: {LINKBUILDER_GERAR_TEXTS}. "
+            "Verifique a env var LINKBUILDER_GERAR_TEXTS ou se a UI mudou."
+        ) from exc
 
     driver.execute_script(
         "arguments[0].scrollIntoView({block: 'center'});",
         botao_gerar
     )
-    time.sleep(0.5)
+    time.sleep(0.5)  # breve settle após scrollIntoView antes do click via JS
     driver.execute_script("arguments[0].click();", botao_gerar)
 
-    # espera curta
-    time.sleep(2)
+    # 🔍 espera o link afiliado realmente aparecer (em vez de sleep fixo)
+    try:
+        WebDriverWait(driver, RESULT_TIMEOUT).until(
+            lambda d: extrair_link_afiliado(d.page_source) is not None
+        )
+    except TimeoutException:
+        return None  # link não foi gerado a tempo
 
-    # 🔍 captura por regex (robusto)
-    html = driver.page_source
-    link = extrair_link_afiliado(html)
-
-    return link  # pode ser None se inválido
+    return extrair_link_afiliado(driver.page_source)
 
 
 # =========================

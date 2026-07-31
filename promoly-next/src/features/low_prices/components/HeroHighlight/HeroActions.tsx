@@ -6,26 +6,24 @@ type Props = {
 
 export default function HeroActions({ product }: Props) {
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mt-10">
-      {/* DETALHES */}
+    <div className="flex gap-4 mt-8 justify-start">
       <a
         href={`/produto/${product.slug}-${product.produto_id}`}
         className="
           flex-1
-          bg-[#DAFDBA]
-          hover:bg-[#45C4B0]
-          text-[#000D34]
-          font-semibold
+          bg-panel-subtle
+          hover:bg-line
+          text-ink-muted hover:text-ink
+          border border-line
           py-3
           rounded-xl
           text-center
           transition
         "
       >
-        Ver detalhes
+        Detalhes
       </a>
 
-      {/* COMPRAR */}
       {product.url_afiliada && (
         <a
           href={product.url_afiliada}
@@ -33,17 +31,16 @@ export default function HeroActions({ product }: Props) {
           rel="noopener noreferrer sponsored"
           className="
             flex-1
-            bg-[#F5F138]
-            hover:brightness-95
-            text-[#000D34]
-            font-bold
+            bg-primary
+            hover:bg-primary-hover
+            text-white
             py-3
             rounded-xl
             text-center
             transition
           "
         >
-          Comprar agora
+          Comprar
         </a>
       )}
     </div>
