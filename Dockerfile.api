@@ -14,6 +14,9 @@ COPY database ./database
 
 ENV PYTHONPATH=/app
 
+# A porta vem do ambiente: Render, Fly e Cloud Run injetam $PORT e derrubam o
+# container se o processo escutar em outra. O fallback mantem `docker compose`
+# local funcionando sem passar nada.
 EXPOSE 8080
 
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers", "--forwarded-allow-ips", "*"]
+CMD ["sh", "-c", "uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8080} --proxy-headers --forwarded-allow-ips '*'"]

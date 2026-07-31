@@ -1,0 +1,38 @@
+# Blueprint do Render — https://render.com/docs/blueprint-spec
+#
+# Só a API entra aqui. O front é Next.js e vive na Vercel; o scraper roda por
+# cron no GitHub Actions (.github/workflows/scraper.yml) e não precisa de
+# serviço no ar.
+#
+# O banco NÃO é declarado: o Postgres gratuito do Render expira em 30 dias.
+# `DATABASE_URL` aponta para o Neon, usando o endpoint *pooled* (host com
+# `-pooler`) — a aplicação abre uma conexão por request e o endpoint direto
+# estoura o limite.
+#
+# O healthCheckPath é `/health/live`, que não consulta o banco. Apontar para
+# `/health/` faria o serviço ser marcado como não saudável toda vez que o Neon
+# suspendesse por inatividade.
+
+services:
+  - type: web
+    name: promoly-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.api
+    plan: free
+    region: oregon
+    healthCheckPath: /health/live
+    autoDeployTrigger: commit
+    envVars:
+      # Definir no painel. Não versionar: são credenciais.
+      - key: DATABASE_URL
+        sync: false
+      # Sem esta chave as rotas /twitter/* respondem 503 — fail-closed
+      # proposital. Definir, senão o job diário de posts para.
+      - key: API_KEY
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: REDIRECT_RATE_LIMIT
+        value: "60"
+      - key: REDIRECT_RATE_WINDOW
+        value: "60"
