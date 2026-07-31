@@ -1,4 +1,9 @@
-import type { Offer, Product, ProductCardData } from "@/types";
+import type {
+  Offer,
+  Product,
+  ProductCardData,
+  ProductWithMetricsRaw,
+} from "@/types";
 
 /* ==================================================
    CONFIG
@@ -217,9 +222,12 @@ export async function fetchProductsWithMetrics(params?: {
   query.append("limit", String(params?.limit ?? 100));
   query.append("offset", String(params?.offset ?? 0));
 
-  return apiGet<any[]>(`/products/with-metrics?${query.toString()}`, {
-    revalidate: 300,
-  });
+  return apiGet<ProductWithMetricsRaw[]>(
+    `/products/with-metrics?${query.toString()}`,
+    {
+      revalidate: 300,
+    },
+  );
 }
 
 /* ==================================================

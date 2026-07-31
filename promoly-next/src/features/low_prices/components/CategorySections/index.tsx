@@ -2,12 +2,13 @@ import CategoryHeader from "./CategoryHeader";
 import CategoryTopProduct from "./CategoryTopProduct";
 import CategoryProductGrid from "./CategoryProductGrid";
 import CategoryMoreLink from "./CategoryMoreLink";
+import type { EnrichedProduct } from "@/types";
 
 type Props = {
   categoria: string;
   group: {
     slug: string;
-    items: any[];
+    items: EnrichedProduct[];
   };
 };
 

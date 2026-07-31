@@ -1,3 +1,5 @@
+import type { EnrichedProduct } from "@/types";
+
 export function buildCategoryLowestSchemas({
   baseUrl,
   slug,
@@ -7,7 +9,7 @@ export function buildCategoryLowestSchemas({
   baseUrl: string;
   slug: string;
   categoriaNome: string;
-  products: any[];
+  products: EnrichedProduct[];
 }) {
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -47,7 +49,7 @@ export function buildCategoryLowestSchemas({
         offers: {
           "@type": "Offer",
           priceCurrency: "BRL",
-          price: p.current_price,
+          price: p.currentPrice,
           availability: "https://schema.org/InStock",
           url: `${baseUrl}/produto/${p.slug}-${p.produto_id}`,
         },
