@@ -29,9 +29,22 @@ def soup(ml_html):
 
 @pytest.fixture(scope="session")
 def first_item(soup):
-    item = soup.select_one("li.ui-search-layout__item")
-    assert item is not None, "Nenhum item encontrado na página"
-    return item
+    """Primeiro item que é de fato um produto.
+
+    Os primeiros `li` da listagem costumam ser anúncios patrocinados: o href
+    aponta para `click1.mercadolivre.com.br/mclics/clicks/external`, não para
+    a página do produto. O `extract_link` os ignora de propósito, então pegar
+    `select_one` cru entregava um anúncio e fazia `build_product` levantar
+    ValueError — o código estava certo, a fixture é que não espelhava
+    produção.
+    """
+    from scrapper_mlb.services.extractors.link import extract_link
+
+    for item in soup.select("li.ui-search-layout__item"):
+        if extract_link(item):
+            return item
+
+    pytest.fail("Nenhum item com link de produto encontrado no fixture")
 
 
 @pytest.fixture
