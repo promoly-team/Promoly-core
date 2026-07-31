@@ -1,36 +1,20 @@
 import time
-import re
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from affiliate.driver import create_driver
 from affiliate.utils.affiliate_link import extrair_link_afiliado
 
 
 LINK_BUILDER_URL = "https://www.mercadolivre.com.br/afiliados/linkbuilder#hub"
 
 
-# =========================
-# Driver
-# =========================
-
-def create_driver():
-    options = Options()
-
-    # PROFILE CLONADO (não usar o do snap diretamente)
-    options.add_argument(
-        "--user-data-dir=/home/leandro/selenium-chromium-profile"
-    )
-    options.add_argument("--profile-directory=Default")
-
-    options.add_argument("--start-maximized")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-
-    return webdriver.Chrome(options=options)
+# create_driver é reexportado de affiliate.driver (fonte única) para manter
+# compatibilidade com quem importa de affiliate.mlb_affiliate.
+__all__ = ["create_driver", "gerar_link_afiliado"]
 
 
 # =========================
