@@ -1,0 +1,44 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - "promoly-next/**"
+      - ".github/workflows/frontend.yml"
+  pull_request:
+    paths:
+      - "promoly-next/**"
+      - ".github/workflows/frontend.yml"
+
+defaults:
+  run:
+    working-directory: promoly-next
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: promoly-next/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: promoly-next/coverage
