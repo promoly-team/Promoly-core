@@ -50,6 +50,18 @@ jobs:
         if: steps.flag.outputs.enabled == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+          # Sao dois hosts diferentes: o catalogo fica em www e a busca em
+          # lista. Faltando URL_MLB_SEARCH_BASE, o url_builder levanta
+          # RuntimeError na primeira query.
           URL_MLB_BASE: ${{ vars.URL_MLB_BASE }}
+          URL_MLB_SEARCH_BASE: ${{ vars.URL_MLB_SEARCH_BASE }}
+
           SCRAPER_ENABLED_CATEGORIES: ${{ vars.SCRAPER_ENABLED_CATEGORIES }}
+
+          # Opcionais: o codigo tem default para as duas. Passam mesmo assim
+          # para que a configuracao efetiva fique visivel no log do run, em vez
+          # de escondida no fonte.
+          ML_PAGE_SIZE: ${{ vars.ML_PAGE_SIZE }}
+          SCRAPER_DEBUG_HTML: ${{ vars.SCRAPER_DEBUG_HTML }}
         run: python -m scrapper_mlb.main
