@@ -1,0 +1,50 @@
+name: Scraper Mercado Livre
+
+on:
+  schedule:
+    # 06:00 e 18:00 em America/Sao_Paulo (runner usa UTC, UTC-3)
+    - cron: "0 9,21 * * *"
+  workflow_dispatch:
+
+# Substitui o flock do run_scrapping.sh: duas execucoes nunca se cruzam.
+concurrency:
+  group: promoly-scraper
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Equivalente ao arquivo .pipeline_disabled: commitar esse arquivo
+      # na raiz desliga o pipeline sem mexer no workflow.
+      - name: Verifica flag de desligamento
+        id: flag
+        run: |
+          if [ -f .pipeline_disabled ]; then
+            echo "Pipeline desativado por .pipeline_disabled"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.flag.outputs.enabled == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instala dependencias
+        if: steps.flag.outputs.enabled == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Roda scraper
+        if: steps.flag.outputs.enabled == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          URL_MLB_BASE: ${{ vars.URL_MLB_BASE }}
+          SCRAPER_ENABLED_CATEGORIES: ${{ vars.SCRAPER_ENABLED_CATEGORIES }}
+        run: python -m scrapper_mlb.main
