@@ -59,9 +59,12 @@ jobs:
 
           SCRAPER_ENABLED_CATEGORIES: ${{ vars.SCRAPER_ENABLED_CATEGORIES }}
 
-          # Opcionais: o codigo tem default para as duas. Passam mesmo assim
-          # para que a configuracao efetiva fique visivel no log do run, em vez
-          # de escondida no fonte.
-          ML_PAGE_SIZE: ${{ vars.ML_PAGE_SIZE }}
-          SCRAPER_DEBUG_HTML: ${{ vars.SCRAPER_DEBUG_HTML }}
+          # Opcionais, com fallback explicito na expressao.
+          #
+          # O default do `os.getenv(nome, padrao)` so vale quando a variavel
+          # esta AUSENTE. Passar `${{ vars.X }}` de uma variable inexistente
+          # define X como string vazia, que existe — e `int("")` estoura com
+          # ValueError. O `||` resolve no lado do Actions, antes de virar env.
+          ML_PAGE_SIZE: ${{ vars.ML_PAGE_SIZE || '48' }}
+          SCRAPER_DEBUG_HTML: ${{ vars.SCRAPER_DEBUG_HTML || 'false' }}
         run: python -m scrapper_mlb.main
