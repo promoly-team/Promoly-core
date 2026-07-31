@@ -1,0 +1,10 @@
+# Unifica as identidades usadas no historico do repo.
+# Sem isso, `git shortlog -sn` e `git log --author` contam a mesma pessoa
+# tres vezes, por causa da troca de git config entre maquinas e das edicoes
+# feitas pela interface web do GitHub, que assina com o e-mail noreply.
+
+Leandro Baldan <leandro.baldan.ferreira@gmail.com> TrveLeo <leandro.baldan.ferreira@gmail.com>
+Leandro Baldan <leandro.baldan.ferreira@gmail.com> TrveLeo <143330199+TrveLeo@users.noreply.github.com>
+Leandro Baldan <leandro.baldan.ferreira@gmail.com> Leandro Baldan <143330199+TrveLeo@users.noreply.github.com>
+
+Eduardo Coutinho Vicente <114628385+EduardoCoutinhoVicente@users.noreply.github.com>
