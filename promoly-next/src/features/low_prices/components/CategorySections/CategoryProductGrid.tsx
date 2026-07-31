@@ -1,7 +1,8 @@
 import ProductCard from "@/components/ProductCard";
+import type { EnrichedProduct } from "@/types";
 
 type Props = {
-  products: any[];
+  products: EnrichedProduct[];
 };
 
 export default function CategoryProductGrid({ products }: Props) {

@@ -49,7 +49,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body>
+      <body className="bg-[#000D34] text-[#9AEBA3] min-h-screen">
         <StructuredData />
         <Header />
         {children}

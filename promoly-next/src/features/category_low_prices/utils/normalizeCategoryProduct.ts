@@ -1,4 +1,6 @@
-export function normalizeCategoryProduct(p: any) {
+import type { ProductWithMetricsRaw } from "@/types";
+
+export function normalizeCategoryProduct(p: ProductWithMetricsRaw) {
   return {
     produto_id: p.produto_id,
     slug: p.slug,

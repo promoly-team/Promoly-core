@@ -1,27 +1,22 @@
+import type { EnrichedProduct } from "@/types";
+
 type Props = {
-  product: any;
+  product: EnrichedProduct;
 };
 
 export default function HeroMetrics({ product }: Props) {
   if (!product) return null;
 
-  // 🔹 Mapear campos do backend (português → padrão interno)
   const currentPrice =
-    typeof product.preco_atual === "number"
+    "preco_atual" in product && typeof product.preco_atual === "number"
       ? product.preco_atual
       : (product.currentPrice ?? 0);
 
   const previousPrice =
-    typeof product.preco_anterior === "number"
+    "preco_anterior" in product && typeof product.preco_anterior === "number"
       ? product.preco_anterior
       : (product.previousPrice ?? null);
 
-  const discountPercent =
-    typeof product.desconto_pct === "number"
-      ? product.desconto_pct
-      : (product.discountPercent ?? 0);
-
-  // 🔹 Média histórica (fallback)
   const avgPrice =
     typeof product.avgPrice === "number"
       ? product.avgPrice
@@ -30,11 +25,9 @@ export default function HeroMetrics({ product }: Props) {
   const lastPrice =
     typeof product.lastPrice === "number" ? product.lastPrice : null;
 
-  // 🔹 Diferença vs média
   const priceDiffPercent =
     avgPrice > 0 ? ((currentPrice - avgPrice) / avgPrice) * 100 : 0;
 
-  // 🔹 Variação vs último preço
   const variationVsLast =
     lastPrice && lastPrice > 0
       ? ((currentPrice - lastPrice) / lastPrice) * 100
@@ -48,29 +41,30 @@ export default function HeroMetrics({ product }: Props) {
 
   return (
     <>
-      <h3 className="text-base sm:text-lg font-semibold mb-2 leading-snug">
+      {/* TÍTULO */}
+      <h3 className="text-lg sm:text-xl font-semibold text-[#9AEBA3] mb-3 leading-snug">
         {product.titulo}
       </h3>
 
       {/* PREÇO ATUAL */}
-      <p className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4 sm:mb-8">
+      <p className="text-3xl sm:text-5xl font-extrabold text-[#F5F138] mb-8">
         {formatCurrency(currentPrice)}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
         {/* MÉDIA HISTÓRICA */}
-        <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-          <p className="text-[10px] sm:text-xs text-muted uppercase mb-1">
+        <div className="bg-[#0a154a] border border-[#45C4B0] rounded-xl p-5">
+          <p className="text-xs text-[#45C4B0] uppercase mb-2 tracking-wide">
             Média histórica
           </p>
 
-          <p className="font-semibold text-base sm:text-lg">
+          <p className="font-semibold text-lg text-[#9AEBA3]">
             {formatCurrency(avgPrice)}
           </p>
 
           <p
-            className={`font-bold text-sm sm:text-base ${
-              priceDiffPercent > 0 ? "text-danger" : "text-success"
+            className={`font-bold text-base ${
+              priceDiffPercent > 0 ? "text-red-400" : "text-[#F5F138]"
             }`}
           >
             {priceDiffPercent > 0 ? "+" : ""}
@@ -81,18 +75,18 @@ export default function HeroMetrics({ product }: Props) {
 
         {/* ÚLTIMO PREÇO */}
         {lastPrice && (
-          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-            <p className="text-[10px] sm:text-xs text-muted uppercase mb-1">
+          <div className="bg-[#0a154a] border border-[#45C4B0] rounded-xl p-5">
+            <p className="text-xs text-[#45C4B0] uppercase mb-2 tracking-wide">
               Último preço
             </p>
 
-            <p className="font-semibold text-base sm:text-lg">
+            <p className="font-semibold text-lg text-[#9AEBA3]">
               {formatCurrency(lastPrice)}
             </p>
 
             <p
-              className={`font-bold text-sm sm:text-base ${
-                variationVsLast > 0 ? "text-danger" : "text-success"
+              className={`font-bold text-base ${
+                variationVsLast > 0 ? "text-red-400" : "text-[#F5F138]"
               }`}
             >
               {variationVsLast > 0 ? "+" : ""}

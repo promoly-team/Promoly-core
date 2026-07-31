@@ -1,7 +1,8 @@
 import ProductCard from "@/components/ProductCard";
+import type { EnrichedProduct } from "@/types";
 
 type Props = {
-  products: any[];
+  products: EnrichedProduct[];
 };
 
 export default function CategoryLowestGrid({ products }: Props) {
@@ -19,11 +20,11 @@ export default function CategoryLowestGrid({ products }: Props) {
               titulo: p.titulo,
               imagem_url: p.imagem_url,
               url_afiliada: p.url_afiliada,
-              preco_atual: p.preco_atual,
-              preco_anterior: p.preco_anterior,
-              desconto_pct: p.desconto_pct,
-              isBelowAverage: p.price_diff_percent < 0,
-              priceDiffPercent: p.price_diff_percent,
+              preco_atual: "preco_atual" in p ? p.preco_atual : null,
+              preco_anterior: "preco_anterior" in p ? p.preco_anterior : null,
+              desconto_pct: "desconto_pct" in p ? p.desconto_pct : null,
+              isBelowAverage: p.priceDiffPercent < 0,
+              priceDiffPercent: p.priceDiffPercent,
             }}
           />
         ))}
