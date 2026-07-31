@@ -37,31 +37,41 @@ export default function ProductCard({ product, priority = false }: Props) {
   return (
     <article
       className="
-    relative
-    bg-[#0a154a]
-    rounded-2xl
-    border border-[#45C4B0]
-    shadow-lg
-    hover:shadow-2xl
-    transition-all duration-300
-    hover:-translate-y-1
-    hover:border-[#F5F138]
-    p-6
-    flex flex-col
-    group
-  "
+        relative
+        bg-panel
+        rounded-xl2
+        border border-line
+        shadow-elevated
+        hover:border-success/40
+        hover:shadow-glow
+        transition-all duration-300
+        hover:-translate-y-1
+        p-4 sm:p-5
+        flex flex-col
+        group
+      "
     >
-      {/* BADGE DESCONTO */}
-      {isDeal && product.desconto_pct != null && (
-        <span className="absolute top-4 left-4 bg-[#F5F138] text-[#000D34] text-xs font-extrabold px-3 py-1 rounded-full shadow-md z-10">
-          -{product.desconto_pct}% OFF
-        </span>
-      )}
+      {/* BADGES TOPO */}
+      <div className="absolute top-3 left-3 right-3 z-10 flex items-start justify-between pointer-events-none">
+        {isDeal && product.desconto_pct != null ? (
+          <span className="bg-success/15 text-success ring-1 ring-success/30 text-xs font-bold px-2.5 py-1 rounded-full backdrop-blur-sm">
+            −{product.desconto_pct}%
+          </span>
+        ) : (
+          <span />
+        )}
+
+        {showOpportunity && (
+          <span className="bg-accent/15 text-accent ring-1 ring-accent/30 text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
+            🔥 Oportunidade
+          </span>
+        )}
+      </div>
 
       {/* IMAGEM */}
       <Link
         href={productUrl}
-        className="bg-[#000D34] rounded-xl p-4 flex items-center justify-center overflow-hidden"
+        className="bg-white rounded-xl p-4 sm:p-5 flex items-center justify-center overflow-hidden"
       >
         <Image
           src={product.imagem_url ?? "/placeholder.png"}
@@ -70,60 +80,43 @@ export default function ProductCard({ product, priority = false }: Props) {
           height={500}
           priority={priority}
           loading={priority ? "eager" : "lazy"}
-          className="
-        w-full
-        h-auto
-        object-contain
-        aspect-[4/5]
-        sm:aspect-[3/4]
-        scale-110
-        group-hover:scale-[1.18]
-        transition-transform
-        duration-300
-      "
+          className="w-full h-auto object-contain aspect-[4/5] sm:aspect-[3/4] group-hover:scale-105 transition-transform duration-300"
           sizes="
-        (max-width: 640px) 100vw,
-        (max-width: 1024px) 33vw,
-        300px
-      "
+      (max-width: 640px) 50vw,
+      (max-width: 1024px) 33vw,
+      300px
+    "
         />
       </Link>
 
       {/* CONTEÚDO */}
-      <div className="mt-6 flex flex-col gap-3 flex-1">
+      <div className="mt-4 flex flex-col gap-2 flex-1">
         {/* TÍTULO */}
         <Link
           href={productUrl}
-          className="
-        text-base
-        font-semibold
-        text-[#9AEBA3]
-        line-clamp-2
-        hover:text-[#F5F138]
-        transition
-      "
+          className="text-sm sm:text-base font-semibold text-white line-clamp-2 hover:text-success transition min-h-[2.5rem]"
         >
           {product.titulo}
         </Link>
 
         {/* PREÇO */}
-        <div className="flex flex-col">
+        <div className="flex flex-col mt-auto">
           {isDeal ? (
             <>
               {product.preco_anterior != null && (
-                <span className="text-sm text-[#45C4B0] line-through">
+                <span className="text-xs text-ink-faint line-through">
                   R$ {Number(product.preco_anterior).toFixed(2)}
                 </span>
               )}
 
               {product.preco_atual != null && (
-                <span className="text-3xl font-extrabold text-[#F5F138]">
+                <span className="text-xl sm:text-2xl font-extrabold text-success">
                   R$ {Number(product.preco_atual).toFixed(2)}
                 </span>
               )}
             </>
           ) : (
-            <span className="text-3xl font-extrabold text-[#F5F138]">
+            <span className="text-xl sm:text-2xl font-extrabold text-ink">
               {"preco" in product && product.preco != null
                 ? `R$ ${Number(product.preco).toFixed(2)}`
                 : "Preço indisponível"}
@@ -133,27 +126,27 @@ export default function ProductCard({ product, priority = false }: Props) {
 
         {/* ABAIXO DA MÉDIA */}
         {product.isBelowAverage && product.priceDiffPercent != null && (
-          <div className="text-sm text-[#45C4B0] font-bold">
+          <div className="text-xs text-success font-semibold">
             ⬇ {Math.abs(product.priceDiffPercent).toFixed(1)}% abaixo da média
           </div>
         )}
 
         {/* BOTÕES */}
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-2 mt-3">
           <Link
             href={productUrl}
             className="
-          flex-1
-          bg-[#DAFDBA]
-          hover:bg-[#45C4B0]
-          text-[#000D34]
-          text-sm
-          font-semibold
-          py-2.5
-          rounded-xl
-          transition
-          text-center
-        "
+              flex-1
+              bg-panel-subtle
+              hover:bg-line
+              text-ink-muted hover:text-ink
+              text-sm
+              font-medium
+              py-2.5
+              rounded-xl
+              transition
+              text-center
+            "
           >
             Detalhes
           </Link>
@@ -164,29 +157,22 @@ export default function ProductCard({ product, priority = false }: Props) {
               target="_blank"
               rel="noopener noreferrer sponsored"
               className="
-            flex-1
-            bg-[#F5F138]
-            hover:brightness-95
-            text-[#000D34]
-            text-sm
-            font-bold
-            py-2.5
-            rounded-xl
-            transition
-            text-center
-          "
+                flex-1
+                bg-primary
+                hover:bg-primary-hover
+                text-white
+                text-sm
+                font-semibold
+                py-2.5
+                rounded-xl
+                transition
+                text-center
+              "
             >
               Comprar
             </a>
           )}
         </div>
-
-        {/* BADGE OPORTUNIDADE */}
-        {showOpportunity && (
-          <span className="absolute bottom-0 right-4 bg-[#45C4B0] text-[#000D34] text-xs font-extrabold px-3 py-1 rounded-full shadow-md">
-            🔥 Oportunidade
-          </span>
-        )}
       </div>
     </article>
   );

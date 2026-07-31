@@ -7,7 +7,8 @@ import type { Metadata } from "next";
 const LIMIT = 12;
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://promoly-core.vercel.app";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://promoly-core.vercel.app";
 
 /* =====================================================
    🔥 METADATA DINÂMICA
@@ -20,6 +21,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;
 }): Promise<Metadata> {
+
   const { slug } = await params;
   const resolvedSearchParams = await searchParams;
 
@@ -36,6 +38,7 @@ export async function generateMetadata({
     },
   };
 }
+
 
 /* =====================================================
    🔥 PAGE
@@ -121,8 +124,10 @@ export default async function CategoryPage(props: {
       },
     ],
   };
+
   return (
-    <div className="bg-[#000D34] min-h-screen">
+    <div className="bg-base min-h-screen">
+
       {/* 🔥 STRUCTURED DATA */}
       <script
         type="application/ld+json"
@@ -130,6 +135,7 @@ export default async function CategoryPage(props: {
           __html: JSON.stringify(itemListSchema),
         }}
       />
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -137,41 +143,41 @@ export default async function CategoryPage(props: {
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        {/* ================= HERO HEADER ================= */}
-        <header className="mb-16 text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#9AEBA3] leading-tight">
-            Ofertas em <span className="text-[#F5F138] capitalize">{slug}</span>
+      <div className="max-w-7xl mx-auto px-4 py-10">
+
+        {/* HEADER */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-ink capitalize">
+            {slug}
           </h1>
 
-          <p className="text-[#45C4B0] mt-4 text-lg font-semibold">
-            {total} produtos encontrados com histórico de preço
+          <p className="text-sm text-ink-muted mt-1">
+            {total} produtos encontrados
           </p>
-        </header>
-
-        {/* ================= FILTROS ================= */}
-        <div className="mb-14">
-          <CategoryFilters />
         </div>
 
-        {/* ================= GRID ================= */}
+        {/* FILTROS */}
+        <CategoryFilters />
+
+        {/* GRID */}
         {products.length === 0 ? (
-          <div className="text-center mt-20">
-            <p className="text-[#45C4B0] text-lg font-semibold">
-              Nenhum produto encontrado.
-            </p>
-          </div>
+          <p className="text-ink-muted mt-6">
+            Nenhum produto encontrado
+          </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
             {products.map((p) => (
-              <ProductCard key={p.produto_id} product={p} />
+              <ProductCard
+                key={p.produto_id}
+                product={p}
+              />
             ))}
           </div>
         )}
 
-        {/* ================= PAGINAÇÃO ================= */}
+        {/* PAGINAÇÃO */}
         {totalPages > 1 && (
-          <div className="flex justify-center gap-4 mt-20 flex-wrap">
+          <div className="flex justify-center gap-2 mt-12 flex-wrap">
             {Array.from({ length: totalPages }).map((_, i) => {
               const pageNumber = i + 1;
               const isActive = page === pageNumber;
@@ -187,10 +193,10 @@ export default async function CategoryPage(props: {
                       order,
                     },
                   }}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-bold transition ${
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
                     isActive
-                      ? "bg-[#F5F138] text-[#000D34] shadow-lg"
-                      : "bg-[#0a154a] text-[#DAFDBA] border border-[#45C4B0] hover:bg-[#45C4B0] hover:text-[#000D34]"
+                      ? "bg-primary text-white"
+                      : "bg-panel text-ink-muted border border-line hover:bg-success hover:text-[#052e16] hover:border-success"
                   }`}
                 >
                   {pageNumber}
@@ -199,6 +205,7 @@ export default async function CategoryPage(props: {
             })}
           </div>
         )}
+
       </div>
     </div>
   );
