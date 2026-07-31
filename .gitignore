@@ -17,6 +17,11 @@ schemas.sql
 .env.*
 !.env.example
 
+# Node
+# O node_modules da raiz foi criado por um `npm install` rodado fora do
+# promoly-next; nao ha package.json aqui que declare essas dependencias.
+node_modules/
+
 # Python
 __pycache__/
 *.py[cod]
