@@ -2,8 +2,13 @@ name: Scraper Mercado Livre
 
 on:
   schedule:
-    # 06:00 e 18:00 em America/Sao_Paulo (runner usa UTC, UTC-3)
-    - cron: "0 9,21 * * *"
+    # 06:00 em America/Sao_Paulo (runner usa UTC, UTC-3).
+    #
+    # Uma vez por dia, nao duas. Isto aqui e trafego automatizado contra site
+    # de terceiro, e o Mercado Livre bloqueia IP quando quer — metade das
+    # requisicoes e metade do risco. Para o que o projeto precisa mostrar,
+    # ter produto na tela, a diferenca entre 12h e 24h de defasagem e nenhuma.
+    - cron: "0 9 * * *"
   workflow_dispatch:
 
 # Substitui o flock do run_scrapping.sh: duas execucoes nunca se cruzam.
