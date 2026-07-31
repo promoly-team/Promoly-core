@@ -72,6 +72,11 @@ CREATE TABLE produto_categoria (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+    PRIMARY KEY (produto_id, categoria_id),
+
+    FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE,
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
+);
 
 
 -- ========================
@@ -192,6 +197,39 @@ CREATE TABLE clicks (
     FOREIGN KEY (produto_id) REFERENCES produtos(id),
     FOREIGN KEY (plataforma_id) REFERENCES plataformas(id)
 );
+
+
+-- ========================
+-- VIEW PÚBLICA DE PRODUTOS
+-- ========================
+-- Só produtos ativos que já têm link de afiliado gerado. É a fonte de
+-- `api/services/product_service.py` — sem ela, /products quebra com
+-- UndefinedTable num banco recém-criado.
+CREATE VIEW produtos_publicos AS
+SELECT
+    p.id,
+    p.external_id,
+    p.plataforma_id,
+    p.titulo,
+    p.slug,
+    p.descricao,
+    p.preco,
+    p.avaliacao,
+    p.vendas,
+    p.imagem_url,
+    p.link_original,
+    p.status,
+    p.card_hash,
+    p.created_at,
+    p.updated_at,
+    la.url_afiliada
+FROM produtos p
+JOIN links_afiliados la
+    ON la.produto_id = p.id
+    AND la.status = 'ok'
+    AND la.url_afiliada IS NOT NULL
+    AND la.url_afiliada != ''
+WHERE p.status = 'ativo';
 
 -- ========================
 -- ÍNDICES

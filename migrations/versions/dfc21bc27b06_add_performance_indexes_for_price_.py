@@ -52,13 +52,16 @@ def upgrade():
         unique=False
     )
 
-    # Produtos públicos
-    op.create_index(
-        "idx_produtos_publicos_id",
-        "produtos_publicos",
-        ["id"],
-        unique=False
-    )
+    # `produtos_publicos` é uma VIEW, e PostgreSQL não aceita índice em view
+    # comum — só em tabela ou view materializada. Esta migration nunca rodou
+    # contra um banco criado do zero; quebrava com:
+    #
+    #   UndefinedTable: relation "produtos_publicos" does not exist
+    #
+    # e, com a view já criada, quebraria de novo por tentar indexá-la.
+    #
+    # O índice também não faria diferença: a view resolve pelos índices das
+    # tabelas de base, e `produtos.id` já é chave primária.
 
 
 def downgrade():

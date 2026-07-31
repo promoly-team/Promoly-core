@@ -24,6 +24,14 @@ jobs:
       - name: Instala dependencias
         run: pip install -r requirements.txt
 
+      # As migrations do Alembic cobrem so o incremento — subcategorias,
+      # twitter_posts, colunas novas. Nenhuma delas cria `categorias`,
+      # `produtos` ou `plataformas`: o schema base mora em schema_postgres.sql
+      # e nunca foi versionado como migration. Sem este passo, o
+      # `alembic upgrade head` num banco vazio quebra na primeira FK.
+      - name: Aplica o schema base (se o banco estiver vazio)
+        run: python scripts/bootstrap_schema.py
+
       - name: Aplica migrations
         run: alembic upgrade head
 
