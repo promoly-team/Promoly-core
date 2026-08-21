@@ -1,12 +1,37 @@
 from typing import Optional
 from decimal import Decimal
+from slugify import slugify
 from sqlalchemy import text
 from sqlalchemy.sql import bindparam
+
+# Teto do trecho vindo do título, para o slug não virar a frase inteira do
+# anúncio. O front ainda concatena `-{produto_id}` na URL.
+SLUG_TITULO_MAX = 80
+
 
 def _normalize(value):
     if isinstance(value, Decimal):
         return float(value)
     return value
+
+
+def slug_base(titulo: str) -> str:
+    """Slug legível a partir do título, sem garantia de unicidade."""
+    return slugify(titulo or "", max_length=SLUG_TITULO_MAX, word_boundary=True)
+
+
+def build_slug(titulo: str, external_id: str) -> str:
+    """Forma à prova de colisão: título + `external_id` (MLB…, único por
+    plataforma).
+
+    Usada quando o slug do título já pertence a outro anúncio — `produtos.slug`
+    é UNIQUE, e sem desempate o segundo produto não entra. Título sem nenhum
+    caractere aproveitável cai só no identificador.
+    """
+    base = slug_base(titulo)
+    sufixo = slugify(external_id)
+
+    return f"{base}-{sufixo}" if base else sufixo
 
 
 class ProdutoRepository:
@@ -50,6 +75,33 @@ class ProdutoRepository:
 
         return result.mappings().first()
 
+    # 🔤 slug do produto: o do título quando estiver livre, senão o desempate
+    # pelo external_id. O valor é calculado em todo upsert, mas só é gravado
+    # na inserção — no conflito o DO UPDATE não toca na coluna.
+    def _resolve_slug(self, titulo: str, external_id: str, plataforma_id: int) -> str:
+        base = slug_base(titulo)
+
+        if not base:
+            return build_slug(titulo, external_id)
+
+        dono = self.conn.execute(
+            text("""
+                SELECT external_id, plataforma_id
+                FROM produtos
+                WHERE slug = :slug
+                LIMIT 1
+            """),
+            {"slug": base},
+        ).mappings().first()
+
+        if dono is None or (
+            dono["external_id"] == external_id
+            and dono["plataforma_id"] == plataforma_id
+        ):
+            return base
+
+        return build_slug(titulo, external_id)
+
     # 🆕 cria ou atualiza produto
     def upsert(self, produto: dict) -> int:
         self.conn.execute(
@@ -58,6 +110,7 @@ class ProdutoRepository:
                     external_id,
                     plataforma_id,
                     titulo,
+                    slug,
                     descricao,
                     preco,
                     avaliacao,
@@ -71,6 +124,7 @@ class ProdutoRepository:
                     :external_id,
                     :plataforma_id,
                     :titulo,
+                    :slug,
                     :descricao,
                     :preco,
                     :avaliacao,
@@ -81,6 +135,9 @@ class ProdutoRepository:
                     :card_hash
                 )
                 ON CONFLICT (external_id, plataforma_id)
+                -- `slug` fica de fora de propósito: o anúncio muda de título
+                -- com frequência no ML, e reescrever o slug quebraria a URL
+                -- de /produto/[slug] que já está indexada e no sitemap.
                 DO UPDATE SET
                     titulo = EXCLUDED.titulo,
                     descricao = EXCLUDED.descricao,
@@ -97,6 +154,11 @@ class ProdutoRepository:
                 "external_id": produto["external_id"],
                 "plataforma_id": produto["plataforma_id"],
                 "titulo": produto["titulo"],
+                "slug": self._resolve_slug(
+                    produto["titulo"],
+                    produto["external_id"],
+                    produto["plataforma_id"],
+                ),
                 "descricao": produto.get("descricao"),
                 "preco": _normalize(produto.get("preco")),
                 "avaliacao": _normalize(produto.get("avaliacao")),
